@@ -42,7 +42,7 @@ describe("Skybet customer routes", () => {
   it("renders the games preview route", () => {
     renderAt("/games");
     expect(screen.getByRole("heading", { name: "Games feed preview" })).toBeInTheDocument();
-    expect(screen.getByText("Mock API · not provider data")).toBeInTheDocument();
+    expect(screen.getByText("Virtual-game demo · simulated catalogue")).toBeInTheDocument();
   });
 
   it("renders the account controls route", () => {

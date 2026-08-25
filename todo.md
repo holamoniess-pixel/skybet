@@ -38,3 +38,11 @@
 - [x] Test and visually verify the expanded Skybet page suite on mobile and desktop layouts.
 - [x] Add failed-search guidance and retry handling to the Skybet administrator user picker.
 - [x] Add frontend interaction tests for administrator user search/filter selection and simulated games-feed refresh behaviour.
+- [x] Replace Skybet’s header search control with an account-first action and add an original branded hero visual.
+- [x] Tighten the mobile and desktop hero hierarchy by replacing the long preview wording and secondary account-control action.
+- [x] Reframe the simulated games preview around clearly labelled virtual-game and demo categories.
+- [x] Compact the Skybet event-card information density while preserving 44px touch targets and accessible market selection.
+- [x] Add tests and responsive visual verification for the requested Skybet visual refinements.
+- [x] Add explicit virtual-game demo category controls to the Skybet feed preview while retaining its simulated-data boundary.
+- [x] Add frontend tests for the account-first header action, hero live-board action, compact event-card selection, and virtual-demo category filter.
+- [x] Re-run mobile and desktop visual verification after the virtual-game category controls are implemented.

@@ -10,7 +10,6 @@ import {
   Gift,
   LayoutGrid,
   Moon,
-  Search,
   ShieldCheck,
   Sun,
   Ticket,
@@ -112,13 +111,13 @@ export default function Home() {
           </nav>
           <div className="ml-auto flex items-center gap-1.5">
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
-              className="size-10 rounded-xl text-[var(--sky-navy-700)] dark:text-slate-200"
-              aria-label="Search the demo catalogue"
-              onClick={() => setLocation("/search")}
+              className="size-10 rounded-xl border-[var(--sky-blue-200)] text-[var(--sky-blue-700)] dark:border-white/15 dark:text-white"
+              aria-label="Open account controls"
+              onClick={() => setLocation("/account")}
             >
-              <Search className="size-[18px]" />
+              <UserRound className="size-[18px]" />
             </Button>
             <Button
               variant="ghost"
@@ -129,55 +128,36 @@ export default function Home() {
             >
               {theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
             </Button>
-            <Button
-              variant="outline"
-              className="hidden h-10 rounded-xl border-[var(--sky-blue-200)] px-4 font-bold text-[var(--sky-blue-700)] md:inline-flex dark:border-white/15 dark:text-white"
-              onClick={() => setLocation("/account")}
-            >
-              <UserRound className="size-4" />
-              Account
-            </Button>
           </div>
         </div>
       </header>
       <MobileMatchRail liveEvents={liveEvents} onOpenLive={() => setLocation("/live")} />
 
       <main className="container py-5 md:py-8">
-        <section className="sky-hero relative overflow-hidden rounded-[1.75rem] border border-[var(--sky-blue-100)] bg-white px-5 py-6 shadow-[0_16px_50px_rgba(10,63,158,0.08)] dark:border-white/10 dark:bg-[var(--card)] sm:rounded-[2rem] sm:px-8 sm:py-9">
-          <div className="sky-dots absolute right-3 top-3 h-28 w-28 opacity-75" aria-hidden="true" />
-          <div className="sky-hero-arc absolute -right-16 -top-16 size-60 rounded-full border-[26px] border-[var(--sky-blue-100)]" aria-hidden="true" />
-          <div className="relative max-w-2xl">
+        <section className="sky-hero relative min-h-[19.5rem] overflow-hidden rounded-[1.75rem] border border-[var(--sky-blue-100)] bg-[var(--sky-navy-950)] px-5 py-6 shadow-[0_16px_50px_rgba(10,63,158,0.14)] dark:border-white/10 sm:min-h-[22rem] sm:rounded-[2rem] sm:px-8 sm:py-9">
+          <img src="/manus-storage/skybet-live-match-hero_97d12259.png" alt="Illuminated football stadium for Skybet live match preview" className="absolute inset-0 size-full object-cover object-center opacity-75" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,19,51,0.98)_0%,rgba(3,19,51,0.87)_45%,rgba(3,19,51,0.18)_100%)]" aria-hidden="true" />
+          <div className="relative max-w-xl">
             <Badge className="mb-4 rounded-full bg-[var(--sky-ice-100)] px-3 py-1 text-[11px] font-extrabold tracking-[0.12em] text-[var(--sky-blue-700)] uppercase hover:bg-[var(--sky-ice-100)]">
-              Skybet preview
+              Match day preview
             </Badge>
-            <h1 className="max-w-xl text-3xl font-extrabold tracking-[-0.06em] text-[var(--sky-navy-950)] sm:text-5xl dark:text-white">
-              The live match centre, made clear.
+            <h1 className="max-w-xl text-3xl font-extrabold tracking-[-0.06em] text-white sm:text-5xl">
+              Your match day, in view.
             </h1>
-            <p className="mt-4 max-w-xl text-base leading-7 text-[var(--sky-navy-600)] dark:text-slate-300">
-              Follow live event cards, check key market states, and keep account controls close without the usual clutter.
+            <p className="mt-3 max-w-md text-sm leading-6 text-slate-200 sm:text-base sm:leading-7">
+              Live match states, virtual-game previews, and a clear route to the event board.
             </p>
-            <div className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row">
+            <div className="mt-5 flex">
               <Button
                 className="h-12 rounded-xl bg-[var(--sky-blue-600)] px-5 font-bold text-white shadow-[0_10px_20px_rgba(15,87,199,0.2)] hover:bg-[var(--sky-blue-700)]"
-                onClick={() => {
-                  setMode("live");
-                  document.getElementById("skybet-events")?.scrollIntoView({ behavior: "smooth" });
-                }}
+                onClick={() => setLocation("/live")}
               >
-                Explore live centre
+                Open live board
                 <ArrowRight className="size-4" />
-              </Button>
-              <Button
-                variant="outline"
-                className="h-12 rounded-xl border-[var(--sky-blue-200)] px-5 font-bold text-[var(--sky-blue-700)] hover:bg-[var(--sky-ice-100)] dark:border-white/15 dark:text-white dark:hover:bg-white/10"
-                onClick={() => setAccountOpen(true)}
-              >
-                <ShieldCheck className="size-4" />
-                View account controls
               </Button>
             </div>
           </div>
-          <div className="relative mt-6 grid grid-cols-2 gap-1.5 border-t border-[var(--sky-blue-100)] pt-4 sm:mt-7 sm:gap-2 sm:pt-5 lg:grid-cols-4 dark:border-white/10">
+          <div className="relative mt-6 grid grid-cols-2 gap-1.5 border-t border-white/15 pt-4 sm:mt-7 sm:gap-2 sm:pt-5 lg:grid-cols-4">
             {discoveryItems.map(({ label, icon: Icon, description }) => (
               <button
                 key={label}
@@ -191,14 +171,14 @@ export default function Home() {
                   if (label === "Rewards") toast.message("Referral rewards are planned for the secured Skybet release.");
                   if (label === "Games hub") document.getElementById("skybet-games-feed")?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="group flex min-h-14 items-center gap-2 rounded-xl px-2.5 text-left transition hover:bg-[var(--sky-ice-50)] sm:gap-3 sm:rounded-2xl sm:px-3 dark:hover:bg-white/5"
+                className="group flex min-h-14 items-center gap-2 rounded-xl px-2.5 text-left transition hover:bg-white/10 sm:gap-3 sm:rounded-2xl sm:px-3"
               >
                 <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--sky-ice-100)] text-[var(--sky-blue-700)] transition group-hover:bg-[var(--sky-blue-600)] group-hover:text-white">
                   <Icon className="size-[18px]" />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-extrabold text-[var(--sky-navy-950)] dark:text-white">{label}</span>
-                  <span className="block truncate text-xs text-[var(--sky-navy-600)] dark:text-slate-400">{description}</span>
+                  <span className="block text-sm font-extrabold text-white">{label}</span>
+                  <span className="block truncate text-xs text-slate-300">{description}</span>
                 </span>
                 <ChevronRight className="ml-auto size-4 text-[var(--sky-blue-400)]" />
               </button>

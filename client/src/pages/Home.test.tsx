@@ -53,6 +53,7 @@ beforeAll(() => {
 afterEach(() => {
   cleanup();
   mockFeedRefetch.mockClear();
+  window.history.pushState({}, "", "/");
 });
 
 describe("Skybet Home", () => {
@@ -62,7 +63,7 @@ describe("Skybet Home", () => {
     expect(screen.getByRole("heading", { name: "Live centre" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Harbour City2.18" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cedar Waves1.68" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Simulated games feed" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Virtual match previews" })).toBeInTheDocument();
   });
 
   it("switches to the upcoming event view", async () => {
@@ -76,7 +77,7 @@ describe("Skybet Home", () => {
     expect(screen.queryByRole("button", { name: "Harbour City2.18" })).not.toBeInTheDocument();
   });
 
-  it("opens the selection sheet after a market is chosen", async () => {
+  it("keeps market selection available from the compact event card", async () => {
     const user = userEvent.setup();
     renderHome();
 
@@ -84,6 +85,18 @@ describe("Skybet Home", () => {
 
     expect(screen.getByText("Review your selection")).toBeInTheDocument();
     expect(screen.getAllByText("Harbour City vs Northvale FC · Harbour City")).not.toHaveLength(0);
+  });
+
+  it("routes the account-first header action and primary hero action to their dedicated views", async () => {
+    const user = userEvent.setup();
+    renderHome();
+
+    await user.click(screen.getByRole("button", { name: "Open account controls" }));
+    expect(window.location.pathname).toBe("/account");
+
+    window.history.pushState({}, "", "/");
+    await user.click(screen.getByRole("button", { name: "Open live board" }));
+    expect(window.location.pathname).toBe("/live");
   });
 
   it("allows the simulated feed to be refreshed from the preview control", async () => {
