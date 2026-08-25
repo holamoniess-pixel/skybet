@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Activity, ArrowLeft, CalendarDays, CircleHelp, ClipboardList, Gamepad2, Search, ShieldCheck, Trophy, UserRound } from "lucide-react";
+import { Activity, ArrowLeft, CalendarDays, CircleHelp, ClipboardList, Gamepad2, Mail, Search, ShieldCheck, Trophy, UserRound } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { getMockGamesFeed } from "@shared/mockGamesFeed";
 import { filterSkybetEvents, SKYBET_EVENTS, type SkybetEvent } from "@shared/skybet";
@@ -52,7 +52,14 @@ export function ActivityPage() {
 }
 
 export function AccountPage() {
-  return <CustomerShell activeMobileNav="Account"><PageHeader eyebrow="Account centre" title="Your Skybet controls" description="A clear account preview with safety, identity, and support areas ready for approved integrations." /><main className="container py-6 md:py-8"><div className="grid gap-4 md:grid-cols-3">{[{ id: "profile", icon: UserRound, title: "Profile", text: "Identity and preferences will be visible here after account onboarding." }, { id: "safer-play", icon: ShieldCheck, title: "Safer play", text: "Limits, exclusion, and support pathways must be server-enforced before launch." }, { id: "support", icon: CircleHelp, title: "Support", text: "Help and issue-management channels will be connected after compliance approval." }, { id: "preferences", icon: UserRound, title: "Preferences", text: "Personalisation choices are held for the approved account experience." }].map(({ id, icon: Icon, title, text }) => <Card id={id} key={title} className="border-[var(--sky-blue-100)] bg-white dark:border-white/10 dark:bg-[var(--card)]"><CardContent className="p-5"><span className="grid size-10 place-items-center rounded-xl bg-[var(--sky-ice-100)] text-[var(--sky-blue-700)]"><Icon className="size-5" /></span><h2 className="mt-5 text-lg font-extrabold text-[var(--sky-navy-950)] dark:text-white">{title}</h2><p className="mt-2 text-sm leading-6 text-[var(--sky-navy-600)] dark:text-slate-400">{text}</p></CardContent></Card>)}</div></main></CustomerShell>;
+  const accountSections = [
+    { id: "profile", icon: UserRound, title: "Profile", text: "Identity and preferences will be visible here after account onboarding." },
+    { id: "safer-play", icon: ShieldCheck, title: "Safer play", text: "Limits, exclusion, and support pathways must be server-enforced before launch." },
+    { id: "support", icon: CircleHelp, title: "Customer service", text: "For account and preview support, contact the Skybet customer-service team.", email: "Skybet0553@gmail.com" },
+    { id: "preferences", icon: UserRound, title: "Preferences", text: "Personalisation choices are held for the approved account experience." },
+  ];
+
+  return <CustomerShell activeMobileNav="Account"><PageHeader eyebrow="Account centre" title="Your Skybet controls" description="A clear account preview with safety, identity, and support areas ready for approved integrations." /><main className="container py-6 md:py-8"><div className="grid gap-4 md:grid-cols-3">{accountSections.map(({ id, icon: Icon, title, text, email }) => <Card id={id} key={title} className="border-[var(--sky-blue-100)] bg-white dark:border-white/10 dark:bg-[var(--card)]"><CardContent className="p-5"><span className="grid size-10 place-items-center rounded-xl bg-[var(--sky-ice-100)] text-[var(--sky-blue-700)]"><Icon className="size-5" /></span><h2 className="mt-5 text-lg font-extrabold text-[var(--sky-navy-950)] dark:text-white">{title}</h2><p className="mt-2 text-sm leading-6 text-[var(--sky-navy-600)] dark:text-slate-400">{text}</p>{email ? <a href={`mailto:${email}`} aria-label="Email Skybet customer service" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--sky-emerald-600)]/25 bg-[var(--sky-emerald-600)]/10 px-3 text-sm font-extrabold text-[var(--sky-emerald-700)] hover:bg-[var(--sky-emerald-600)]/15 dark:text-[var(--sky-emerald-500)]"><Mail className="size-4" />{email}</a> : null}</CardContent></Card>)}</div></main></CustomerShell>;
 }
 
 export function EventDetailPage() {

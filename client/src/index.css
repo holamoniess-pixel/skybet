@@ -167,6 +167,66 @@
     min-width: 0;
   }
 
+  .sky-preview-wallet {
+    display: flex;
+    min-height: 3.1rem;
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, var(--sky-blue-300) 26%, transparent);
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--sky-navy-950), color-mix(in oklab, var(--sky-navy-950) 84%, var(--sky-blue-600)));
+    box-shadow: 0 8px 18px color-mix(in oklab, var(--sky-navy-950) 18%, transparent);
+  }
+
+  .sky-preview-wallet-balance {
+    min-width: 0;
+    padding: 0.45rem 0.65rem 0.45rem 0.85rem;
+    text-align: left;
+  }
+
+  .sky-preview-wallet-amount,
+  .sky-preview-wallet-bonus {
+    display: block;
+    white-space: nowrap;
+  }
+
+  .sky-preview-wallet-amount {
+    color: var(--sky-white-50);
+    font-size: 0.95rem;
+    font-weight: 850;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+  }
+
+  .sky-preview-wallet-bonus {
+    margin-top: 0.2rem;
+    color: var(--sky-emerald-500);
+    font-size: 0.66rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .sky-preview-wallet-account {
+    align-self: center;
+    width: 2.45rem;
+    height: 2.45rem;
+    margin-right: 0.3rem;
+    border: 1px solid color-mix(in oklab, var(--sky-blue-300) 22%, transparent);
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--sky-blue-600) 45%, transparent);
+    color: var(--sky-emerald-500);
+  }
+
+  .sky-preview-wallet-account:hover {
+    background: color-mix(in oklab, var(--sky-blue-500) 62%, transparent);
+    color: var(--sky-white-50);
+  }
+
+  .sky-preview-wallet-balance:focus-visible,
+  .sky-preview-wallet-account:focus-visible {
+    outline: 2px solid var(--sky-blue-300);
+    outline-offset: -2px;
+  }
+
   .sky-hero {
     background-image: linear-gradient(90deg, oklch(1 0 0 / 0.9), oklch(0.985 0.003 252 / 0.8));
   }

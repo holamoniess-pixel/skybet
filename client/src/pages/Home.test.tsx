@@ -117,6 +117,14 @@ describe("Skybet Home", () => {
     expect(window.location.pathname).toBe("/account");
   });
 
+  it("shows the compact balance-and-bonus treatment and the customer-service email", () => {
+    renderHome();
+
+    expect(screen.getByText("GH₵ 0.00")).toBeInTheDocument();
+    expect(screen.getByText("Bonus: GH₵ 0.00")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Email Skybet customer service" })).toHaveAttribute("href", "mailto:Skybet0553@gmail.com");
+  });
+
   it("allows the simulated feed to be refreshed from the preview control", async () => {
     const user = userEvent.setup();
     renderHome();

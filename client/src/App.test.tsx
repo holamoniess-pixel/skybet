@@ -48,5 +48,6 @@ describe("Skybet customer routes", () => {
   it("renders the account controls route", () => {
     renderAt("/account");
     expect(screen.getByRole("heading", { name: "Your Skybet controls" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Email Skybet customer service" })).toHaveAttribute("href", "mailto:Skybet0553@gmail.com");
   });
 });

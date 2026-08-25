@@ -60,3 +60,8 @@
 - [x] Replace public placeholder-only rewards, event-code, support, and account-drawer actions with real safe destinations or clear inline states.
 - [x] Make event-detail market choices open the existing non-transactional preview selection flow.
 - [x] Document the complete public control inventory for all public routes at desktop and mobile breakpoints in the verification record.
+- [x] Add the supplied customer-service email to the appropriate Skybet support surface.
+- [x] Restyle the preview balance with an original compact amount-and-bonus treatment informed by the provided reference image.
+- [x] Add regression tests and responsive visual checks for the revised balance and customer-support contact.
+- [ ] Perform and document a new live public-route browser audit after the update.
+- [ ] Publish the balance and customer-service update, then re-run the public control audit against the Skybet public domain.

@@ -9,6 +9,7 @@ import {
   Gamepad2,
   Gift,
   LayoutGrid,
+  Mail,
   Moon,
   ShieldCheck,
   Sun,
@@ -137,19 +138,21 @@ export default function Home() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1.5">
-            <button type="button" aria-label="Preview balance" onClick={() => setLocation("/account")} className="block h-10 rounded-xl border border-[var(--sky-blue-100)] bg-[var(--sky-ice-50)] px-3 text-right transition hover:border-[var(--sky-blue-300)] dark:border-white/10 dark:bg-white/5">
-              <span className="block text-[9px] font-extrabold tracking-[0.1em] text-[var(--sky-navy-500)] uppercase dark:text-slate-400">Preview balance</span>
-              <span className="block text-xs font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">GH₵ 0.00</span>
-            </button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="size-10 rounded-xl border-[var(--sky-blue-200)] text-[var(--sky-blue-700)] dark:border-white/15 dark:text-white"
-              aria-label="Open account controls"
-              onClick={() => setLocation("/account")}
-            >
-              <UserRound className="size-[18px]" />
-            </Button>
+            <div className="sky-preview-wallet">
+              <button type="button" aria-label="Preview balance" onClick={() => setLocation("/account")} className="sky-preview-wallet-balance">
+                <span className="sky-preview-wallet-amount">GH₵ 0.00</span>
+                <span className="sky-preview-wallet-bonus">Bonus: GH₵ 0.00</span>
+              </button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="sky-preview-wallet-account"
+                aria-label="Open account controls"
+                onClick={() => setLocation("/account")}
+              >
+                <UserRound className="size-[18px]" />
+              </Button>
+            </div>
             <Button
               variant="ghost"
               size="icon"
@@ -392,6 +395,9 @@ export default function Home() {
               <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-white/10 text-[var(--sky-blue-300)]"><CircleHelp className="size-5" /></div>
               <div>
                 <p className="text-sm font-extrabold">Need a hand?</p>
+                <a href="mailto:Skybet0553@gmail.com" aria-label="Email Skybet customer service" className="mt-1 flex items-center gap-1 text-sm font-semibold text-[var(--sky-emerald-500)] hover:text-white">
+                  <Mail className="size-4" /> Skybet0553@gmail.com
+                </a>
                 <button type="button" onClick={() => setLocation("/account#support")} className="mt-1 flex items-center gap-1 text-sm font-semibold text-[var(--sky-blue-300)] hover:text-white">
                   Visit the Skybet help centre <ChevronRight className="size-4" />
                 </button>

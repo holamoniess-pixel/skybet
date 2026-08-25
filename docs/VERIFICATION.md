@@ -59,3 +59,11 @@ The repaired release passed **30 automated tests across 11 test files**, `pnpm c
 ### Post-repair visual review
 
 Fresh full-page screenshots of `/`, `/event/live-skyline`, and `/account` at `1280×720` and `375×812` confirmed that the new event-code helper text, account destinations, selection-ready market cards, and support entry remain readable and visually aligned. At mobile width, the sport rail, short hero, discovery row, event-code form, virtual-demo strip, compact match cards, and account/help cards remain within the viewport without horizontal overflow. At desktop width, the added Preferences section preserves the original account-page card rhythm, and the event-detail market grid remains clear above the non-transactional boundary.
+
+### Balance and customer-service refinement
+
+The updated home header was visually checked at `1280×720` and `375×812`. The preview balance now uses an original, integrated navy capsule with a primary balance line, a clearly distinct emerald bonus line, and a connected account affordance. The compact mobile treatment remains legible without crowding the Skybet mark or sport-discovery rail. The account page now presents the supplied customer-service address as an explicit mail link, with readable contrast at desktop width.
+
+### Fresh live control audit
+
+Following the balance and customer-service update, browser automation exercised **58 visible public controls and access checks** against the running Skybet application. All 58 checks passed. The audit covered desktop navigation, balance/account/theme actions, hero and discovery routes, filters and mode tabs, simulated-feed refresh and categories, known and unknown event-code flows, selection review and confirmation, support and mail-contact surfaces, account-drawer destinations, event cards, search, recovery routes, shared shell controls, mobile rail actions, mobile bottom navigation, and the unauthenticated administrator gate. The customer-service address was verified as a `mailto:` link on both the home support card and account customer-service card. No money movement, wager, deposit, payout, or email-send action was performed.
