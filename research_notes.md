@@ -1,0 +1,49 @@
+# Skybet Research Notes
+
+## Source-access log
+
+| Domain | Page reviewed | Result | Planning implication |
+| --- | --- | --- | --- |
+| `help.bet365.com` | Safer-gambling help centre | The regional help URL returned a branded 404 page. | Treat regional help URLs as volatile; cite primary regulatory guidance and stable official resources rather than relying on a single regional help path. |
+| `sportsbook.fanduel.com` | Main sportsbook website | Access was blocked by the site’s delivery network. | Do not infer implementation details from inaccessible consumer pages. Use public regulatory, responsible-gaming, and provider documentation for verifiable architecture requirements. |
+
+## Preliminary design guardrail
+
+The competitor review will focus on observable product conventions and published compliance controls. Skybet will not copy branded interfaces, promotional copy, proprietary odds, games, or account flows from any third party.
+
+## Verified platform patterns
+
+| Domain | Source | Observed pattern | Skybet planning implication |
+| --- | --- | --- | --- |
+| `rg.draftkings.com` | Safer Play Tools | Deposit, wagering, per-wager, session-time, and loss limits are separate controls. Limit reductions apply immediately; increases are delayed. Strong authentication, transaction history, account closure, cool-off, and self-exclusion are also surfaced. | Model limits as distinct immutable-policy records. Enforce stricter settings immediately and require a cooling period and audit trail for any relaxation. |
+| `betmgminc.com` | Responsible Gambling | Responsible-gaming tools, spending/time controls, time-outs, education, and support are described as part of the product experience rather than a footnote. | Make the safer-play centre and budget controls first-class account areas, not solely legal-page content. |
+| `pa.betrivers.com` | Player account page | The accessible page presents identity-document upload, login notification, strong authentication, statements, location/age eligibility, responsible gaming, licensing, and help links. | Design identity verification, audit-visible account statements, sign-in notifications, MFA, jurisdiction gating, and regulator/support links as core launch requirements. |
+| `help.williamhill.com` | Safer Gambling Overview | Deposit limits, product blocking, session reminders, time-outs, self-exclusion, account closure, age verification, and third-party blocking resources are clearly separated. | Admin tooling must never bypass a self-exclusion or player limit. Use an entitlement/rules engine that can disable product access at the user, category, or jurisdiction level. |
+| `caesars.com` | Responsible-gaming support | The requested support page did not return readable content in the available environment. | Do not rely on inaccessible material for requirements; retain the domain in the benchmark log but ground design decisions in retrieved primary sources. |
+| `safergambling.betfair.com` | Tools to Help | Separate deposit and loss limits, profit-and-loss visibility, budgeting support, time-outs, time checks, product-level exclusion, and non-reversible self-exclusion are presented as a coherent toolkit. The page states that more-restrictive deposit changes take effect immediately while increases wait 24 hours. | Provide a personal activity dashboard and independent safety controls. Treat self-exclusion as an irreversible, policy-enforced state rather than an admin-editable preference. |
+| `unibet.co.uk` | Safer Gambling | The page visibly organizes information around tools, behaviour monitoring, staying in control, breaks, and support. | Skybet should pair user-configured limits with privacy-reviewed, explainable risk indicators and trained support workflows; automated flags must not independently make opaque punitive decisions. |
+| `account.betway.com` | Responsible Gambling | The account page lists deposit limits, definite and indefinite self-exclusion, and session reminders. | Include these separate safety states in Skybet’s account design and retain all state transitions in a compliance audit log. |
+
+## Games and sports-data integration findings
+
+| Source | Verified finding | Decision for the Skybet plan |
+| --- | --- | --- |
+| `the-odds-api.com` | The provider exposes JSON sports odds, scores, and results and advertises a starter allowance of 500 credits per month. | A controlled data-feed adapter can support a **development-only sports catalogue or odds-display prototype**. It must not be treated as authority to accept real-money wagers, calculate settlements, or operate in a regulated market. |
+| `bgaming.com` | Its operator guide describes a real-time integration involving game launch/session credentials, wallet debits/credits, verification, limits, payment callbacks, reporting, staged testing, and commercial onboarding. | A real casino catalogue is not a “free games API.” Skybet requires a licensed operator agreement, provider sandbox approval, jurisdiction validation, wallet/ledger integration, and end-to-end reconciliation before any production rollout. |
+
+## Regulatory baseline for planning
+
+| Primary source | Verified finding | Skybet planning implication |
+| --- | --- | --- |
+| Gaming Commission of Ghana | The Commission states that it regulates, controls, monitors, and supervises games of chance under Ghana’s Gaming Act 2006 (Act 721), with a stated focus on public interest, safety, and responsible gaming. | Ghana is a possible market hypothesis only. A jurisdiction-and-licence decision must be completed with qualified local counsel and regulator engagement before any real-money build or launch. |
+| UK Gambling Commission RTS | Licensed remote gambling and software operators must comply with remote technical standards and security requirements. | A production design needs security engineering, change control, tested integrations, access controls, reconciliation, incident response, and evidence—not only a consumer-facing interface. |
+| UK Gambling Commission AML guidance | The regulator describes a duty to ensure adequate controls against money laundering and terrorist financing. | Real-money scope requires a risk-based KYC/AML programme, transaction monitoring, escalation procedures, restricted jurisdictions, and auditable case management. |
+| UK Gambling Commission remote customer interaction condition | The condition requires continuous systems to identify, act on, and evaluate potential gambling harm. It specifies spend, spend patterns, time, behaviour, customer contact, tool use, and account indicators; strong automated actions require manual individual review and a means to contest the decision. | Player-safety design must be an operational subsystem with review queues and explainable controls. Marketing, bonuses, and referrals must be suppressible for at-risk and self-excluded accounts. |
+
+## Infrastructure research findings
+
+| Source | Verified finding | Decision for the Skybet plan |
+| --- | --- | --- |
+| Netlify documentation | A repository-root `netlify.toml` can version build, publish, redirect, function, and deploy-context configuration. Values in the file override equivalent dashboard settings, but Netlify recommends setting sensitive environment values in its dashboard rather than committing them. | Keep deployment mechanics, route rules, and non-secret build configuration in version control. Store all secrets in the Netlify production/staging environments, never in source or TOML. |
+| Neon documentation | Neon generates connection strings in its console, supports pooled and direct PostgreSQL endpoints, requires SSL/TLS, and documents `DATABASE_URL` as the standard application variable. | Use a dedicated least-privilege application role and a pooled, TLS-required `DATABASE_URL` for serverless app traffic. Use separate migration credentials and branch-per-preview database strategy. |
+| GitHub Actions documentation | GitHub supports repository and environment-level secrets; environment protection rules can restrict branches, require review, and delay or prevent deployment jobs from accessing environment secrets. | Create `development`, `staging`, and `production` environments. Restrict production deployments to protected `main`, require approvals, and keep production secrets isolated from preview workflows. |
