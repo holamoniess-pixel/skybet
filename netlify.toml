@@ -1,0 +1,16 @@
+[build]
+  command = "pnpm build"
+  publish = "dist/public"
+
+# Skybet is a single-page React application at the static-preview layer.
+# The current Express/tRPC server is not yet packaged as Netlify Functions;
+# therefore this configuration is suitable for UI previews only, not the
+# authenticated or regulated production product.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build.environment]
+  NODE_VERSION = "22"
+  PNPM_VERSION = "10.4.1"

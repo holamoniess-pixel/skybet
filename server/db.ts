@@ -1,6 +1,12 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import {
+  adminAuditEvents,
+  InsertUser,
+  referralRewardOverrides,
+  referralRewardRules,
+  users,
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +95,141 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getActiveReferralRewardRule() {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(referralRewardRules)
+    .where(eq(referralRewardRules.status, "active"))
+    .orderBy(desc(referralRewardRules.effectiveAt), desc(referralRewardRules.id))
+    .limit(1);
+
+  return result[0];
+}
+
+type ReferralRuleInput = {
+  amount: number;
+  currency: string;
+  reason: string;
+  actorUserId: number;
+};
+
+export async function saveReferralRewardRule(input: ReferralRuleInput) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  return db.transaction(async tx => {
+    const current = await tx
+      .select()
+      .from(referralRewardRules)
+      .where(eq(referralRewardRules.status, "active"))
+      .orderBy(desc(referralRewardRules.effectiveAt), desc(referralRewardRules.id))
+      .limit(1);
+    const previousRule = current[0];
+
+    if (previousRule) {
+      await tx
+        .update(referralRewardRules)
+        .set({ status: "superseded" })
+        .where(eq(referralRewardRules.id, previousRule.id));
+    }
+
+    const insertResult = await tx.insert(referralRewardRules).values({
+      amount: input.amount.toFixed(2),
+      currency: input.currency,
+      reason: input.reason,
+      createdBy: input.actorUserId,
+    });
+    const ruleId = Number(insertResult[0].insertId);
+
+    await tx.insert(adminAuditEvents).values({
+      actorUserId: input.actorUserId,
+      entityType: "referral_reward_rule",
+      entityId: ruleId,
+      action: "created",
+      beforeJson: previousRule ? JSON.stringify(previousRule) : null,
+      afterJson: JSON.stringify({ amount: input.amount, currency: input.currency, reason: input.reason }),
+    });
+
+    const created = await tx
+      .select()
+      .from(referralRewardRules)
+      .where(eq(referralRewardRules.id, ruleId))
+      .limit(1);
+
+    return created[0];
+  });
+}
+
+type ReferralOverrideInput = ReferralRuleInput & {
+  userId: number;
+};
+
+export async function saveReferralRewardOverride(input: ReferralOverrideInput) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  return db.transaction(async tx => {
+    const targetUser = await tx.select({ id: users.id }).from(users).where(eq(users.id, input.userId)).limit(1);
+    if (!targetUser[0]) {
+      throw new Error("Customer not found");
+    }
+
+    const current = await tx
+      .select()
+      .from(referralRewardOverrides)
+      .where(and(eq(referralRewardOverrides.userId, input.userId), eq(referralRewardOverrides.status, "active")))
+      .orderBy(desc(referralRewardOverrides.effectiveAt), desc(referralRewardOverrides.id))
+      .limit(1);
+    const previousOverride = current[0];
+
+    if (previousOverride) {
+      await tx
+        .update(referralRewardOverrides)
+        .set({ status: "superseded" })
+        .where(eq(referralRewardOverrides.id, previousOverride.id));
+    }
+
+    const insertResult = await tx.insert(referralRewardOverrides).values({
+      userId: input.userId,
+      amount: input.amount.toFixed(2),
+      currency: input.currency,
+      reason: input.reason,
+      createdBy: input.actorUserId,
+    });
+    const overrideId = Number(insertResult[0].insertId);
+
+    await tx.insert(adminAuditEvents).values({
+      actorUserId: input.actorUserId,
+      entityType: "referral_reward_override",
+      entityId: overrideId,
+      action: "created",
+      beforeJson: previousOverride ? JSON.stringify(previousOverride) : null,
+      afterJson: JSON.stringify({ userId: input.userId, amount: input.amount, currency: input.currency, reason: input.reason }),
+    });
+
+    const created = await tx
+      .select()
+      .from(referralRewardOverrides)
+      .where(eq(referralRewardOverrides.id, overrideId))
+      .limit(1);
+
+    return created[0];
+  });
+}
+
+export async function getActiveReferralRewardOverride(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(referralRewardOverrides)
+    .where(and(eq(referralRewardOverrides.userId, userId), eq(referralRewardOverrides.status, "active")))
+    .orderBy(desc(referralRewardOverrides.effectiveAt), desc(referralRewardOverrides.id))
+    .limit(1);
+
+  return result[0];
+}

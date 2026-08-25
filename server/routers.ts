@@ -1,7 +1,11 @@
 import { COOKIE_NAME } from "@shared/const";
+import { validateReferralRewardAmount } from "@shared/referrals";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import * as db from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, publicProcedure, router } from "./_core/trpc";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -16,13 +20,63 @@ export const appRouter = router({
       } as const;
     }),
   }),
+  referrals: router({
+    activeRule: adminProcedure.query(async () => {
+      return db.getActiveReferralRewardRule();
+    }),
+    activeOverride: adminProcedure
+      .input(z.object({ userId: z.number().int().positive() }))
+      .query(async ({ input }) => {
+        return db.getActiveReferralRewardOverride(input.userId);
+      }),
+    saveDefaultRule: adminProcedure
+      .input(z.object({ amount: z.string(), currency: z.literal("GHS"), reason: z.string().trim().min(5).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        const validation = validateReferralRewardAmount(input.amount);
+        if (!validation.ok) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: validation.reason });
+        }
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+        const rule = await db.saveReferralRewardRule({
+          amount: validation.amount,
+          currency: input.currency,
+          reason: input.reason,
+          actorUserId: ctx.user.id,
+        });
+        if (!rule) {
+          throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Referral settings are unavailable. Try again later." });
+        }
+        return rule;
+      }),
+    saveUserOverride: adminProcedure
+      .input(z.object({ userId: z.number().int().positive(), amount: z.string(), currency: z.literal("GHS"), reason: z.string().trim().min(5).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        const validation = validateReferralRewardAmount(input.amount);
+        if (!validation.ok) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: validation.reason });
+        }
+
+        try {
+          const override = await db.saveReferralRewardOverride({
+            userId: input.userId,
+            amount: validation.amount,
+            currency: input.currency,
+            reason: input.reason,
+            actorUserId: ctx.user.id,
+          });
+          if (!override) {
+            throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Referral settings are unavailable. Try again later." });
+          }
+          return override;
+        } catch (error) {
+          if (error instanceof TRPCError) throw error;
+          if (error instanceof Error && error.message === "Customer not found") {
+            throw new TRPCError({ code: "NOT_FOUND", message: "Customer ID was not found." });
+          }
+          throw error;
+        }
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
