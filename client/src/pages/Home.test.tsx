@@ -135,4 +135,34 @@ describe("Skybet Home", () => {
 
     expect(window.location.pathname).toBe("/account");
   });
+
+  it("routes discovery and support controls to their dedicated customer destinations", async () => {
+    const user = userEvent.setup();
+    renderHome();
+
+    await user.click(screen.getByRole("button", { name: /Rewards.*Referral progress/ }));
+    expect(window.location.pathname).toBe("/activity");
+    expect(window.location.hash).toBe("#rewards");
+
+    window.history.pushState({}, "", "/");
+    await user.click(screen.getByRole("button", { name: "Visit the Skybet help centre" }));
+    expect(window.location.pathname).toBe("/account");
+    expect(window.location.hash).toBe("#support");
+  });
+
+  it("opens a known event code and provides clear inline guidance for an unknown code", async () => {
+    const user = userEvent.setup();
+    renderHome();
+    const eventCode = screen.getByRole("textbox", { name: "Enter an event code" });
+
+    await user.type(eventCode, "live-skyline");
+    await user.click(screen.getByRole("button", { name: "Load" }));
+    expect(window.location.pathname).toBe("/event/live-skyline");
+
+    window.history.pushState({}, "", "/");
+    await user.clear(eventCode);
+    await user.type(eventCode, "not-a-preview-event");
+    await user.click(screen.getByRole("button", { name: "Load" }));
+    expect(screen.getByText(/No preview event was found for/)).toBeInTheDocument();
+  });
 });

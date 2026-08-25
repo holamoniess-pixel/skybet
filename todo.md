@@ -53,3 +53,10 @@
 - [x] Add frontend coverage for a Skybet mobile sport-discovery shortcut changing the home match view.
 - [x] Add frontend coverage for the Skybet preview-balance control routing to the account view, then re-verify responsive layouts.
 - [x] Re-run mobile and desktop visual verification after the final preview-balance test and mobile-scroll guard changes.
+- [x] Create and execute a complete public Skybet control and route inventory across desktop and mobile layouts.
+- [x] Implement missing destinations, state changes, and user feedback identified by the public interaction audit.
+- [x] Exercise administrator controls available to the current session and document authentication-gated checks.
+- [x] Add regression tests for repaired controls and re-test the public Skybet journey across responsive layouts.
+- [x] Replace public placeholder-only rewards, event-code, support, and account-drawer actions with real safe destinations or clear inline states.
+- [x] Make event-detail market choices open the existing non-transactional preview selection flow.
+- [x] Document the complete public control inventory for all public routes at desktop and mobile breakpoints in the verification record.

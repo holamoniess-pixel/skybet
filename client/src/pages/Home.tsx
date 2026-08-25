@@ -16,7 +16,6 @@ import {
   Trophy,
   UserRound,
 } from "lucide-react";
-import { toast } from "sonner";
 import {
   filterSkybetEvents,
   formatSelection,
@@ -44,10 +43,10 @@ type Selection = {
 };
 
 const discoveryItems = [
-  { label: "Live centre", icon: Activity, description: "Events happening now" },
-  { label: "Today’s football", icon: Trophy, description: "Curated match cards" },
-  { label: "Games hub", icon: Gamepad2, description: "Preview content lists" },
-  { label: "Rewards", icon: Gift, description: "Referral progress" },
+  { label: "Live centre", icon: Activity, description: "Events happening now", href: "/live" },
+  { label: "Today’s football", icon: Trophy, description: "Curated match cards", href: "/sports" },
+  { label: "Games hub", icon: Gamepad2, description: "Preview content lists", href: "/games" },
+  { label: "Rewards", icon: Gift, description: "Referral progress", href: "/activity#rewards" },
 ];
 
 export default function Home() {
@@ -59,6 +58,8 @@ export default function Home() {
   const [slipOpen, setSlipOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [activeMobileNav, setActiveMobileNav] = useState("Home");
+  const [eventCode, setEventCode] = useState("");
+  const [eventCodeMessage, setEventCodeMessage] = useState("");
 
   const events = useMemo(
     () => filterSkybetEvents(SKYBET_EVENTS, mode, sport),
@@ -71,6 +72,23 @@ export default function Home() {
   };
 
   const openFeedEvent = (event: SkybetEvent) => {
+    setLocation(`/event/${event.id}`);
+  };
+
+  const handleEventCodeLookup = () => {
+    const normalizedCode = eventCode.trim().toLowerCase();
+    if (!normalizedCode) {
+      setEventCodeMessage("Enter a preview event code, for example live-skyline.");
+      return;
+    }
+
+    const event = SKYBET_EVENTS.find(item => item.id.toLowerCase() === normalizedCode);
+    if (!event) {
+      setEventCodeMessage(`No preview event was found for “${eventCode.trim()}”. Try live-skyline.`);
+      return;
+    }
+
+    setEventCodeMessage("");
     setLocation(`/event/${event.id}`);
   };
 
@@ -171,19 +189,11 @@ export default function Home() {
             </div>
           </div>
           <div className="relative mt-4 grid grid-cols-4 gap-1 border-t border-white/15 pt-2.5 sm:mt-7 sm:gap-2 sm:pt-5">
-            {discoveryItems.map(({ label, icon: Icon, description }) => (
+            {discoveryItems.map(({ label, icon: Icon, description, href }) => (
               <button
                 key={label}
                 type="button"
-                onClick={() => {
-                  if (label === "Live centre") setMode("live");
-                  if (label === "Today’s football") {
-                    setMode("upcoming");
-                    setSport("Football");
-                  }
-                  if (label === "Rewards") toast.message("Referral rewards are planned for the secured Skybet release.");
-                  if (label === "Games hub") document.getElementById("skybet-games-feed")?.scrollIntoView({ behavior: "smooth" });
-                }}
+                onClick={() => setLocation(href)}
                 className="group flex min-h-11 flex-col items-center justify-center gap-1 rounded-xl px-1 text-center transition hover:bg-white/10 sm:min-h-14 sm:flex-row sm:justify-start sm:gap-3 sm:rounded-2xl sm:px-3 sm:text-left"
               >
                 <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--sky-ice-100)] text-[var(--sky-blue-700)] transition group-hover:bg-[var(--sky-blue-600)] group-hover:text-white">
@@ -204,7 +214,7 @@ export default function Home() {
             className="flex gap-2"
             onSubmit={event => {
               event.preventDefault();
-              toast.message("Event-code lookup will be enabled with the approved catalogue integration.");
+              handleEventCodeLookup();
             }}
           >
             <div className="relative min-w-0 flex-1">
@@ -212,6 +222,12 @@ export default function Home() {
               <input
                 aria-label="Enter an event code"
                 placeholder="Enter an event code"
+                value={eventCode}
+                onChange={event => {
+                  setEventCode(event.target.value);
+                  if (eventCodeMessage) setEventCodeMessage("");
+                }}
+                aria-describedby="event-code-help"
                 className="h-11 w-full rounded-xl border border-white/10 bg-white/8 pr-3 pl-10 text-sm text-white outline-none placeholder:text-slate-400 focus:border-[var(--sky-blue-400)] focus:ring-2 focus:ring-[var(--sky-blue-400)]/25"
               />
             </div>
@@ -219,6 +235,9 @@ export default function Home() {
               Load
             </Button>
           </form>
+          <p id="event-code-help" aria-live="polite" className="mt-2 min-h-5 text-xs font-semibold text-[var(--sky-blue-200)]">
+            {eventCodeMessage || "Open a known preview event with its catalogue code."}
+          </p>
         </section>
 
         <section className="mt-5 -mr-4 overflow-x-auto pb-1 pr-4 sm:mr-0 sm:pr-0" aria-label="Skybet quick filters">
@@ -373,7 +392,7 @@ export default function Home() {
               <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-white/10 text-[var(--sky-blue-300)]"><CircleHelp className="size-5" /></div>
               <div>
                 <p className="text-sm font-extrabold">Need a hand?</p>
-                <button type="button" onClick={() => toast.message("Support channels will be connected after compliance approval.")} className="mt-1 flex items-center gap-1 text-sm font-semibold text-[var(--sky-blue-300)] hover:text-white">
+                <button type="button" onClick={() => setLocation("/account#support")} className="mt-1 flex items-center gap-1 text-sm font-semibold text-[var(--sky-blue-300)] hover:text-white">
                   Visit the Skybet help centre <ChevronRight className="size-4" />
                 </button>
               </div>
