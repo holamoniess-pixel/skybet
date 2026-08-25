@@ -39,7 +39,7 @@ export function CustomerShell({ activeMobileNav, children }: CustomerShellProps)
             {desktopLinks.map(item => <Link key={item.href} href={item.href} className="rounded-xl px-3 py-2 text-sm font-semibold text-[var(--sky-navy-700)] transition hover:bg-[var(--sky-ice-100)] hover:text-[var(--sky-blue-700)] dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">{item.label}</Link>)}
           </nav>
           <div className="ml-auto flex items-center gap-1.5">
-            <Button variant="ghost" size="icon" className="size-10 rounded-xl text-[var(--sky-navy-700)] dark:text-slate-200" aria-label="Search Skybet events" onClick={() => setLocation("/search")}><Search className="size-[18px]" /></Button>
+            <Button variant="ghost" size="icon" className="size-10 rounded-xl text-[var(--sky-navy-700)] dark:text-slate-200" aria-label="Search SKYBET events" onClick={() => setLocation("/search")}><Search className="size-[18px]" /></Button>
             <Button variant="ghost" size="icon" className="hidden size-10 rounded-xl text-[var(--sky-navy-700)] sm:inline-flex dark:text-slate-200" aria-label={theme === "dark" ? "Use light theme" : "Use dark theme"} onClick={toggleTheme}>{theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}</Button>
             <Button variant="outline" className="hidden h-10 rounded-xl border-[var(--sky-blue-200)] px-4 font-bold text-[var(--sky-blue-700)] md:inline-flex dark:border-white/15 dark:text-white" onClick={() => setLocation("/account")}><UserRound className="size-4" />Account</Button>
           </div>
