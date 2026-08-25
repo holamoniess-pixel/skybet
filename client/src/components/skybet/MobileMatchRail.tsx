@@ -1,20 +1,23 @@
-import { Activity, ChevronRight, Radio } from "lucide-react";
-import type { SkybetEvent } from "@shared/skybet";
+import { CircleDot, Dribbble, Radio, Trophy, Waves } from "lucide-react";
 
 type MobileMatchRailProps = {
-  liveEvents: SkybetEvent[];
-  onOpenLive: () => void;
+  onSelect: (item: "Live" | "Football" | "Basketball" | "Tennis" | "Virtuals") => void;
 };
 
-export function MobileMatchRail({ liveEvents, onOpenLive }: MobileMatchRailProps) {
+const discoveryItems = [
+  { label: "Live", icon: Radio, action: "Live" as const },
+  { label: "Premier", icon: Trophy, action: "Football" as const },
+  { label: "Basketball", icon: Dribbble, action: "Basketball" as const },
+  { label: "V-games", icon: Waves, action: "Virtuals" as const },
+  { label: "Tennis", icon: CircleDot, action: "Tennis" as const },
+];
+
+export function MobileMatchRail({ onSelect }: MobileMatchRailProps) {
   return (
-    <section className="border-b border-[var(--sky-blue-100)] bg-white px-4 py-2.5 dark:border-white/10 dark:bg-[var(--card)] md:hidden" aria-label="Live match summary">
-      <button type="button" onClick={onOpenLive} className="mx-auto flex min-h-11 w-full max-w-md items-center gap-3 rounded-xl bg-[var(--sky-navy-950)] px-3 text-left text-white">
-        <span className="grid size-8 place-items-center rounded-lg bg-[var(--sky-emerald-600)]/20 text-[var(--sky-emerald-500)]"><Radio className="size-4" /></span>
-        <span className="min-w-0 flex-1"><span className="block text-[10px] font-extrabold tracking-[0.12em] text-[var(--sky-blue-300)] uppercase">Live board</span><span className="block truncate text-sm font-bold">{liveEvents.length} live events · {liveEvents[0]?.teams.join(" vs ") ?? "Match centre"}</span></span>
-        <ChevronRight className="size-4 text-[var(--sky-blue-300)]" />
-      </button>
-      <div className="mx-auto mt-2 flex max-w-md items-center gap-2 text-[11px] font-semibold text-[var(--sky-navy-600)] dark:text-slate-400"><Activity className="size-3.5 text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]" /> Live score and event states are preview content.</div>
+    <section className="border-b border-[var(--sky-blue-100)] bg-white px-3 py-2 dark:border-white/10 dark:bg-[var(--card)] md:hidden" aria-label="Sport discovery">
+      <div className="mx-auto flex max-w-md gap-2 overflow-x-auto [scrollbar-width:none]">
+        {discoveryItems.map(({ label, icon: Icon, action }) => <button key={label} type="button" onClick={() => onSelect(action)} className="flex min-h-12 min-w-14 shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 text-[10px] font-extrabold text-[var(--sky-navy-700)] transition hover:bg-[var(--sky-ice-50)] dark:text-slate-200 dark:hover:bg-white/5"><span className={`grid size-7 place-items-center rounded-lg ${label === "Live" ? "bg-[var(--sky-emerald-600)]/10 text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]" : "bg-[var(--sky-ice-100)] text-[var(--sky-blue-700)]"}`}><Icon className="size-4" /></span><span>{label}</span></button>)}
+      </div>
     </section>
   );
 }

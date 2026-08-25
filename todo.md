@@ -46,3 +46,10 @@
 - [x] Add explicit virtual-game demo category controls to the Skybet feed preview while retaining its simulated-data boundary.
 - [x] Add frontend tests for the account-first header action, hero live-board action, compact event-card selection, and virtual-demo category filter.
 - [x] Re-run mobile and desktop visual verification after the virtual-game category controls are implemented.
+- [x] Replace the mobile live rail with an original compact Skybet sport and competition discovery rail informed by high-level SportyBet patterns only.
+- [x] Add a clearly labelled simulated preview balance before the Skybet account control.
+- [x] Reduce the Skybet hero’s mobile height, padding, and discovery-row footprint while retaining readable copy and touch targets.
+- [x] Add tests and mobile/desktop visual verification for the sport-rail, balance, and compact-hero refinement.
+- [x] Add frontend coverage for a Skybet mobile sport-discovery shortcut changing the home match view.
+- [x] Add frontend coverage for the Skybet preview-balance control routing to the account view, then re-verify responsive layouts.
+- [x] Re-run mobile and desktop visual verification after the final preview-balance test and mobile-scroll guard changes.

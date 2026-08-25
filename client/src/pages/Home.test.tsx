@@ -99,6 +99,24 @@ describe("Skybet Home", () => {
     expect(window.location.pathname).toBe("/live");
   });
 
+  it("changes the home match view from a mobile sport-discovery shortcut", async () => {
+    const user = userEvent.setup();
+    renderHome();
+
+    await user.click(screen.getAllByRole("button", { name: "Basketball" }).at(0)!);
+
+    expect(screen.getByRole("heading", { name: "Upcoming events" })).toBeInTheDocument();
+  });
+
+  it("routes the visible preview balance control to the account view", async () => {
+    const user = userEvent.setup();
+    renderHome();
+
+    await user.click(screen.getByRole("button", { name: "Preview balance" }));
+
+    expect(window.location.pathname).toBe("/account");
+  });
+
   it("allows the simulated feed to be refreshed from the preview control", async () => {
     const user = userEvent.setup();
     renderHome();

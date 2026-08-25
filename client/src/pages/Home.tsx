@@ -64,7 +64,6 @@ export default function Home() {
     () => filterSkybetEvents(SKYBET_EVENTS, mode, sport),
     [mode, sport]
   );
-  const liveEvents = useMemo(() => filterSkybetEvents(SKYBET_EVENTS, "live", "All"), []);
 
   const chooseSelection = (event: SkybetEvent, label: string, value: string) => {
     setSelection({ event, label, value });
@@ -92,6 +91,16 @@ export default function Home() {
     }
   };
 
+  const handleMobileDiscovery = (item: "Live" | "Football" | "Basketball" | "Tennis" | "Virtuals") => {
+    if (item === "Live") {
+      setLocation("/live");
+      return;
+    }
+    setMode("upcoming");
+    setSport(item);
+    document.getElementById("skybet-events")?.scrollIntoView?.({ behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-[100dvh] bg-[var(--sky-white-50)] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-[var(--sky-navy-950)] dark:bg-[var(--background)] dark:text-white md:pb-0">
       <header className="sticky top-0 z-40 border-b border-[var(--sky-blue-100)] bg-[color-mix(in_oklab,var(--sky-white-50)_94%,transparent)] backdrop-blur-xl dark:border-white/10 dark:bg-[color-mix(in_oklab,var(--background)_94%,transparent)]">
@@ -110,6 +119,10 @@ export default function Home() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1.5">
+            <button type="button" aria-label="Preview balance" onClick={() => setLocation("/account")} className="block h-10 rounded-xl border border-[var(--sky-blue-100)] bg-[var(--sky-ice-50)] px-3 text-right transition hover:border-[var(--sky-blue-300)] dark:border-white/10 dark:bg-white/5">
+              <span className="block text-[9px] font-extrabold tracking-[0.1em] text-[var(--sky-navy-500)] uppercase dark:text-slate-400">Preview balance</span>
+              <span className="block text-xs font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">GH₵ 0.00</span>
+            </button>
             <Button
               variant="outline"
               size="icon"
@@ -131,25 +144,25 @@ export default function Home() {
           </div>
         </div>
       </header>
-      <MobileMatchRail liveEvents={liveEvents} onOpenLive={() => setLocation("/live")} />
+      <MobileMatchRail onSelect={handleMobileDiscovery} />
 
       <main className="container py-5 md:py-8">
-        <section className="sky-hero relative min-h-[19.5rem] overflow-hidden rounded-[1.75rem] border border-[var(--sky-blue-100)] bg-[var(--sky-navy-950)] px-5 py-6 shadow-[0_16px_50px_rgba(10,63,158,0.14)] dark:border-white/10 sm:min-h-[22rem] sm:rounded-[2rem] sm:px-8 sm:py-9">
+        <section className="sky-hero relative min-h-[16.75rem] overflow-hidden rounded-[1.5rem] border border-[var(--sky-blue-100)] bg-[var(--sky-navy-950)] px-4 py-4 shadow-[0_16px_50px_rgba(10,63,158,0.14)] dark:border-white/10 sm:min-h-[22rem] sm:rounded-[2rem] sm:px-8 sm:py-9">
           <img src="/manus-storage/skybet-live-match-hero_97d12259.png" alt="Illuminated football stadium for Skybet live match preview" className="absolute inset-0 size-full object-cover object-center opacity-75" />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,19,51,0.98)_0%,rgba(3,19,51,0.87)_45%,rgba(3,19,51,0.18)_100%)]" aria-hidden="true" />
           <div className="relative max-w-xl">
-            <Badge className="mb-4 rounded-full bg-[var(--sky-ice-100)] px-3 py-1 text-[11px] font-extrabold tracking-[0.12em] text-[var(--sky-blue-700)] uppercase hover:bg-[var(--sky-ice-100)]">
+            <Badge className="mb-2 rounded-full bg-[var(--sky-ice-100)] px-3 py-1 text-[10px] font-extrabold tracking-[0.12em] text-[var(--sky-blue-700)] uppercase hover:bg-[var(--sky-ice-100)] sm:mb-4 sm:text-[11px]">
               Match day preview
             </Badge>
-            <h1 className="max-w-xl text-3xl font-extrabold tracking-[-0.06em] text-white sm:text-5xl">
+            <h1 className="max-w-xl text-2xl font-extrabold tracking-[-0.06em] text-white sm:text-5xl">
               Your match day, in view.
             </h1>
-            <p className="mt-3 max-w-md text-sm leading-6 text-slate-200 sm:text-base sm:leading-7">
+            <p className="mt-2 max-w-md text-[13px] leading-5 text-slate-200 sm:mt-3 sm:text-base sm:leading-7">
               Live match states, virtual-game previews, and a clear route to the event board.
             </p>
-            <div className="mt-5 flex">
+            <div className="mt-3 flex sm:mt-5">
               <Button
-                className="h-12 rounded-xl bg-[var(--sky-blue-600)] px-5 font-bold text-white shadow-[0_10px_20px_rgba(15,87,199,0.2)] hover:bg-[var(--sky-blue-700)]"
+                className="h-10 rounded-xl bg-[var(--sky-blue-600)] px-4 text-sm font-bold text-white shadow-[0_10px_20px_rgba(15,87,199,0.2)] hover:bg-[var(--sky-blue-700)] sm:h-12 sm:px-5 sm:text-base"
                 onClick={() => setLocation("/live")}
               >
                 Open live board
@@ -157,7 +170,7 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          <div className="relative mt-6 grid grid-cols-2 gap-1.5 border-t border-white/15 pt-4 sm:mt-7 sm:gap-2 sm:pt-5 lg:grid-cols-4">
+          <div className="relative mt-4 grid grid-cols-4 gap-1 border-t border-white/15 pt-2.5 sm:mt-7 sm:gap-2 sm:pt-5">
             {discoveryItems.map(({ label, icon: Icon, description }) => (
               <button
                 key={label}
@@ -171,16 +184,16 @@ export default function Home() {
                   if (label === "Rewards") toast.message("Referral rewards are planned for the secured Skybet release.");
                   if (label === "Games hub") document.getElementById("skybet-games-feed")?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="group flex min-h-14 items-center gap-2 rounded-xl px-2.5 text-left transition hover:bg-white/10 sm:gap-3 sm:rounded-2xl sm:px-3"
+                className="group flex min-h-11 flex-col items-center justify-center gap-1 rounded-xl px-1 text-center transition hover:bg-white/10 sm:min-h-14 sm:flex-row sm:justify-start sm:gap-3 sm:rounded-2xl sm:px-3 sm:text-left"
               >
                 <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--sky-ice-100)] text-[var(--sky-blue-700)] transition group-hover:bg-[var(--sky-blue-600)] group-hover:text-white">
                   <Icon className="size-[18px]" />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-extrabold text-white">{label}</span>
-                  <span className="block truncate text-xs text-slate-300">{description}</span>
+                  <span className="block text-[10px] font-extrabold text-white sm:text-sm">{label}</span>
+                  <span className="hidden truncate text-xs text-slate-300 sm:block">{description}</span>
                 </span>
-                <ChevronRight className="ml-auto size-4 text-[var(--sky-blue-400)]" />
+                <ChevronRight className="ml-auto hidden size-4 text-[var(--sky-blue-400)] sm:block" />
               </button>
             ))}
           </div>
