@@ -63,5 +63,5 @@
 - [x] Add the supplied customer-service email to the appropriate Skybet support surface.
 - [x] Restyle the preview balance with an original compact amount-and-bonus treatment informed by the provided reference image.
 - [x] Add regression tests and responsive visual checks for the revised balance and customer-support contact.
-- [ ] Perform and document a new live public-route browser audit after the update.
-- [ ] Publish the balance and customer-service update, then re-run the public control audit against the Skybet public domain.
+- [x] Perform and document a new live public-route browser audit after the update.
+- [x] Publish the balance and customer-service update, then re-run the public control audit against the Skybet public domain.
