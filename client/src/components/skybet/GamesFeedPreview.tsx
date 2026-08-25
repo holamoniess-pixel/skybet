@@ -7,10 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
 
 type GamesFeedPreviewProps = {
-  onOpenEvent: (event: SkybetEvent) => void;
+  onMarketSelect: (event: SkybetEvent, label: string, value: string) => void;
 };
 
-export function GamesFeedPreview({ onOpenEvent }: GamesFeedPreviewProps) {
+export function GamesFeedPreview({ onMarketSelect }: GamesFeedPreviewProps) {
   const [category, setCategory] = useState("All demos");
   const feed = trpc.games.mockFeed.useQuery(undefined, {
     refetchInterval: 30_000,
@@ -51,11 +51,12 @@ export function GamesFeedPreview({ onOpenEvent }: GamesFeedPreviewProps) {
           <div className="flex gap-3 overflow-x-auto p-3 pb-4 [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible">
             {feed.isLoading ? <p className="p-3 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">Loading virtual match previews…</p> : null}
             {visibleEvents.map(event => (
-              <button key={event.id} type="button" onClick={() => onOpenEvent(event)} className="min-w-[11.5rem] rounded-xl border border-[var(--sky-blue-100)] bg-[var(--sky-white-50)] p-2.5 text-left transition hover:border-[var(--sky-blue-300)] hover:bg-[var(--sky-ice-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky-blue-500)] dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 sm:min-w-0">
+              <button key={event.id} type="button" onClick={() => onMarketSelect(event, event.markets[0].label, event.markets[0].value)} className="min-w-[9.5rem] rounded-xl border border-[var(--sky-blue-100)] bg-[var(--sky-white-50)] p-2 text-left transition hover:border-[var(--sky-blue-300)] hover:bg-[var(--sky-ice-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky-blue-500)] dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 sm:min-w-0" aria-label={`Add ${event.teams[0]} preview selection`}>
                 <div className="flex items-center justify-between gap-2"><Badge variant="outline" className={`rounded-md border-0 px-0 text-[10px] font-extrabold uppercase ${event.isLive ? "text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]" : "text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]"}`}>{event.isLive ? "Live now" : "Upcoming"}</Badge><span className="text-xs font-extrabold tabular-nums text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">{event.startsAt}</span></div>
-                <p className="mt-2 truncate text-sm font-extrabold text-[var(--sky-navy-950)] dark:text-white">{event.teams[0]}</p>
+                <p className="mt-1.5 truncate text-sm font-extrabold text-[var(--sky-navy-950)] dark:text-white">{event.teams[0]}</p>
                 <p className="mt-0.5 truncate text-sm font-extrabold text-[var(--sky-navy-950)] dark:text-white">{event.teams[1]}</p>
-                <p className="mt-1.5 truncate text-xs text-[var(--sky-navy-600)] dark:text-slate-400">{event.competition}</p>
+                <p className="mt-1 truncate text-xs text-[var(--sky-navy-600)] dark:text-slate-400">{event.competition}</p>
+                <span className="mt-2 block text-xs font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">Preview {event.markets[0].value}</span>
               </button>
             ))}
             {!feed.isLoading && !feed.isError && visibleEvents.length === 0 ? <p className="p-3 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">No virtual previews in this category yet.</p> : null}

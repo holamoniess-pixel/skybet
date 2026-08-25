@@ -34,6 +34,9 @@ export const SKYBET_EVENTS: SkybetEvent[] = [
       { label: "Harbour City", value: "2.18" },
       { label: "Draw", value: "2.84" },
       { label: "Northvale FC", value: "3.42" },
+      { label: "Over 2.5 goals", value: "1.96" },
+      { label: "Under 2.5 goals", value: "1.82" },
+      { label: "Both teams to score", value: "1.71" },
     ],
   },
   {
@@ -49,6 +52,9 @@ export const SKYBET_EVENTS: SkybetEvent[] = [
       { label: "Cedar Waves", value: "1.68" },
       { label: "Draw", value: "18.00" },
       { label: "Metro Comets", value: "2.08" },
+      { label: "Over 164.5 points", value: "1.88" },
+      { label: "Under 164.5 points", value: "1.88" },
+      { label: "Cedar Waves -3.5", value: "1.91" },
     ],
   },
   {
@@ -63,6 +69,9 @@ export const SKYBET_EVENTS: SkybetEvent[] = [
       { label: "Riverside Athletic", value: "1.92" },
       { label: "Draw", value: "3.16" },
       { label: "Eastbridge United", value: "4.04" },
+      { label: "Over 2.5 goals", value: "1.88" },
+      { label: "Under 2.5 goals", value: "1.90" },
+      { label: "Both teams to score", value: "1.79" },
     ],
   },
   {
@@ -76,6 +85,8 @@ export const SKYBET_EVENTS: SkybetEvent[] = [
     markets: [
       { label: "A. Mensah", value: "1.74" },
       { label: "L. Moretti", value: "2.06" },
+      { label: "Over 22.5 games", value: "1.84" },
+      { label: "Under 22.5 games", value: "1.92" },
     ],
   },
   {
@@ -90,6 +101,9 @@ export const SKYBET_EVENTS: SkybetEvent[] = [
       { label: "Blue Lane", value: "2.32" },
       { label: "Draw", value: "3.70" },
       { label: "Emerald Lane", value: "2.88" },
+      { label: "Over 2.5 goals", value: "1.86" },
+      { label: "Under 2.5 goals", value: "1.91" },
+      { label: "Both score", value: "1.74" },
     ],
   },
 ];

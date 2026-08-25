@@ -31,6 +31,9 @@ export function getMockGamesFeed(now = new Date()): MockGamesFeed {
           { label: "Aurora United", value: "1.86" },
           { label: "Draw", value: "3.22" },
           { label: "Summit Rovers", value: "4.44" },
+          { label: "Over 3.5 goals", value: "1.94" },
+          { label: "Under 3.5 goals", value: "1.84" },
+          { label: "Both teams to score", value: "1.62" },
         ],
       },
       {
@@ -45,6 +48,9 @@ export function getMockGamesFeed(now = new Date()): MockGamesFeed {
           { label: "Orbit FC", value: "2.04" },
           { label: "Draw", value: "3.10" },
           { label: "Valley Athletic", value: "3.76" },
+          { label: "Over 2.5 goals", value: "1.87" },
+          { label: "Under 2.5 goals", value: "1.93" },
+          { label: "Both teams to score", value: "1.81" },
         ],
       },
       {
@@ -58,6 +64,8 @@ export function getMockGamesFeed(now = new Date()): MockGamesFeed {
         markets: [
           { label: "N. Dlamini", value: "1.63" },
           { label: "K. Renaud", value: "2.18" },
+          { label: "Over 22.5 games", value: "1.85" },
+          { label: "Under 22.5 games", value: "1.91" },
         ],
       },
     ],

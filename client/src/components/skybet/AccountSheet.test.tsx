@@ -42,7 +42,7 @@ describe("AccountSheet", () => {
     const user = userEvent.setup();
     renderAccountSheet();
 
-    await user.click(screen.getByRole("button", { name: "Sign in to Skybet" }));
+    await user.click(screen.getByRole("button", { name: "Sign in to SKYBET" }));
 
     expect(mockStartLogin).toHaveBeenCalledTimes(1);
   });

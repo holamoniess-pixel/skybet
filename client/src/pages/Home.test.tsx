@@ -87,6 +87,18 @@ describe("Skybet Home", () => {
     expect(screen.getAllByText("Harbour City vs Northvale FC · Harbour City")).not.toHaveLength(0);
   });
 
+  it("reveals additional preview markets and keeps the preview slip available after selection", async () => {
+    const user = userEvent.setup();
+    renderHome();
+
+    expect(screen.getAllByRole("button", { name: "Show 3 more preview markets" })).not.toHaveLength(0);
+    await user.click(screen.getAllByRole("button", { name: "Show 3 more preview markets" }).at(0)!);
+    await user.click(screen.getByRole("button", { name: "Over 2.5 goals1.96" }));
+
+    expect(document.querySelector('[aria-label="Open preview slip with one selection"]')).toBeTruthy();
+    expect(screen.getAllByText("Harbour City vs Northvale FC · Over 2.5 goals")).not.toHaveLength(0);
+  });
+
   it("routes the account-first header action and primary hero action to their dedicated views", async () => {
     const user = userEvent.setup();
     renderHome();
@@ -120,9 +132,10 @@ describe("Skybet Home", () => {
   it("shows the compact balance-and-bonus treatment and the customer-service email", () => {
     renderHome();
 
+    expect(screen.getByLabelText("SKYBET")).toBeInTheDocument();
     expect(screen.getByText("GH₵ 0.00")).toBeInTheDocument();
     expect(screen.getByText("Bonus: GH₵ 0.00")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Email Skybet customer service" })).toHaveAttribute("href", "mailto:Skybet0553@gmail.com");
+    expect(screen.getByRole("link", { name: "Email SKYBET customer service" })).toHaveAttribute("href", "mailto:Skybet0553@gmail.com");
   });
 
   it("allows the simulated feed to be refreshed from the preview control", async () => {
@@ -153,7 +166,7 @@ describe("Skybet Home", () => {
     expect(window.location.hash).toBe("#rewards");
 
     window.history.pushState({}, "", "/");
-    await user.click(screen.getByRole("button", { name: "Visit the Skybet help centre" }));
+    await user.click(screen.getByRole("button", { name: "Visit the SKYBET help centre" }));
     expect(window.location.pathname).toBe("/account");
     expect(window.location.hash).toBe("#support");
   });

@@ -35,12 +35,16 @@ afterEach(() => {
 describe("GamesFeedPreview", () => {
   it("filters the simulated virtual catalogue by its explicit demo categories", async () => {
     const user = userEvent.setup();
-    render(<GamesFeedPreview onOpenEvent={vi.fn()} />);
+    const onMarketSelect = vi.fn();
+    render(<GamesFeedPreview onMarketSelect={onMarketSelect} />);
 
     expect(screen.getByText("Orbit FC")).toBeInTheDocument();
     expect(screen.getByText("Amina Vale")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Football demos" }));
     expect(screen.getByText("Orbit FC")).toBeInTheDocument();
     expect(screen.queryByText("Amina Vale")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Add Orbit FC preview selection" }));
+    expect(onMarketSelect).toHaveBeenCalledWith(expect.objectContaining({ id: "football-demo" }), "Orbit FC", "2.04");
   });
 });

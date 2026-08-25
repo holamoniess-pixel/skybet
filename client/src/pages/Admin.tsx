@@ -90,9 +90,9 @@ function AdminOverview() {
           <CardContent className="p-7 text-center">
             <LockKeyhole className="mx-auto size-8 text-[var(--sky-blue-600)]" />
             <h1 className="mt-4 text-2xl font-extrabold tracking-[-0.05em] text-[var(--sky-navy-950)] dark:text-white">Administrator access required</h1>
-            <p className="mt-2 text-sm leading-6 text-[var(--sky-navy-600)] dark:text-slate-400">This workspace is reserved for a Skybet administrator account. Customer and restricted accounts cannot access referral or operational controls.</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--sky-navy-600)] dark:text-slate-400">This workspace is reserved for a SKYBET administrator account. Customer and restricted accounts cannot access referral or operational controls.</p>
             <Button asChild className="mt-5 h-11 rounded-xl bg-[var(--sky-blue-600)] font-extrabold hover:bg-[var(--sky-blue-700)]">
-              <a href="/">Return to Skybet</a>
+              <a href="/">Return to SKYBET</a>
             </Button>
           </CardContent>
         </Card>
@@ -125,7 +125,7 @@ function AdminOverview() {
     <div className="mx-auto max-w-7xl space-y-6 pb-10">
       <section className="flex flex-col justify-between gap-5 rounded-[1.75rem] border border-[var(--sky-blue-100)] bg-white p-5 shadow-[0_14px_32px_rgba(10,63,158,0.06)] sm:p-7 lg:flex-row lg:items-end dark:border-white/10 dark:bg-[var(--card)]">
         <div>
-          <Badge className="rounded-full bg-[var(--sky-ice-100)] px-3 py-1 text-[11px] font-extrabold tracking-[0.12em] text-[var(--sky-blue-700)] uppercase hover:bg-[var(--sky-ice-100)]">Skybet control room</Badge>
+          <Badge className="rounded-full bg-[var(--sky-ice-100)] px-3 py-1 text-[11px] font-extrabold tracking-[0.12em] text-[var(--sky-blue-700)] uppercase hover:bg-[var(--sky-ice-100)]">SKYBET control room</Badge>
           <h1 className="mt-3 text-3xl font-extrabold tracking-[-0.06em] text-[var(--sky-navy-950)] sm:text-4xl dark:text-white">Operations with guardrails.</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--sky-navy-600)] dark:text-slate-400">The initial workspace keeps sensitive referral, safety, and provider-readiness decisions visible before any regulated live operation is enabled.</p>
         </div>

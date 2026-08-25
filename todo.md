@@ -65,3 +65,13 @@
 - [x] Add regression tests and responsive visual checks for the revised balance and customer-support contact.
 - [x] Perform and document a new live public-route browser audit after the update.
 - [x] Publish the balance and customer-service update, then re-run the public control audit against the Skybet public domain.
+- [x] Sync the shared Skybet preview to the newest project version and confirm the running status.
+- [x] Convert visible Skybet brand marks and wordmarks to the requested uppercase presentation.
+- [x] Add motion-safe hover and focus feedback to the original compact preview-balance capsule.
+- [x] Compact oversized match, sports, account, and activity card layouts while preserving touch targets and readability.
+- [x] Add a fixed safe preview-selection control above mobile account navigation and route odds to it rather than event detail.
+- [x] Extend the non-transactional event preview with additional clearly labelled market options.
+- [x] Present a safe referral-link status and copy affordance in the rewards activity surface.
+- [x] Add regression tests and responsive visual verification for the refined public interface.
+- [ ] Run and document a complete published-domain browser audit of all visible public controls and routes.
+- [x] Handle referral-link copy failures with visible feedback and add successful and failed-copy regression coverage.

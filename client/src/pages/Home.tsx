@@ -33,6 +33,7 @@ import { AccountSheet } from "@/components/skybet/AccountSheet";
 import { GamesFeedPreview } from "@/components/skybet/GamesFeedPreview";
 import { MobileBottomNav } from "@/components/skybet/MobileBottomNav";
 import { MobileMatchRail } from "@/components/skybet/MobileMatchRail";
+import { PreviewSlipFab } from "@/components/skybet/PreviewSlipFab";
 import { SelectionSheet } from "@/components/skybet/SelectionSheet";
 import { SkybetBrandMark } from "@/components/skybet/SkybetBrandMark";
 import { SkybetEventCard } from "@/components/skybet/SkybetEventCard";
@@ -72,8 +73,8 @@ export default function Home() {
     setSlipOpen(true);
   };
 
-  const openFeedEvent = (event: SkybetEvent) => {
-    setLocation(`/event/${event.id}`);
+  const chooseFeedSelection = (event: SkybetEvent, label: string, value: string) => {
+    chooseSelection(event, label, value);
   };
 
   const handleEventCodeLookup = () => {
@@ -169,7 +170,7 @@ export default function Home() {
 
       <main className="container py-5 md:py-8">
         <section className="sky-hero relative min-h-[16.75rem] overflow-hidden rounded-[1.5rem] border border-[var(--sky-blue-100)] bg-[var(--sky-navy-950)] px-4 py-4 shadow-[0_16px_50px_rgba(10,63,158,0.14)] dark:border-white/10 sm:min-h-[22rem] sm:rounded-[2rem] sm:px-8 sm:py-9">
-          <img src="/manus-storage/skybet-live-match-hero_97d12259.png" alt="Illuminated football stadium for Skybet live match preview" className="absolute inset-0 size-full object-cover object-center opacity-75" />
+          <img src="/manus-storage/skybet-live-match-hero_97d12259.png" alt="Illuminated football stadium for SKYBET live match preview" className="absolute inset-0 size-full object-cover object-center opacity-75" />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,19,51,0.98)_0%,rgba(3,19,51,0.87)_45%,rgba(3,19,51,0.18)_100%)]" aria-hidden="true" />
           <div className="relative max-w-xl">
             <Badge className="mb-2 rounded-full bg-[var(--sky-ice-100)] px-3 py-1 text-[10px] font-extrabold tracking-[0.12em] text-[var(--sky-blue-700)] uppercase hover:bg-[var(--sky-ice-100)] sm:mb-4 sm:text-[11px]">
@@ -243,7 +244,7 @@ export default function Home() {
           </p>
         </section>
 
-        <section className="mt-5 -mr-4 overflow-x-auto pb-1 pr-4 sm:mr-0 sm:pr-0" aria-label="Skybet quick filters">
+        <section className="mt-5 -mr-4 overflow-x-auto pb-1 pr-4 sm:mr-0 sm:pr-0" aria-label="SKYBET quick filters">
           <div className="flex w-max gap-2">
             {SKYBET_SPORTS.map(item => (
               <button
@@ -263,7 +264,7 @@ export default function Home() {
         </section>
 
         <div id="skybet-games-feed" className="scroll-mt-28">
-          <GamesFeedPreview onOpenEvent={openFeedEvent} />
+          <GamesFeedPreview onMarketSelect={chooseFeedSelection} />
         </div>
 
         <section className="mt-6 grid items-start gap-5 xl:mt-7 xl:grid-cols-[13rem_minmax(0,1fr)_20rem]" id="skybet-events">
@@ -289,7 +290,7 @@ export default function Home() {
             <div className="mt-4 rounded-xl border border-[var(--sky-blue-100)] bg-[var(--sky-ice-50)] p-3 dark:border-white/10 dark:bg-white/5">
               <ShieldCheck className="size-5 text-[var(--sky-emerald-700)]" />
               <p className="mt-2 text-sm font-extrabold text-[var(--sky-navy-950)] dark:text-white">Play with clarity</p>
-              <p className="mt-1 text-xs leading-5 text-[var(--sky-navy-600)] dark:text-slate-400">Account controls are always available from your Skybet profile.</p>
+              <p className="mt-1 text-xs leading-5 text-[var(--sky-navy-600)] dark:text-slate-400">Account controls are always available from your SKYBET profile.</p>
             </div>
           </aside>
 
@@ -382,7 +383,7 @@ export default function Home() {
                 <ShieldCheck className="size-6" />
               </div>
               <div>
-                <p className="text-sm font-extrabold text-[var(--sky-navy-950)] dark:text-white">Your Skybet controls should stay close.</p>
+                <p className="text-sm font-extrabold text-[var(--sky-navy-950)] dark:text-white">Your SKYBET controls should stay close.</p>
                 <p className="mt-1 text-sm leading-6 text-[var(--sky-navy-600)] dark:text-slate-400">Manage account security, safe-play preferences, and support from one straightforward place.</p>
               </div>
               <Button variant="outline" className="h-11 shrink-0 rounded-xl border-[var(--sky-emerald-600)]/30 font-bold text-[var(--sky-emerald-700)] hover:bg-[var(--sky-emerald-600)]/10 dark:text-[var(--sky-emerald-500)]" onClick={() => setAccountOpen(true)}>
@@ -395,11 +396,11 @@ export default function Home() {
               <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-white/10 text-[var(--sky-blue-300)]"><CircleHelp className="size-5" /></div>
               <div>
                 <p className="text-sm font-extrabold">Need a hand?</p>
-                <a href="mailto:Skybet0553@gmail.com" aria-label="Email Skybet customer service" className="mt-1 flex items-center gap-1 text-sm font-semibold text-[var(--sky-emerald-500)] hover:text-white">
+                <a href="mailto:Skybet0553@gmail.com" aria-label="Email SKYBET customer service" className="mt-1 flex items-center gap-1 text-sm font-semibold text-[var(--sky-emerald-500)] hover:text-white">
                   <Mail className="size-4" /> Skybet0553@gmail.com
                 </a>
                 <button type="button" onClick={() => setLocation("/account#support")} className="mt-1 flex items-center gap-1 text-sm font-semibold text-[var(--sky-blue-300)] hover:text-white">
-                  Visit the Skybet help centre <ChevronRight className="size-4" />
+                  Visit the SKYBET help centre <ChevronRight className="size-4" />
                 </button>
               </div>
             </CardContent>
@@ -407,6 +408,7 @@ export default function Home() {
         </section>
       </main>
 
+      <PreviewSlipFab selection={selection} onOpen={() => setSlipOpen(true)} />
       <MobileBottomNav activeItem={activeMobileNav} onNavigate={handleMobileNavigation} />
       <SelectionSheet open={slipOpen} onOpenChange={setSlipOpen} selection={selection} />
       <AccountSheet open={accountOpen} onOpenChange={setAccountOpen} />
