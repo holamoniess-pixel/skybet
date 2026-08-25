@@ -13,3 +13,10 @@
 - [x] Refine the Skybet visual system around reference-informed blue, white, and restrained emerald-green accents.
 - [x] Extend the competitive review with SportyBet and other identifiable betting-platform sources, capturing transferable UX and operational patterns only.
 - [x] Define a mobile-first responsive component inventory and web layout behaviour for all planned Skybet surfaces.
+- [x] Build an original Skybet customer website using high-level Football.com navigation and mobile UX patterns as reference only.
+- [x] Implement reusable blue, white, and emerald Skybet interface components with responsive mobile and desktop behaviour.
+- [x] Add and pass automated tests for the implemented Skybet website experience.
+- [x] Visually verify the Skybet website at mobile and desktop target sizes before release.
+- [x] Extract the Skybet page into reusable frontend components for navigation, event cards, and account/selection panels.
+- [x] Add frontend automated tests that exercise Skybet rendering, filtering, selection-sheet, and mobile navigation behaviour.
+- [x] Extract the remaining selection and account sheet panels into reusable Skybet frontend components.

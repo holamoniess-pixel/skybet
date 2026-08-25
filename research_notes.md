@@ -28,6 +28,13 @@ The competitor review will focus on observable product conventions and published
 | `football.com` | Ghana responsible-gaming help | The mobile help page provides support contacts, explains a time-bound self-exclusion, makes the duration user-selected, states that the account cannot be re-enabled before the period expires, and directs account closure through verified customer care. | Skybet’s mobile safer-play flow should use a dedicated, low-friction component with clear consequences, a confirmation step, help options, and a separate verified account-closure workflow. Withdrawal/settlement treatment requires legal and financial approval before implementation. |
 | `betr.app` | Responsible-play page and social sportsbook/casino terms | Betr documents time, deposit, bet/entry, maximum-bet, time-out, and self-exclusion tools. Its terms describe identity, age, and location verification, third-party verification services, and the possibility of blocking or cancelling accounts when eligibility cannot be verified. | Design Skybet safety controls as independently accessible account components and ensure that account eligibility is an explicit, server-enforced state. Client UI must never be the sole enforcement layer for identity, location, age, or product availability. |
 
+## Football.com reference review for implementation
+
+| Surface reviewed | High-level pattern observed | Original Skybet interpretation |
+| --- | --- | --- |
+| Public mobile landing page | The page uses a compact product switcher, a booking-code input, horizontally scrollable discovery shortcuts, content grouped into live and upcoming event areas, sport/market filters, and a five-item mobile bottom navigation. | Use an original Skybet utility bar, discovery chips, sport/market tabs, grouped event cards, and a mobile bottom navigation. Skybet will not reproduce Football.com’s colours, graphic assets, text, betting codes, event/market data, or DOM/layout. |
+| Public desktop URL | The reference supplied a branded loading experience in the available environment but did not expose a readable desktop catalogue. | Preserve the mobile-first information hierarchy at wide screens through a three-column Skybet layout: sports navigation, original central event feed, and an account/bet-slip information rail. Do not infer or imitate inaccessible desktop UI. |
+
 ## Games and sports-data integration findings
 
 | Source | Verified finding | Decision for the Skybet plan |
