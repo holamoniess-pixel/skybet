@@ -10,3 +10,6 @@
 - [ ] Prepare GitHub-ready repository documentation, contribution workflow, and first-commit checklist.
 - [ ] Add Netlify deployment configuration and production-environment documentation after plan approval.
 - [ ] Implement approved Skybet product features, automated tests, and responsive admin/public interfaces after plan approval.
+- [x] Refine the Skybet visual system around reference-informed blue, white, and restrained emerald-green accents.
+- [x] Extend the competitive review with SportyBet and other identifiable betting-platform sources, capturing transferable UX and operational patterns only.
+- [x] Define a mobile-first responsive component inventory and web layout behaviour for all planned Skybet surfaces.
