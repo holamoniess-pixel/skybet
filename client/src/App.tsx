@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Admin from "./pages/Admin";
+import { AccountPage, ActivityPage, EventDetailPage, GamesPage, LivePage, SearchPage, SportsPage } from "./pages/CustomerPages";
 import Home from "./pages/Home";
 
 function Router() {
@@ -12,6 +13,13 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/live"} component={LivePage} />
+      <Route path={"/sports"} component={SportsPage} />
+      <Route path={"/games"} component={GamesPage} />
+      <Route path={"/event/:id"} component={EventDetailPage} />
+      <Route path={"/search"} component={SearchPage} />
+      <Route path={"/activity"} component={ActivityPage} />
+      <Route path={"/account"} component={AccountPage} />
       <Route path={"/admin"} component={Admin} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

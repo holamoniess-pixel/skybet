@@ -29,3 +29,12 @@
 - [x] Connect the Skybet admin referral panel to persisted server-side settings and per-user overrides.
 - [x] Add protected per-user referral override lookup and display its persisted state in the Skybet admin workspace.
 - [x] Correct the Skybet admin audit-status copy to reflect the implemented audit event persistence.
+- [x] Refine Skybet’s mobile match-centre layout using transferable Football.com interaction and information-hierarchy patterns only.
+- [x] Add administrator user search and filter controls to find eligible Skybet users before setting referral overrides.
+- [x] Implement a clearly simulated automatic games-feed API and responsive frontend preview for upcoming and live matches.
+- [x] Add automated tests and mobile/desktop visual verification for the refined Skybet release.
+- [x] Define and implement an original Skybet customer page suite covering sports discovery, live events, upcoming events, games preview, event detail, search, activity, and account views.
+- [x] Add original Skybet navigation controls and buttons across mobile and desktop without copying Football.com’s protected interface or branding.
+- [x] Test and visually verify the expanded Skybet page suite on mobile and desktop layouts.
+- [x] Add failed-search guidance and retry handling to the Skybet administrator user picker.
+- [x] Add frontend interaction tests for administrator user search/filter selection and simulated games-feed refresh behaviour.

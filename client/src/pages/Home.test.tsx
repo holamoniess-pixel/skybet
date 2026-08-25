@@ -1,10 +1,33 @@
 import "@testing-library/jest-dom/vitest";
 import React from "react";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Home from "./Home";
+
+const { mockFeedRefetch } = vi.hoisted(() => ({ mockFeedRefetch: vi.fn() }));
+
+vi.mock("@/lib/trpc", () => ({
+  trpc: {
+    games: {
+      mockFeed: {
+        useQuery: () => ({
+          data: {
+            source: "simulated",
+            refreshedAt: "2026-08-25T12:00:00.000Z",
+            refreshAfterSeconds: 30,
+            events: [],
+          },
+          isLoading: false,
+          isError: false,
+          isFetching: false,
+          refetch: mockFeedRefetch,
+        }),
+      },
+    },
+  },
+}));
 
 function renderHome() {
   return render(
@@ -29,6 +52,7 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup();
+  mockFeedRefetch.mockClear();
 });
 
 describe("Skybet Home", () => {
@@ -38,6 +62,7 @@ describe("Skybet Home", () => {
     expect(screen.getByRole("heading", { name: "Live centre" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Harbour City2.18" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cedar Waves1.68" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Simulated games feed" })).toBeInTheDocument();
   });
 
   it("switches to the upcoming event view", async () => {
@@ -61,14 +86,22 @@ describe("Skybet Home", () => {
     expect(screen.getAllByText("Harbour City vs Northvale FC · Harbour City")).not.toHaveLength(0);
   });
 
-  it("opens the account centre from the mobile navigation component", async () => {
+  it("allows the simulated feed to be refreshed from the preview control", async () => {
+    const user = userEvent.setup();
+    renderHome();
+
+    await user.click(screen.getByRole("button", { name: "Refresh simulated games feed" }));
+
+    expect(mockFeedRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("routes the mobile account action to the dedicated account page", async () => {
     const user = userEvent.setup();
     renderHome();
 
     const accountButtons = screen.getAllByRole("button", { name: "Account" });
     await user.click(accountButtons.at(-1)!);
 
-    expect(screen.getByText("Account centre")).toBeInTheDocument();
-    expect(screen.getByText("Safer play")).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/account");
   });
 });

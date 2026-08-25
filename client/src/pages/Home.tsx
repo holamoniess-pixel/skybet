@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useLocation } from "wouter";
 import {
   Activity,
   ArrowRight,
@@ -30,7 +31,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTheme } from "@/contexts/ThemeContext";
 import { AccountSheet } from "@/components/skybet/AccountSheet";
+import { GamesFeedPreview } from "@/components/skybet/GamesFeedPreview";
 import { MobileBottomNav } from "@/components/skybet/MobileBottomNav";
+import { MobileMatchRail } from "@/components/skybet/MobileMatchRail";
 import { SelectionSheet } from "@/components/skybet/SelectionSheet";
 import { SkybetBrandMark } from "@/components/skybet/SkybetBrandMark";
 import { SkybetEventCard } from "@/components/skybet/SkybetEventCard";
@@ -50,6 +53,7 @@ const discoveryItems = [
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
+  const [, setLocation] = useLocation();
   const [mode, setMode] = useState<SkybetMode>("live");
   const [sport, setSport] = useState("All");
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -61,27 +65,31 @@ export default function Home() {
     () => filterSkybetEvents(SKYBET_EVENTS, mode, sport),
     [mode, sport]
   );
+  const liveEvents = useMemo(() => filterSkybetEvents(SKYBET_EVENTS, "live", "All"), []);
 
   const chooseSelection = (event: SkybetEvent, label: string, value: string) => {
     setSelection({ event, label, value });
     setSlipOpen(true);
   };
 
+  const openFeedEvent = (event: SkybetEvent) => {
+    setLocation(`/event/${event.id}`);
+  };
+
   const handleMobileNavigation = (label: string) => {
     setActiveMobileNav(label);
     if (label === "Account") {
-      setAccountOpen(true);
+      setLocation("/account");
       return;
     }
     if (label === "Live") {
-      setMode("live");
+      setLocation("/live");
     }
     if (label === "Sports") {
-      setSport("All");
-      setMode("upcoming");
+      setLocation("/sports");
     }
     if (label === "Rewards") {
-      toast.message("Rewards centre is planned for the next Skybet release.");
+      setLocation("/activity");
     }
   };
 
@@ -95,7 +103,7 @@ export default function Home() {
               <button
                 key={item}
                 type="button"
-                onClick={() => toast.message(`${item} is available in the Skybet demonstration experience.`)}
+                onClick={() => setLocation({ Sports: "/sports", Live: "/live", Games: "/games", "My activity": "/activity" }[item] ?? "/")}
                 className="rounded-xl px-3 py-2 text-sm font-semibold text-[var(--sky-navy-700)] transition hover:bg-[var(--sky-ice-100)] hover:text-[var(--sky-blue-700)] dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
               >
                 {item}
@@ -108,7 +116,7 @@ export default function Home() {
               size="icon"
               className="size-10 rounded-xl text-[var(--sky-navy-700)] dark:text-slate-200"
               aria-label="Search the demo catalogue"
-              onClick={() => toast.message("Search will be connected to the approved catalogue source.")}
+              onClick={() => setLocation("/search")}
             >
               <Search className="size-[18px]" />
             </Button>
@@ -124,7 +132,7 @@ export default function Home() {
             <Button
               variant="outline"
               className="hidden h-10 rounded-xl border-[var(--sky-blue-200)] px-4 font-bold text-[var(--sky-blue-700)] md:inline-flex dark:border-white/15 dark:text-white"
-              onClick={() => setAccountOpen(true)}
+              onClick={() => setLocation("/account")}
             >
               <UserRound className="size-4" />
               Account
@@ -132,9 +140,10 @@ export default function Home() {
           </div>
         </div>
       </header>
+      <MobileMatchRail liveEvents={liveEvents} onOpenLive={() => setLocation("/live")} />
 
       <main className="container py-5 md:py-8">
-        <section className="sky-hero relative overflow-hidden rounded-[2rem] border border-[var(--sky-blue-100)] bg-white px-5 py-7 shadow-[0_16px_50px_rgba(10,63,158,0.08)] dark:border-white/10 dark:bg-[var(--card)] sm:px-8 sm:py-9">
+        <section className="sky-hero relative overflow-hidden rounded-[1.75rem] border border-[var(--sky-blue-100)] bg-white px-5 py-6 shadow-[0_16px_50px_rgba(10,63,158,0.08)] dark:border-white/10 dark:bg-[var(--card)] sm:rounded-[2rem] sm:px-8 sm:py-9">
           <div className="sky-dots absolute right-3 top-3 h-28 w-28 opacity-75" aria-hidden="true" />
           <div className="sky-hero-arc absolute -right-16 -top-16 size-60 rounded-full border-[26px] border-[var(--sky-blue-100)]" aria-hidden="true" />
           <div className="relative max-w-2xl">
@@ -147,7 +156,7 @@ export default function Home() {
             <p className="mt-4 max-w-xl text-base leading-7 text-[var(--sky-navy-600)] dark:text-slate-300">
               Follow live event cards, check key market states, and keep account controls close without the usual clutter.
             </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row">
               <Button
                 className="h-12 rounded-xl bg-[var(--sky-blue-600)] px-5 font-bold text-white shadow-[0_10px_20px_rgba(15,87,199,0.2)] hover:bg-[var(--sky-blue-700)]"
                 onClick={() => {
@@ -168,7 +177,7 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          <div className="relative mt-7 grid gap-2 border-t border-[var(--sky-blue-100)] pt-5 sm:grid-cols-2 lg:grid-cols-4 dark:border-white/10">
+          <div className="relative mt-6 grid grid-cols-2 gap-1.5 border-t border-[var(--sky-blue-100)] pt-4 sm:mt-7 sm:gap-2 sm:pt-5 lg:grid-cols-4 dark:border-white/10">
             {discoveryItems.map(({ label, icon: Icon, description }) => (
               <button
                 key={label}
@@ -180,12 +189,9 @@ export default function Home() {
                     setSport("Football");
                   }
                   if (label === "Rewards") toast.message("Referral rewards are planned for the secured Skybet release.");
-                  if (label === "Games hub") {
-                    setMode("upcoming");
-                    setSport("Virtuals");
-                  }
+                  if (label === "Games hub") document.getElementById("skybet-games-feed")?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="group flex min-h-14 items-center gap-3 rounded-2xl px-3 text-left transition hover:bg-[var(--sky-ice-50)] dark:hover:bg-white/5"
+                className="group flex min-h-14 items-center gap-2 rounded-xl px-2.5 text-left transition hover:bg-[var(--sky-ice-50)] sm:gap-3 sm:rounded-2xl sm:px-3 dark:hover:bg-white/5"
               >
                 <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--sky-ice-100)] text-[var(--sky-blue-700)] transition group-hover:bg-[var(--sky-blue-600)] group-hover:text-white">
                   <Icon className="size-[18px]" />
@@ -241,7 +247,11 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-7 grid items-start gap-5 xl:grid-cols-[13rem_minmax(0,1fr)_20rem]" id="skybet-events">
+        <div id="skybet-games-feed" className="scroll-mt-28">
+          <GamesFeedPreview onOpenEvent={openFeedEvent} />
+        </div>
+
+        <section className="mt-6 grid items-start gap-5 xl:mt-7 xl:grid-cols-[13rem_minmax(0,1fr)_20rem]" id="skybet-events">
           <aside className="hidden rounded-2xl border border-[var(--sky-blue-100)] bg-white p-3 shadow-[0_10px_26px_rgba(10,63,158,0.05)] xl:block dark:border-white/10 dark:bg-[var(--card)]">
             <p className="px-2 text-xs font-extrabold tracking-[0.12em] text-[var(--sky-navy-500)] uppercase dark:text-slate-400">Browse sport</p>
             <div className="mt-2 space-y-1">

@@ -1,4 +1,5 @@
 import { COOKIE_NAME } from "@shared/const";
+import { getMockGamesFeed } from "@shared/mockGamesFeed";
 import { validateReferralRewardAmount } from "@shared/referrals";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -20,6 +21,9 @@ export const appRouter = router({
       } as const;
     }),
   }),
+  games: router({
+    mockFeed: publicProcedure.query(() => getMockGamesFeed()),
+  }),
   referrals: router({
     activeRule: adminProcedure.query(async () => {
       return db.getActiveReferralRewardRule();
@@ -29,6 +33,9 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return db.getActiveReferralRewardOverride(input.userId);
       }),
+    searchUsers: adminProcedure
+      .input(z.object({ query: z.string().trim().max(100), role: z.enum(["all", "user", "admin"]) }))
+      .query(({ input }) => db.searchSkybetUsers(input)),
     saveDefaultRule: adminProcedure
       .input(z.object({ amount: z.string(), currency: z.literal("GHS"), reason: z.string().trim().min(5).max(500) }))
       .mutation(async ({ ctx, input }) => {

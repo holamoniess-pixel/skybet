@@ -44,6 +44,9 @@ vi.mock("@/lib/trpc", () => ({
       activeOverride: {
         useQuery: () => ({ data: undefined, isLoading: false }),
       },
+      searchUsers: {
+        useQuery: () => ({ data: [], isLoading: false }),
+      },
       saveDefaultRule: {
         useMutation: () => ({ mutate: vi.fn(), isPending: false }),
       },

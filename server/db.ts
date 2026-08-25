@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   adminAuditEvents,
@@ -232,4 +232,26 @@ export async function getActiveReferralRewardOverride(userId: number) {
     .limit(1);
 
   return result[0];
+}
+
+export async function searchSkybetUsers(input: { query: string; role: "all" | "user" | "admin" }) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const filters = [];
+  if (input.role !== "all") {
+    filters.push(eq(users.role, input.role));
+  }
+  if (input.query) {
+    const term = `%${input.query}%`;
+    filters.push(or(like(users.name, term), like(users.email, term), like(users.openId, term)));
+  }
+
+  const query = db
+    .select({ id: users.id, name: users.name, email: users.email, role: users.role, openId: users.openId, lastSignedIn: users.lastSignedIn })
+    .from(users)
+    .orderBy(desc(users.lastSignedIn))
+    .limit(50);
+
+  return filters.length > 0 ? query.where(and(...filters)) : query;
 }
