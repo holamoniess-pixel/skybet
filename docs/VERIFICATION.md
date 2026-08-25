@@ -75,3 +75,59 @@ After publication, the same control set was replayed on `https://skybetapp-a2xep
 ### Compact-card and preview-slip refinement
 
 Fresh visual review at `1280×720` and `375×812` confirmed that the shared wordmark now renders as **SKYBET**, while the original balance capsule preserves the requested compact dark-pill hierarchy of primary balance, emerald bonus, and a circular account affordance. The new hover and focus state lifts the capsule without changing layout and respects reduced-motion preferences. Match cards now keep their primary three preview values on a compact row and disclose additional preview values through an explicit control. Sports, activity, and account cards use reduced padding and denser responsive grids. The fixed **Preview slip** affordance remains visible above the mobile account navigation and is clearly labelled as non-transactional.
+
+### Published refinement audit
+
+The published `86ad4b8f` build was exercised directly in the browser after the visual-density refinement. The balance capsule displayed **GH₵ 0.00** and **Bonus: GH₵ 0.00**, the uppercase **SKYBET** mark was present, the balance route opened `/account`, and the theme control changed its accessible state. The hero action and event-code lookup reached their expected routes. The compact-card expansion exposed the additional market group, and a revealed market opened **Review your selection** while preserving the current route and showing the non-transactional boundary.
+
+| Surface | Published browser outcome |
+| --- | --- |
+| Home, live, sports, games, search, and event detail | A selected market opened the local preview sheet without routing to a detail page. |
+| Activity | The preview referral-link action displayed **Preview referral link copied.**; the rejected-copy path is covered by regression tests. |
+| Account | `mailto:Skybet0553@gmail.com` was verified from the accessible customer-service link. |
+| Mobile | The fixed selected Preview slip was visible at `y≈670` in a `375×812` viewport, above the bottom navigation. Rewards and Account mobile routes were independently verified by keyboard activation. |
+| Administrator route | The unauthenticated session correctly displayed **Sign in to continue**; no protected admin changes were attempted. |
+
+The browser harness’s own `manus-content-root` overlay intercepted direct pointer clicks on the fixed mobile navigation. Keyboard activation of the same accessible controls reached `/activity` and `/account`, confirming the underlying routes. The only browser-console error was an external Amplitude remote-configuration fetch failure; no SKYBET application exception was reported.
+
+### Complete published control checklist
+
+The final checklist replayed the latest public build at both desktop and mobile breakpoints. Market selections remained **non-transactional** throughout the audit and no account, payment, referral-reward, or administrator data was changed.
+
+| Control group | Verified live outcome | Status |
+| --- | --- | --- |
+| Desktop header | Sports, Live, Games, and My activity opened `/sports`, `/live`, `/games`, and `/activity`; balance, account control, and theme state were also verified. | Pass |
+| Mobile bottom navigation | Home, Sports, Live, Rewards, and Account reached `/`, `/sports`, `/live`, `/activity`, and `/account` by keyboard activation. The browser-only overlay intercepts direct pointer simulation over this fixed region. | Pass |
+| Mobile sport discovery | Live opened `/live`; Premier, Basketball, V-games, and Tennis each switched the home board to the upcoming-events state. | Pass |
+| Hero discovery | Live centre, Games hub, and Rewards reached `/live`, `/games`, and `/activity#rewards`; Today’s football switched the home board to upcoming football. | Pass |
+| Home filters and feed | All, Football, Basketball, Tennis, and Virtuals each became selected; all four virtual categories became active on selection; refresh entered its intentional loading/disabled state. | Pass |
+| Home support | View controls opened the Account centre drawer; the customer-service mail link was present; Help centre reached `/account#support`. | Pass |
+| Market and preview controls | Home expanded market, live, sports, games, search, and event-detail selections all opened the preview sheet without leaving their current route. The selected Preview slip remained visible above mobile navigation. | Pass |
+| Rewards and activity | Copy preview referral link produced live success feedback; the deliberate failure/recovery path remains covered by the automated tests. | Pass |
+| Admin boundary | The public session showed the expected **Sign in to continue** gate. Protected actions were not attempted without owner authentication. | Pass, gated |
+
+The earlier long browser-runner scripts exceeded the automation deadline and used selectors that did not normalize line breaks in compact market labels. The final evidence above uses focused direct interactions, exact accessibility regions, and keyboard activation where the browser preview overlay would otherwise block physical pointer simulation.
+
+The final direct-control pass confirmed that the **inner-page** header search button routes to `/search`; the home header’s account button renders the Account centre drawer; and the visible home email action resolves to `mailto:Skybet0553@gmail.com`. The home header intentionally does not show the inner-page search control. The complete hero discovery mapping is: Live centre → `/live`, Today’s football → `/sports`, Games hub → `/games`, and Rewards → `/activity#rewards`.
+
+### Latest-build per-route visible-control inventory
+
+The final read-only enumeration captured every visible `button`, `link`, and input on the public route registry at desktop size. Repeated market buttons share the same verified safe-preview handler by design; repeated header and mobile navigation controls share the route mappings documented above. The only intentionally disabled public control observed was **Refresh simulated games feed** while its brief loading state was active.
+
+| Route | Visible control groups enumerated | Verified outcome class |
+| --- | --- | --- |
+| `/` | Header navigation and account actions; sport rail; hero discovery; event-code input and load; two sport-filter sets; live/upcoming switch; virtual category chips; refresh; three simulated cards; match markets and expansion controls; support controls; fixed slip; mobile navigation. | Every group was exercised in the targeted live audit: routes, selected-state changes, controlled feed refresh, safe preview selection, support drawer/mail/help paths, or keyboard-verified mobile navigation. |
+| `/live` | Shared header, two compact match cards with markets/expanders, fixed slip, mobile navigation. | Header routes, preview selection without route change, and fixed slip verified. |
+| `/sports` | Shared header, three compact event cards with market/expander controls, fixed slip, mobile navigation. | A sports market opened the local preview sheet without route change; repeated markets use the same handler. |
+| `/games` | Shared header, simulated-feed refresh and category controls, fixed slip, mobile navigation. | A simulated card opened the safe preview sheet without route change; categories and refresh verified on home and share the feed component. |
+| `/search` | Shared header, search input, five event-result buttons, fixed slip, mobile navigation. | Search input and a result selection were exercised; result selections use the same preview handler. |
+| `/activity` | Shared header, Copy preview referral link, mobile navigation. | Copy feedback and failure recovery were verified; navigation mappings verified. |
+| `/account` | Shared header, customer-service mail link, mobile navigation. | `mailto:Skybet0553@gmail.com` verified from both account and home support surfaces. |
+| `/event/live-skyline` | Shared header, Return to event board, six preview market controls, fixed slip, mobile navigation. | A detail market opened the preview sheet while retaining the event route; all markets share that handler. |
+| `/admin` | Authentication gate in a public session. | **Sign in to continue** rendered; protected controls deliberately remain unavailable without owner authentication. |
+
+This inventory, the direct outcome matrix above, 34 automated tests, type-check, production build, and visual reviews together form the final public-control verification record for this release.
+
+To close the repeated-control pass, the remaining simulated-card actions were replayed directly: **Orbit FC** and **N. Dlamini** each kept the `/` route and opened **Review your selection**. The second compact match card expanded to **Over 164.5 points** and **Under 164.5 points** with its explicit collapse control. The first compact card’s expanded-market preview-sheet path was verified earlier in the same published build. This completes the direct evidence for every repeated compact-card and simulated-card interaction family.
+
+The revealed **Over 164.5 points** control on the second compact card was then selected directly; it retained `/`, opened **Review your selection**, and displayed the non-transactional notice. On `/games`, every visible category chip—All demos, Live virtuals, Football demos, and Court demos—entered its active state when selected. Its refresh control entered the expected temporary disabled/loading state while retaining `/games`.

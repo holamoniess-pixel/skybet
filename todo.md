@@ -73,5 +73,10 @@
 - [x] Extend the non-transactional event preview with additional clearly labelled market options.
 - [x] Present a safe referral-link status and copy affordance in the rewards activity surface.
 - [x] Add regression tests and responsive visual verification for the refined public interface.
-- [ ] Run and document a complete published-domain browser audit of all visible public controls and routes.
+- [x] Run and document a complete published-domain browser audit of all visible public controls and routes.
+- [x] Re-exercise every current home shortcut, filter, virtual-feed, refresh, header, support, and mobile navigation control on the published domain; record a route-by-route pass/fail checklist with overlay-safe keyboard evidence where required.
+- [x] Directly verify the published header search and account-controls buttons, the home customer-service mail link, and the precise state outcome of every remaining discovery shortcut.
+- [x] Enumerate every visible public control on each latest-build route and append the route-by-route audit matrix before final publication.
+- [x] Directly replay the remaining repeated home virtual-card and expanded-market actions on the published build and record the safe-preview outcome.
+- [x] Directly exercise the published games-route category chips and refresh control, and select a revealed second-card expanded market into the safe preview sheet.
 - [x] Handle referral-link copy failures with visible feedback and add successful and failed-copy regression coverage.
