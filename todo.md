@@ -135,7 +135,7 @@
 - [x] Assess the current SKYBET deployment and compare GitHub-driven Netlify deployment with the existing managed hosting, including an appropriate backend runtime.
 - [x] Prepare a GitHub repository deployment configuration that supports controlled production updates from the SKYBET main branch.
 - [x] Supersede the planned Manus OAuth-to-Clerk migration with the owner-approved first-party authentication approach; no Clerk integration is required.
-- [ ] Provision or connect a Neon PostgreSQL database, migrate the non-destructive SKYBET schema and data safely, and update server-side access configuration.
+- [x] Provision or connect a Neon PostgreSQL database, migrate the non-destructive SKYBET schema and data safely, and update server-side access configuration.
 - [ ] Configure Sentry error and performance monitoring with server-only credentials and a non-sensitive alerting model.
 - [ ] Configure Sanity as the CMS boundary for approved editorial content without moving payment, ledger, or authentication data into the CMS.
 - [ ] Document the Supabase capability boundary: it may support database, storage, or functions, but it is not the planned hosting runtime for the current Express application.

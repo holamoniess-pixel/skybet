@@ -25,3 +25,7 @@ Sentry and Sanity still require owner-selected projects and secure credentials. 
 The reviewed migration was applied to the explicit Neon production branch `br-calm-scene-ayxt8k1f`. Read-only verification confirms all sixteen SKYBET application tables now exist in the `public` schema. The Neon production branch had no SKYBET tables before this operation, so this was a schema initialization rather than a destructive replacement or customer-data import.
 
 The remaining runtime step is to update Railway’s `DATABASE_URL` to the Neon connection string, redeploy the current GitHub `main` build, and verify the Railway health and first-party authentication endpoints. Until that owner-console variable is changed, Railway continues using its existing database connection.
+
+## Railway runtime cutover verification
+
+The owner updated Railway’s production `DATABASE_URL` using the Neon production connection string and the service redeployed. The live Railway health endpoint returned HTTP 200 with `{"ok":true,"service":"skybet-api"}`. The live unauthenticated customer session endpoint returned HTTP 200 with `{"user":null}`. A deliberately nonexistent login returned HTTP 401 JSON, confirming the auth route is live and can safely handle a database lookup without creating an account. No test customer or payment record was inserted.
