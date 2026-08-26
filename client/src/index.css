@@ -243,14 +243,21 @@
     color: var(--sky-blue-200);
   }
 
-  .sky-preview-slip-fab {
+  .sky-preview-slip-dock {
     position: fixed;
     right: 1rem;
     bottom: calc(5.85rem + env(safe-area-inset-bottom));
     z-index: 45;
     display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+
+  .sky-preview-slip-fab {
+    position: relative;
+    display: flex;
     align-items: center;
-    min-height: 3rem;
+    min-height: 3.5rem;
     border: 1px solid color-mix(in oklab, var(--sky-blue-300) 30%, transparent);
     border-radius: 999px;
     background: var(--sky-navy-950);
@@ -262,6 +269,43 @@
   .sky-preview-slip-fab:focus-visible {
     box-shadow: 0 16px 32px color-mix(in oklab, var(--sky-navy-950) 36%, transparent);
     transform: translateY(-2px);
+  }
+
+  .sky-preview-code-fab {
+    display: inline-flex;
+    min-height: 2.8rem;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid color-mix(in oklab, var(--sky-blue-300) 32%, transparent);
+    border-radius: 999px;
+    background: var(--sky-white-50);
+    padding: 0.5rem 0.75rem;
+    color: var(--sky-blue-700);
+    box-shadow: 0 10px 22px color-mix(in oklab, var(--sky-navy-950) 16%, transparent);
+    font-size: 0.72rem;
+    font-weight: 850;
+  }
+
+  .dark .sky-preview-code-fab {
+    background: var(--card);
+    color: var(--sky-blue-300);
+  }
+
+  .sky-preview-code-fab:hover,
+  .sky-preview-code-fab:focus-visible {
+    background: var(--sky-ice-100);
+    transform: translateY(-2px);
+  }
+
+  .sky-hero-slide {
+    opacity: 0;
+    transform: scale(1.03);
+    transition: opacity 700ms cubic-bezier(0.23, 1, 0.32, 1), transform 4.5s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .sky-hero-slide-active {
+    opacity: 0.78;
+    transform: scale(1);
   }
 
   .sky-hero {
@@ -312,7 +356,7 @@
   }
 
   @media (min-width: 768px) {
-    .sky-preview-slip-fab {
+    .sky-preview-slip-dock {
       right: 1.5rem;
       bottom: 1.5rem;
     }
@@ -330,7 +374,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sky-preview-wallet,
-  .sky-preview-slip-fab {
+  .sky-preview-slip-fab,
+  .sky-preview-code-fab,
+  .sky-hero-slide {
     transition: none;
   }
 }

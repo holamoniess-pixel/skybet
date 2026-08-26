@@ -92,10 +92,10 @@ export const SKYBET_EVENTS: SkybetEvent[] = [
   {
     id: "upcoming-virtual",
     sport: "Virtuals",
-    competition: "Skyline Sprint · Demo",
+    competition: "Skyline Sprint · Next round",
     teams: ["Blue Lane", "Emerald Lane"],
     startsAt: "Next round",
-    status: "Demonstration catalogue",
+    status: "Upcoming round",
     isLive: false,
     markets: [
       { label: "Blue Lane", value: "2.32" },

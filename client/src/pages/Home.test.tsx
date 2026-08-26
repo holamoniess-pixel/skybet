@@ -14,7 +14,7 @@ vi.mock("@/lib/trpc", () => ({
       mockFeed: {
         useQuery: () => ({
           data: {
-            source: "simulated",
+            source: "preview",
             refreshedAt: "2026-08-25T12:00:00.000Z",
             refreshAfterSeconds: 30,
             events: [],
@@ -63,7 +63,8 @@ describe("Skybet Home", () => {
     expect(screen.getByRole("heading", { name: "Live centre" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Harbour City2.18" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cedar Waves1.68" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Virtual match previews" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Featured virtual matches" })).toBeInTheDocument();
+    expect(document.querySelectorAll(".sky-hero-slide")).toHaveLength(10);
   });
 
   it("switches to the upcoming event view", async () => {
@@ -138,11 +139,11 @@ describe("Skybet Home", () => {
     expect(screen.getByRole("link", { name: "Email SKYBET customer service" })).toHaveAttribute("href", "mailto:Skybet0553@gmail.com");
   });
 
-  it("allows the simulated feed to be refreshed from the preview control", async () => {
+  it("allows the games feed to be refreshed from the preview control", async () => {
     const user = userEvent.setup();
     renderHome();
 
-    await user.click(screen.getByRole("button", { name: "Refresh simulated games feed" }));
+    await user.click(screen.getByRole("button", { name: "Refresh games feed" }));
 
     expect(mockFeedRefetch).toHaveBeenCalledTimes(1);
   });
@@ -155,6 +156,23 @@ describe("Skybet Home", () => {
     await user.click(accountButtons.at(-1)!);
 
     expect(window.location.pathname).toBe("/account");
+  });
+
+  it("exposes a safe preview-code affordance beside the enlarged floating slip", () => {
+    renderHome();
+
+    expect(screen.getByRole("button", { name: "Load preview code" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open preview slip" })).toBeInTheDocument();
+  });
+
+  it("provides keyboard-accessible manual controls for the ten-frame hero rotation", async () => {
+    const user = userEvent.setup();
+    renderHome();
+
+    await user.click(screen.getByRole("button", { name: "Next hero image" }));
+
+    expect(document.querySelectorAll(".sky-hero-slide-active")[0]).toBe(document.querySelectorAll(".sky-hero-slide")[1]);
+    expect(screen.getByText("2/10")).toBeInTheDocument();
   });
 
   it("routes discovery and support controls to their dedicated customer destinations", async () => {
@@ -171,16 +189,18 @@ describe("Skybet Home", () => {
     expect(window.location.hash).toBe("#support");
   });
 
-  it("opens a known event code and provides clear inline guidance for an unknown code", async () => {
+  it("restores a known local preview code into the non-transactional slip and guides an unknown code", async () => {
     const user = userEvent.setup();
     renderHome();
     const eventCode = screen.getByRole("textbox", { name: "Enter an event code" });
 
     await user.type(eventCode, "live-skyline");
     await user.click(screen.getByRole("button", { name: "Load" }));
-    expect(window.location.pathname).toBe("/event/live-skyline");
+    expect(window.location.pathname).toBe("/");
+    expect(screen.getByText("Review your selection")).toBeInTheDocument();
+    expect(screen.getByText(/Loaded Harbour City into your local Preview slip/)).toBeInTheDocument();
 
-    window.history.pushState({}, "", "/");
+    await user.keyboard("{Escape}");
     await user.clear(eventCode);
     await user.type(eventCode, "not-a-preview-event");
     await user.click(screen.getByRole("button", { name: "Load" }));

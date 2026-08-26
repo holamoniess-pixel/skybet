@@ -131,3 +131,17 @@ This inventory, the direct outcome matrix above, 34 automated tests, type-check,
 To close the repeated-control pass, the remaining simulated-card actions were replayed directly: **Orbit FC** and **N. Dlamini** each kept the `/` route and opened **Review your selection**. The second compact match card expanded to **Over 164.5 points** and **Under 164.5 points** with its explicit collapse control. The first compact card’s expanded-market preview-sheet path was verified earlier in the same published build. This completes the direct evidence for every repeated compact-card and simulated-card interaction family.
 
 The revealed **Over 164.5 points** control on the second compact card was then selected directly; it retained `/`, opened **Review your selection**, and displayed the non-transactional notice. On `/games`, every visible category chip—All demos, Live virtuals, Football demos, and Court demos—entered its active state when selected. Its refresh control entered the expected temporary disabled/loading state while retaining `/games`.
+
+## Visual-editor refinement verification — 26 August 2026
+
+The latest refinement replaces the static home artwork with an **original ten-frame visual rotation**. It alternates the existing SKYBET stadium source and the newly generated SKYBET scene through distinct composition crops rather than claiming ten independent photographs. The sequence advances every 4.5 seconds when reduced motion is not requested, and exposes **Previous hero image** and **Next hero image** controls with an announced `n/10` position for keyboard users. Full-page desktop (`1280×720`) and mobile (`375×812`) reviews confirmed that the scaled uppercase brand mark, expanded mobile rail, compact cards, hero controls, and the retained support entry fit without page-level overflow.
+
+| Verification surface | Result |
+| --- | --- |
+| Terminology and boundaries | Customer-visible `demo`, `simulated`, `sandbox`, and `demonstration` wording was removed from the maintained customer bundle. The games and event-detail routes still visibly state that the interface does not accept deposits, wagers, or payouts. |
+| Preview-code interaction | The enlarged floating **Preview slip** and **Load preview code** control are present on the home route. Loading the control focuses the local preview-code field; `live-skyline` restores its first local selection directly into **Review your selection** while retaining `/`. The sheet states that it does not accept real-money actions. An invalid code leaves `/` intact and shows only inline recovery guidance. |
+| Sheet accessibility | A selected compact market opened **Review your selection**. Pressing Escape removed the sheet after the shared visible close chrome was removed. |
+| Regression and build | `pnpm test` passed **36 tests across 11 files**; `pnpm check` and `pnpm build` also passed. The production build retained only its existing bundle-size advisory. |
+| Browser diagnostics | Focused mobile interaction replay reported **0 errors and 0 warnings** in the browser console. |
+
+The mobile screenshot review intentionally used the normal viewport capture to include fixed controls. It confirmed that the enlarged Preview slip and Load code buttons remain above the bottom navigation, while the full-page captures confirm the compact home, games, activity, and account layouts. No payment, wager, deposit, payout, KYC, referral-reward credit, or other transaction path was added or exercised.

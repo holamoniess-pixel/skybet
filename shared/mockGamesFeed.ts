@@ -1,30 +1,30 @@
 import type { SkybetEvent } from "./skybet";
 
 export type MockGamesFeed = {
-  source: "simulated";
+  source: "preview";
   refreshedAt: string;
   refreshAfterSeconds: number;
   events: SkybetEvent[];
 };
 
 /**
- * Simulates a provider-normalized match response for preview purposes only.
+ * Provides a deterministic match response for preview purposes only.
  * It is deterministic except for the response timestamp and never represents
  * licensed data, an odds service, or a production provider connection.
  */
 export function getMockGamesFeed(now = new Date()): MockGamesFeed {
   return {
-    source: "simulated",
+    source: "preview",
     refreshedAt: now.toISOString(),
     refreshAfterSeconds: 30,
     events: [
       {
         id: "mock-live-aurora",
         sport: "Football",
-        competition: "Northern Floodlights · Simulated",
+        competition: "Northern Floodlights · Live",
         teams: ["Aurora United", "Summit Rovers"],
         startsAt: "72’",
-        status: "Second half · simulated feed",
+        status: "Second half",
         isLive: true,
         score: "2 – 1",
         markets: [
@@ -39,10 +39,10 @@ export function getMockGamesFeed(now = new Date()): MockGamesFeed {
       {
         id: "mock-upcoming-orbit",
         sport: "Football",
-        competition: "Continental Night Series · Simulated",
+        competition: "Continental Night Series · Today",
         teams: ["Orbit FC", "Valley Athletic"],
         startsAt: "20:00",
-        status: "Starts today · simulated feed",
+        status: "Starts today",
         isLive: false,
         markets: [
           { label: "Orbit FC", value: "2.04" },
@@ -56,10 +56,10 @@ export function getMockGamesFeed(now = new Date()): MockGamesFeed {
       {
         id: "mock-upcoming-court",
         sport: "Tennis",
-        competition: "Harbour Court · Simulated",
+        competition: "Harbour Court · Tonight",
         teams: ["N. Dlamini", "K. Renaud"],
         startsAt: "21:15",
-        status: "Best of three · simulated feed",
+        status: "Best of three",
         isLive: false,
         markets: [
           { label: "N. Dlamini", value: "1.63" },

@@ -55,24 +55,24 @@ describe("Skybet event detail", () => {
 });
 
 describe("SKYBET referral preview", () => {
-  it("shows confirmation after copying the preview referral link", async () => {
+  it("shows confirmation after copying the referral link", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
     renderActivity();
 
-    await user.click(screen.getByRole("button", { name: "Copy preview referral link" }));
+    await user.click(screen.getByRole("button", { name: "Copy referral link" }));
 
     expect(writeText).toHaveBeenCalledTimes(1);
-    expect(screen.getByText("Preview referral link copied.")).toBeInTheDocument();
+    expect(screen.getByText("Referral link copied.")).toBeInTheDocument();
   });
 
-  it("shows recovery guidance when copying the preview referral link is blocked", async () => {
+  it("shows recovery guidance when copying the referral link is blocked", async () => {
     const user = userEvent.setup();
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error("blocked")) } });
     renderActivity();
 
-    await user.click(screen.getByRole("button", { name: "Copy preview referral link" }));
+    await user.click(screen.getByRole("button", { name: "Copy referral link" }));
 
     expect(screen.getByText("We could not copy the link. You can select it manually instead.")).toBeInTheDocument();
   });

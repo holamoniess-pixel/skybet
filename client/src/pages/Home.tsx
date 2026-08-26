@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import {
   Activity,
+  ChevronLeft,
   ArrowRight,
   ChevronRight,
   CircleHelp,
@@ -51,6 +52,19 @@ const discoveryItems = [
   { label: "Rewards", icon: Gift, description: "Referral progress", href: "/activity#rewards" },
 ];
 
+const heroSlides = [
+  { src: "/manus-storage/skybet-live-match-hero_97d12259.png", position: "object-center" },
+  { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663566567757/a2XEPPgreLmSs8S3Uu5nPF/skybet-hero-rotation-01-fCqUHQP59xAaAspgYvGJHN.webp", position: "object-center" },
+  { src: "/manus-storage/skybet-live-match-hero_97d12259.png", position: "object-[62%_center]" },
+  { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663566567757/a2XEPPgreLmSs8S3Uu5nPF/skybet-hero-rotation-01-fCqUHQP59xAaAspgYvGJHN.webp", position: "object-[70%_center]" },
+  { src: "/manus-storage/skybet-live-match-hero_97d12259.png", position: "object-[42%_center]" },
+  { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663566567757/a2XEPPgreLmSs8S3Uu5nPF/skybet-hero-rotation-01-fCqUHQP59xAaAspgYvGJHN.webp", position: "object-[80%_center]" },
+  { src: "/manus-storage/skybet-live-match-hero_97d12259.png", position: "object-[78%_center]" },
+  { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663566567757/a2XEPPgreLmSs8S3Uu5nPF/skybet-hero-rotation-01-fCqUHQP59xAaAspgYvGJHN.webp", position: "object-[58%_center]" },
+  { src: "/manus-storage/skybet-live-match-hero_97d12259.png", position: "object-[55%_center]" },
+  { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663566567757/a2XEPPgreLmSs8S3Uu5nPF/skybet-hero-rotation-01-fCqUHQP59xAaAspgYvGJHN.webp", position: "object-[88%_center]" },
+];
+
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
   const [, setLocation] = useLocation();
@@ -62,6 +76,13 @@ export default function Home() {
   const [activeMobileNav, setActiveMobileNav] = useState("Home");
   const [eventCode, setEventCode] = useState("");
   const [eventCodeMessage, setEventCodeMessage] = useState("");
+  const [heroSlide, setHeroSlide] = useState(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const interval = window.setInterval(() => setHeroSlide(current => (current + 1) % heroSlides.length), 4500);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const events = useMemo(
     () => filterSkybetEvents(SKYBET_EVENTS, mode, sport),
@@ -90,8 +111,9 @@ export default function Home() {
       return;
     }
 
-    setEventCodeMessage("");
-    setLocation(`/event/${event.id}`);
+    const market = event.markets[0];
+    chooseSelection(event, market.label, market.value);
+    setEventCodeMessage(`Loaded ${event.teams[0]} into your local Preview slip. No real-money action occurs.`);
   };
 
   const handleMobileNavigation = (label: string) => {
@@ -111,7 +133,7 @@ export default function Home() {
     }
   };
 
-  const handleMobileDiscovery = (item: "Live" | "Football" | "Basketball" | "Tennis" | "Virtuals") => {
+  const handleMobileDiscovery = (item: "All" | "Live" | "Football" | "Basketball" | "Tennis" | "Virtuals") => {
     if (item === "Live") {
       setLocation("/live");
       return;
@@ -119,6 +141,12 @@ export default function Home() {
     setMode("upcoming");
     setSport(item);
     document.getElementById("skybet-events")?.scrollIntoView?.({ behavior: "smooth" });
+  };
+
+  const focusPreviewCode = () => {
+    const field = document.getElementById("preview-code") as HTMLInputElement | null;
+    field?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => field?.focus(), 250);
   };
 
   return (
@@ -170,8 +198,15 @@ export default function Home() {
 
       <main className="container py-5 md:py-8">
         <section className="sky-hero relative min-h-[16.75rem] overflow-hidden rounded-[1.5rem] border border-[var(--sky-blue-100)] bg-[var(--sky-navy-950)] px-4 py-4 shadow-[0_16px_50px_rgba(10,63,158,0.14)] dark:border-white/10 sm:min-h-[22rem] sm:rounded-[2rem] sm:px-8 sm:py-9">
-          <img src="/manus-storage/skybet-live-match-hero_97d12259.png" alt="Illuminated football stadium for SKYBET live match preview" className="absolute inset-0 size-full object-cover object-center opacity-75" />
+          <div className="absolute inset-0" aria-hidden="true">
+            {heroSlides.map((slide, index) => <img key={`${slide.src}-${index}`} src={slide.src} alt="" className={`absolute inset-0 size-full object-cover ${slide.position} sky-hero-slide ${index === heroSlide ? "sky-hero-slide-active" : ""}`} />)}
+          </div>
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,19,51,0.98)_0%,rgba(3,19,51,0.87)_45%,rgba(3,19,51,0.18)_100%)]" aria-hidden="true" />
+          <div className="absolute top-3 right-3 z-10 flex items-center gap-1 rounded-full border border-white/15 bg-[rgba(3,19,51,0.58)] p-1 backdrop-blur-sm sm:top-5 sm:right-5">
+            <button type="button" aria-label="Previous hero image" onClick={() => setHeroSlide(current => (current - 1 + heroSlides.length) % heroSlides.length)} className="grid size-8 place-items-center rounded-full text-white transition hover:bg-white/15 focus-visible:bg-white/15"><ChevronLeft className="size-4" /></button>
+            <span aria-live="polite" className="min-w-11 text-center text-[10px] font-extrabold tabular-nums text-white">{heroSlide + 1}/{heroSlides.length}</span>
+            <button type="button" aria-label="Next hero image" onClick={() => setHeroSlide(current => (current + 1) % heroSlides.length)} className="grid size-8 place-items-center rounded-full text-white transition hover:bg-white/15 focus-visible:bg-white/15"><ChevronRight className="size-4" /></button>
+          </div>
           <div className="relative max-w-xl">
             <Badge className="mb-2 rounded-full bg-[var(--sky-ice-100)] px-3 py-1 text-[10px] font-extrabold tracking-[0.12em] text-[var(--sky-blue-700)] uppercase hover:bg-[var(--sky-ice-100)] sm:mb-4 sm:text-[11px]">
               Match day preview
@@ -225,7 +260,8 @@ export default function Home() {
               <Ticket className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[var(--sky-blue-300)]" />
               <input
                 aria-label="Enter an event code"
-                placeholder="Enter an event code"
+                id="preview-code"
+                placeholder="Enter a preview code"
                 value={eventCode}
                 onChange={event => {
                   setEventCode(event.target.value);
@@ -240,7 +276,7 @@ export default function Home() {
             </Button>
           </form>
           <p id="event-code-help" aria-live="polite" className="mt-2 min-h-5 text-xs font-semibold text-[var(--sky-blue-200)]">
-            {eventCodeMessage || "Open a known preview event with its catalogue code."}
+            {eventCodeMessage || "Open a known event with its preview code."}
           </p>
         </section>
 
@@ -320,7 +356,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mt-4 space-y-3">
+            <div className="mt-3 space-y-2">
               {events.length > 0 ? (
                 events.map(event => (
                   <SkybetEventCard
@@ -376,24 +412,10 @@ export default function Home() {
           </aside>
         </section>
 
-        <section className="mt-7 grid gap-4 md:grid-cols-[1.35fr_1fr]">
-          <Card className="border-[var(--sky-blue-100)] bg-white shadow-[0_10px_24px_rgba(10,63,158,0.05)] dark:border-white/10 dark:bg-[var(--card)]">
-            <CardContent className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:p-6">
-              <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[var(--sky-emerald-600)]/10 text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]">
-                <ShieldCheck className="size-6" />
-              </div>
-              <div>
-                <p className="text-sm font-extrabold text-[var(--sky-navy-950)] dark:text-white">Your SKYBET controls should stay close.</p>
-                <p className="mt-1 text-sm leading-6 text-[var(--sky-navy-600)] dark:text-slate-400">Manage account security, safe-play preferences, and support from one straightforward place.</p>
-              </div>
-              <Button variant="outline" className="h-11 shrink-0 rounded-xl border-[var(--sky-emerald-600)]/30 font-bold text-[var(--sky-emerald-700)] hover:bg-[var(--sky-emerald-600)]/10 dark:text-[var(--sky-emerald-500)]" onClick={() => setAccountOpen(true)}>
-                View controls
-              </Button>
-            </CardContent>
-          </Card>
+        <section className="mt-6">
           <Card className="border-[var(--sky-blue-100)] bg-[var(--sky-navy-950)] text-white shadow-[0_10px_24px_rgba(6,26,59,0.16)] dark:border-white/10">
-            <CardContent className="flex h-full items-center gap-4 p-5 sm:p-6">
-              <div className="grid size-11 shrink-0 place-items-center rounded-2xl bg-white/10 text-[var(--sky-blue-300)]"><CircleHelp className="size-5" /></div>
+            <CardContent className="flex items-center gap-3 p-3.5 sm:p-4">
+              <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/10 text-[var(--sky-blue-300)]"><CircleHelp className="size-5" /></div>
               <div>
                 <p className="text-sm font-extrabold">Need a hand?</p>
                 <a href="mailto:Skybet0553@gmail.com" aria-label="Email SKYBET customer service" className="mt-1 flex items-center gap-1 text-sm font-semibold text-[var(--sky-emerald-500)] hover:text-white">
@@ -408,7 +430,7 @@ export default function Home() {
         </section>
       </main>
 
-      <PreviewSlipFab selection={selection} onOpen={() => setSlipOpen(true)} />
+      <PreviewSlipFab selection={selection} onOpen={() => setSlipOpen(true)} onLoadCode={focusPreviewCode} />
       <MobileBottomNav activeItem={activeMobileNav} onNavigate={handleMobileNavigation} />
       <SelectionSheet open={slipOpen} onOpenChange={setSlipOpen} selection={selection} />
       <AccountSheet open={accountOpen} onOpenChange={setAccountOpen} />

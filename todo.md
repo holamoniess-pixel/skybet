@@ -80,3 +80,13 @@
 - [x] Directly replay the remaining repeated home virtual-card and expanded-market actions on the published build and record the safe-preview outcome.
 - [x] Directly exercise the published games-route category chips and refresh control, and select a revealed second-card expanded market into the safe preview sheet.
 - [x] Handle referral-link copy failures with visible feedback and add successful and failed-copy regression coverage.
+- [x] Remove the unneeded sheet chrome identified by the visual editor without breaking accessible drawer behaviour.
+- [x] Replace the hero’s static artwork area with an original ten-slide visual rotation.
+- [x] Further compact match, account, activity, rewards, and sports cards while preserving readable and accessible controls.
+- [x] Remove visible “demo” wording from customer UI while retaining a clear non-transactional preview safety boundary.
+- [x] Expand the mobile sport-discovery rail with additional useful categories and shortcuts.
+- [x] Enlarge the Preview slip and add a safe preview-code lookup flow without enabling real-money wagers.
+- [x] Increase the shared SKYBET brand-mark scale across customer pages.
+- [x] Add regression coverage and verify responsive behaviour for the visual-editor refinements.
+- [x] Restore a known preview selection directly into the non-transactional Preview slip from a local preview code without routing to an event page.
+- [x] Add regression and browser verification for successful and invalid local preview-code restoration.

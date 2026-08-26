@@ -8,7 +8,7 @@ vi.mock("@/lib/trpc", () => ({
     games: {
       mockFeed: {
         useQuery: () => ({
-          data: { source: "simulated", refreshedAt: "2026-08-25T12:00:00.000Z", refreshAfterSeconds: 30, events: [] },
+          data: { source: "preview", refreshedAt: "2026-08-25T12:00:00.000Z", refreshAfterSeconds: 30, events: [] },
           isLoading: false,
           isError: false,
           isFetching: false,
@@ -39,10 +39,11 @@ describe("Skybet customer routes", () => {
     expect(screen.getByRole("heading", { name: "Upcoming events" })).toBeInTheDocument();
   });
 
-  it("renders the games preview route", () => {
+  it("renders the games route with its non-transactional preview boundary", () => {
     renderAt("/games");
-    expect(screen.getByRole("heading", { name: "Games feed preview" })).toBeInTheDocument();
-    expect(screen.getByText("Virtual-game demo · simulated catalogue")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Virtual match board" })).toBeInTheDocument();
+    expect(screen.getByText("Virtual games · preview catalogue")).toBeInTheDocument();
+    expect(screen.getByText(/does not accept wagers, deposits, or payouts/i)).toBeInTheDocument();
   });
 
   it("renders the account controls route", () => {
