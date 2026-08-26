@@ -189,3 +189,17 @@ The `/bets/history` workspace now exposes **Open win treatment preview**. Its re
 | Customer rendering | Mobile snapshots verified the bet-history action, safe wallet boundary, separated-balance card, and settlement-preview behavior. |
 
 Desktop review at `1280×720` confirmed that `/bets/history` preserves a clear wide-screen two-column layout: the win-treatment entry remains within the protected activity card and the separated deposited-funds and bonus-balance card stays readable alongside it. The matching `/wallet` view preserves the same ledger card while keeping both deposit and withdrawal entry tiles explicitly server-gated. No overlap, clipping, or horizontal overflow was observed.
+
+## Administrator authentication and guarded model fallback — 26 August 2026
+
+The `/admin` route now presents a dedicated email-and-password sign-in form. The requested administrator was bootstrapped through a server-only secret, and the database now contains a `local_admin_credentials` record linked to an `admin` user. The record contains a derived `scrypt` password hash; no plaintext password column, credential value, or session token was written to source control or returned from the endpoint. The login endpoint issues a compatible 12-hour HTTP-only session cookie after successful verification.
+
+The live-data preparation now has two validated NVIDIA models followed by two validated OpenRouter models: `meta/llama-3.1-8b-instruct`, `meta/llama-3.3-70b-instruct`, `nvidia/nemotron-3.5-lightning:free`, and `liquid/lfm-2.5-2.6b:free`. The server’s health checks successfully reached both authenticated model-list endpoints. The fallback normalizer accepts only a timestamped licensed-provider snapshot, returns display metadata without odds or scores, retains the original licensed event payload as canonical, and refuses browser-collected data before any model request.
+
+| Verification surface | Result |
+| --- | --- |
+| Administrator bootstrap | The protected endpoint returned HTTP `200`; database verification confirmed an `admin` user and a 168-character derived password hash only. |
+| Admin UI recovery | Browser review of `/admin` verified email/password fields and showed generic invalid-credential feedback after a harmless test submission. |
+| Provider credentials | NVIDIA and OpenRouter model-list health checks both passed without logging either secret. |
+| Fallback safety | Regression coverage verified ordered NVIDIA→NVIDIA→OpenRouter→OpenRouter fallback, failure continuation, and rejection of non-licensed browser data. |
+| Full validation | `pnpm test` passed **51 tests across 18 files**; `pnpm check` and `pnpm build` passed. |

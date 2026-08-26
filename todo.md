@@ -109,3 +109,13 @@
 - [x] Add a non-transactional settlement-preview modal using the user-approved supplied cup artwork.
 - [x] Add regression, responsive visual verification, and backend-handoff notes for the bonus ledger and settlement-preview components.
 - [x] Add desktop visual verification for the bonus-ledger and settlement-preview surfaces, then record the result.
+- [x] Identify the exact ASPN live sports-data provider and confirm its official API, licensing, and update model before connection.
+- [x] Validate ESPN’s official data-access and licensing path for SKYBET before treating any ESPN data as a live production feed.
+- [ ] Select and approve a licensed live sports-data provider for SKYBET after the ESPN validation outcome.
+- [x] Assess a permissioned two-minute sports-data refresh architecture, including source rights, rate limits, failure handling, and model responsibilities.
+- [x] Add a secure email-and-password administrator sign-in flow with server-side password hashing and no client or repository credential storage.
+- [x] Prepare secure configuration for the supplied administrator account and any future NVIDIA key without exposing either value in application code.
+- [x] Add tests and operational documentation for admin authentication and the data-refresh safety boundary.
+- [x] Configure two server-side NVIDIA models and two server-side OpenRouter models as ordered normalization fallbacks without exposing their keys.
+- [x] Implement the licensed-feed-first orchestration boundary and keep browser collection disabled until source URLs and written permission are recorded.
+- [x] Add provider health checks, model failover tests, and an operational runbook for the dual-provider fallback boundary.

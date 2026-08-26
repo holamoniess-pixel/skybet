@@ -15,6 +15,6 @@ export function getSportsDataConnectionStatus(): SportsDataConnectionStatus {
     state: "unconfigured",
     provider: null,
     refreshStrategy: "provider-sse-or-server-polling",
-    message: "Live sports data will appear after an approved provider is configured securely.",
+    message: "Live sports data will appear after an approved provider is configured securely. Licensed source data is normalized server-side with guarded model fallbacks; browser collection remains disabled until source permission is recorded.",
   };
 }

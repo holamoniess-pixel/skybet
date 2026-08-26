@@ -6,6 +6,7 @@ import {
   bonusPolicyOverrides,
   bonusPolicyRules,
   InsertUser,
+  localAdminCredentials,
   referralRewardOverrides,
   referralRewardRules,
   users,
@@ -96,6 +97,60 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getLocalAdminCredentialByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select({ credential: localAdminCredentials, user: users })
+    .from(localAdminCredentials)
+    .innerJoin(users, eq(localAdminCredentials.userId, users.id))
+    .where(eq(localAdminCredentials.email, email))
+    .limit(1);
+  return result[0];
+}
+
+export async function bootstrapLocalAdminCredential(input: {
+  email: string;
+  passwordHash: string;
+  openId: string;
+}) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return db.transaction(async tx => {
+    const existing = await tx
+      .select({ credential: localAdminCredentials, user: users })
+      .from(localAdminCredentials)
+      .innerJoin(users, eq(localAdminCredentials.userId, users.id))
+      .where(eq(localAdminCredentials.email, input.email))
+      .limit(1);
+    if (existing[0]) return existing[0];
+
+    const insertUser = await tx.insert(users).values({
+      openId: input.openId,
+      name: "SKYBET administrator",
+      email: input.email,
+      loginMethod: "password",
+      role: "admin",
+      lastSignedIn: new Date(),
+    });
+    const userId = Number(insertUser[0].insertId);
+    await tx.insert(localAdminCredentials).values({ userId, email: input.email, passwordHash: input.passwordHash });
+    const created = await tx
+      .select({ credential: localAdminCredentials, user: users })
+      .from(localAdminCredentials)
+      .innerJoin(users, eq(localAdminCredentials.userId, users.id))
+      .where(eq(localAdminCredentials.userId, userId))
+      .limit(1);
+    return created[0];
+  });
+}
+
+export async function recordLocalAdminSignIn(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, userId));
 }
 
 export async function getActiveReferralRewardRule() {

@@ -25,6 +25,18 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
+/** Password-hash credential record for the single locally managed administrator account. */
+export const localAdminCredentials = mysqlTable("local_admin_credentials", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type LocalAdminCredential = typeof localAdminCredentials.$inferSelect;
+
 /** Versioned, programme-wide referral reward configurations. */
 export const referralRewardRules = mysqlTable("referral_reward_rules", {
   id: int("id").autoincrement().primaryKey(),
