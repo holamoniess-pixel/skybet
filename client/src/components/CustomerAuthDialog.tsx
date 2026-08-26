@@ -28,7 +28,17 @@ export function CustomerAuthDialog({ open, onOpenChange, onAuthenticated }: Cust
         credentials: "include",
         body: JSON.stringify(mode === "signup" ? { email, phone, password, confirmPassword, name } : { email, password }),
       });
-      const payload = (await response.json()) as { error?: string };
+      const contentType = response.headers.get("content-type") || "";
+      let payload: { error?: string } = {};
+      if (contentType.includes("application/json")) {
+        try {
+          payload = (await response.json()) as { error?: string };
+        } catch {
+          throw new Error("The authentication service returned an invalid response. Please try again.");
+        }
+      } else if (!response.ok || contentType.includes("text/html")) {
+        throw new Error("The authentication service is temporarily unavailable. Please try again shortly.");
+      }
       if (!response.ok) throw new Error(payload.error || "Authentication was unsuccessful.");
       onOpenChange(false);
       window.dispatchEvent(new Event("skybet-auth-changed"));

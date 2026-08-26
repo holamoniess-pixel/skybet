@@ -13,6 +13,23 @@ describe("CustomerAuthDialog", () => {
     expect(screen.getByLabelText("Confirm password")).toBeInTheDocument();
   });
 
+  it("shows a safe error when the deployment returns the Netlify HTML shell", async () => {
+    const onOpenChange = vi.fn();
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("<!doctype html><html><body>SKYBET</body></html>", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      }),
+    );
+    render(<CustomerAuthDialog open onOpenChange={onOpenChange} />);
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "member@example.com" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "secure-password" } });
+    fireEvent.submit(screen.getByRole("button", { name: "Sign in" }).closest("form")!);
+    expect(await screen.findByRole("alert")).toHaveTextContent("authentication service is temporarily unavailable");
+    expect(onOpenChange).not.toHaveBeenCalled();
+    fetchMock.mockRestore();
+  });
+
   it("submits first-party sign-up data and closes after success", async () => {
     const onOpenChange = vi.fn();
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 201 }));

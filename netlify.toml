@@ -2,10 +2,15 @@
   command = "pnpm build"
   publish = "dist/public"
 
-# Skybet is a single-page React application at the static-preview layer.
-# The current Express/tRPC server is not yet packaged as Netlify Functions;
-# therefore this configuration is suitable for UI previews only, not the
-# authenticated or regulated production product.
+# Keep browser requests same-origin while routing server APIs to Railway.
+[[redirects]]
+  from = "/api/*"
+  to = "https://skybet-production.up.railway.app/api/:splat"
+  status = 200
+  force = true
+
+# SKYBET is a single-page React application at the static-preview layer.
+# The Express/tRPC server remains the authenticated production API on Railway.
 [[redirects]]
   from = "/*"
   to = "/index.html"
