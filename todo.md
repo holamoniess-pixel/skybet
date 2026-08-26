@@ -133,7 +133,7 @@
 - [x] Reframe the local GHS deposit path as future Aqùapay Mobile Money support for MTN, Telecel, and other provider-supported networks while retaining the manual proof-review boundary until activation.
 - [x] Add regression coverage, responsive verification, documentation, and a checkpoint for the Mobile Money readiness update.
 - [ ] Assess the current SKYBET deployment and compare GitHub-driven Netlify deployment with the existing managed hosting, including an appropriate backend runtime.
-- [ ] Prepare a GitHub repository deployment configuration that supports controlled production updates from the SKYBET main branch.
+- [x] Prepare a GitHub repository deployment configuration that supports controlled production updates from the SKYBET main branch.
 - [x] Supersede the planned Manus OAuth-to-Clerk migration with the owner-approved first-party authentication approach; no Clerk integration is required.
 - [ ] Provision or connect a Neon PostgreSQL database, migrate the non-destructive SKYBET schema and data safely, and update server-side access configuration.
 - [ ] Configure Sentry error and performance monitoring with server-only credentials and a non-sensitive alerting model.
@@ -147,7 +147,8 @@
 - [ ] Document the verified Railway/Netlify/Neon operating model, remaining Clerk/Sentry/Sanity prerequisites, and the staged cutover sequence.
 - [x] Handle the Railway service’s missing Manus OAuth configuration safely by disabling its legacy route until Clerk replaces it; do not invent an OAuth server URL.
 - [x] Add a safe unauthenticated backend health endpoint and document the Railway public-domain generation and verification steps.
-- [ ] Verify the Railway service’s public domain, health response, CORS allowlist, and rollback path after the owner generates a domain in Railway settings.
+- [ ] Verify the Railway service’s CORS allowlist and rollback path in the owner’s Railway console.
+- [x] Verify the owner-provided Railway public domain and health response without using the exposed temporary token.
 - [x] Remove the legacy Manus OAuth callback dependency; preserve only the local administrator session verifier while first-party customer auth handles customers.
 - [x] Replace the planned Better Auth integration with first-party customer sign-up using email, Ghana phone number, password, and password confirmation.
 - [x] Implement first-party customer email/password login with secure server-side password hashing, generic errors, HTTP-only sessions, logout, and protected-session validation.
