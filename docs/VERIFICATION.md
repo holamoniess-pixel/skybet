@@ -160,3 +160,15 @@ The floating Preview Slip is again a compact round button at the lower right. It
 | Browser diagnostics | The focused account-menu and protected wallet replay returned **0 browser-console errors** and **0 warnings**. |
 
 An original ten-asset hero set remains pending. A generation attempt was blocked by the free-plan image-generation quota (`20/20` reached). The live-data adapter is documented in `docs/SPORTS_DATA_ADAPTER_NOTES.md`; the available OpticOdds connector remains disabled until the provider is confirmed and its licence is configured securely.
+
+## Provider-ready integration preparation — 26 August 2026
+
+The application now includes a credential-free `sportsData.status` public contract. It reports the explicit **unconfigured** state, a `provider-sse-or-server-polling` refresh strategy, and clear customer copy that live sports data will appear only after an approved provider is configured securely. The existing virtual-match preview remains visibly separate from this status and has not been misrepresented as provider data.
+
+The homepage also has a ten-slot asset manifest in `shared/heroAssets.ts`, with a companion `docs/HERO_ASSET_MANIFEST.md` that specifies 16:9 images, a left-third text-safe region, branded-source approval, and usage-rights requirements. No unlicensed imagery was introduced.
+
+| Verification surface | Result |
+| --- | --- |
+| Adapter contract | Server regression coverage verifies the exact explicit unconfigured response without contacting a provider. |
+| Customer status surface | Mobile checks of `/` and `/games` at `375×812` show the provider-state notice cleanly within the match-feed card. |
+| Regression and type safety | `pnpm test` passed **39 tests across 13 files** and `pnpm check` passed. |

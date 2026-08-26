@@ -24,6 +24,9 @@ vi.mock("@/lib/trpc", () => ({
         useQuery: () => ({ data: feed.data, isLoading: false, isError: false, isFetching: false, refetch: feed.refetch }),
       },
     },
+    sportsData: {
+      status: { useQuery: () => ({ data: { state: "unconfigured", provider: null, refreshStrategy: "provider-sse-or-server-polling", message: "Live sports data will appear after an approved provider is configured securely." } }) },
+    },
   },
 }));
 
@@ -40,6 +43,7 @@ describe("GamesFeedPreview", () => {
 
     expect(screen.getByText("Orbit FC")).toBeInTheDocument();
     expect(screen.getByText("Amina Vale")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Live sports data will appear after an approved provider is configured securely.");
     await user.click(screen.getByRole("button", { name: "Football" }));
     expect(screen.getByText("Orbit FC")).toBeInTheDocument();
     expect(screen.queryByText("Amina Vale")).not.toBeInTheDocument();

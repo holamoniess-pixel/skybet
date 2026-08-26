@@ -16,6 +16,9 @@ vi.mock("@/lib/trpc", () => ({
         }),
       },
     },
+    sportsData: {
+      status: { useQuery: () => ({ data: { state: "unconfigured", provider: null, refreshStrategy: "provider-sse-or-server-polling", message: "Live sports data will appear after an approved provider is configured securely." } }) },
+    },
     auth: {
       me: { useQuery: () => ({ data: null, isLoading: false, error: null }) },
       logout: { useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }) },

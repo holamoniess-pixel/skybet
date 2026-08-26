@@ -7,6 +7,7 @@ import * as db from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, publicProcedure, router } from "./_core/trpc";
+import { getSportsDataConnectionStatus } from "./sportsDataAdapter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -23,6 +24,9 @@ export const appRouter = router({
   }),
   games: router({
     mockFeed: publicProcedure.query(() => getMockGamesFeed()),
+  }),
+  sportsData: router({
+    status: publicProcedure.query(() => getSportsDataConnectionStatus()),
   }),
   referrals: router({
     activeRule: adminProcedure.query(async () => {

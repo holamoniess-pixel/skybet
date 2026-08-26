@@ -101,3 +101,5 @@
 - [x] Add clearly gated deposit and withdrawal entry surfaces that are ready for future Flutterwave backend wiring but cannot move money before secure credentials and server validation exist.
 - [x] Document the secure Flutterwave and live sports-data backend handoff without collecting credentials or business documents in chat.
 - [x] Correct the balance-capsule account-icon alignment across mobile and desktop breakpoints, then re-verify the visual treatment.
+- [x] Add a credential-free provider-ready sports-data adapter contract with an explicit unconfigured status surface and regression coverage.
+- [x] Add a documented hero-asset manifest contract for ten distinct approved images, ready for secure asset replacement when they are supplied.

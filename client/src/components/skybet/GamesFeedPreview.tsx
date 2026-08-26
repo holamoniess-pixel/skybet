@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Activity, Gamepad2, RefreshCw } from "lucide-react";
+import { Activity, CircleAlert, Gamepad2, RefreshCw } from "lucide-react";
 import type { SkybetEvent } from "@shared/skybet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,10 @@ export function GamesFeedPreview({ onMarketSelect }: GamesFeedPreviewProps) {
   const feed = trpc.games.mockFeed.useQuery(undefined, {
     refetchInterval: 30_000,
     refetchIntervalInBackground: false,
+  });
+  const providerStatus = trpc.sportsData.status.useQuery(undefined, {
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
   const categories = ["All", "Live now", "Football", "Court"];
   const visibleEvents = useMemo(() => {
@@ -47,6 +51,7 @@ export function GamesFeedPreview({ onMarketSelect }: GamesFeedPreviewProps) {
             <span className="flex items-center gap-2 font-bold text-[var(--sky-navy-700)] dark:text-slate-300"><Gamepad2 className="size-3.5 text-[var(--sky-blue-600)]" /> Virtual games · preview catalogue</span>
             <span className="font-semibold text-[var(--sky-navy-500)] dark:text-slate-400">{feed.data ? `Refreshes every ${feed.data.refreshAfterSeconds}s` : "Loading feed"}</span>
           </div>
+          {providerStatus.data?.state === "unconfigured" ? <div role="status" className="flex items-start gap-2 border-b border-[var(--sky-blue-100)] px-3 py-2 text-xs leading-5 text-[var(--sky-navy-600)] dark:border-white/10 dark:text-slate-400"><CircleAlert className="mt-0.5 size-3.5 shrink-0 text-[var(--sky-blue-600)]" />{providerStatus.data.message}</div> : null}
           {feed.isError ? <p className="p-3 text-sm text-destructive">The games feed is unavailable. Please refresh.</p> : null}
           <div className="flex gap-2 overflow-x-auto p-2.5 pb-3 [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible">
             {feed.isLoading ? <p className="p-3 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">Loading virtual matches…</p> : null}
