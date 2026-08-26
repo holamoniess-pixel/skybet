@@ -1,7 +1,8 @@
 import { TRPCError } from "@trpc/server";
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { validateDepositPresetAmount, validateReferralCommissionPercentage, validateWithdrawalAmount } from "../../shared/payments";
+import { validateDepositPresetAmount, validateGhanaMobileMoneyNumber, validateReferralCommissionPercentage, validateWithdrawalAmount } from "../../shared/payments";
+import { getAquaPayGatewayReadiness } from "../aquaPayGateway";
 import * as db from "../db";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
@@ -26,6 +27,7 @@ async function uploadProof(userId: number, proof: z.infer<typeof proofSchema>) {
 
 export const paymentReviewRouter = router({
   methods: protectedProcedure.query(() => db.getPaymentMethods(true)),
+  gatewayStatus: protectedProcedure.query(() => getAquaPayGatewayReadiness()),
   myRequests: protectedProcedure.query(({ ctx }) => db.getCustomerPaymentRequests(ctx.user.id)),
   submitDeposit: protectedProcedure
     .input(z.object({ method: paymentMethodSchema, amount: z.string(), customerPaymentReference: z.string().trim().min(3).max(128), proof: proofSchema }))
@@ -43,12 +45,14 @@ export const paymentReviewRouter = router({
       }
     }),
   submitWithdrawal: protectedProcedure
-    .input(z.object({ method: paymentMethodSchema, amount: z.string(), payoutDestination: z.string().trim().min(3).max(255) }))
+    .input(z.object({ amount: z.string(), mobileMoneyNumber: z.string().trim().min(9).max(32) }))
     .mutation(async ({ ctx, input }) => {
       const validation = validateWithdrawalAmount(input.amount);
       if (!validation.ok) throw new TRPCError({ code: "BAD_REQUEST", message: validation.reason });
+      const mobileMoney = validateGhanaMobileMoneyNumber(input.mobileMoneyNumber);
+      if (!mobileMoney.ok) throw new TRPCError({ code: "BAD_REQUEST", message: mobileMoney.reason });
       try {
-        const request = await db.createWithdrawalRequest({ userId: ctx.user.id, method: input.method, amount: validation.amount, publicReference: `WDR-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`, payoutDestination: input.payoutDestination });
+        const request = await db.createWithdrawalRequest({ userId: ctx.user.id, amount: validation.amount, publicReference: `WDR-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`, mobileMoneyNumber: mobileMoney.number });
         if (!request) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Withdrawal requests are temporarily unavailable." });
         return request;
       } catch (error) {

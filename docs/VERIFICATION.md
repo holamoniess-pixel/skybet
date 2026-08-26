@@ -216,3 +216,16 @@ The administrator workspace now has a percentage-based global referral commissio
 | Desktop review | `/wallet` displayed both configured methods, all six GHS amount buttons, proof upload, the TRC20 address, and the unchanged balance separation panel. `/admin` displayed the commission policy, payment queue, account hold controls, and bonus policy together. |
 | Mobile review | `/wallet` at `375×812` retained clear method cards, touch-sized preset buttons, proof upload, address-copy control, and no horizontal overflow. |
 | Automated validation | `pnpm test` passed **56 tests across 20 files**; `pnpm check`, `pnpm build`, and the whitespace check passed. |
+
+## Mobile Money readiness boundary — 26 August 2026
+
+The wallet now presents a dedicated **Mobile Money withdrawal** request that collects only a Ghana Mobile Money number and the requested amount. The server normalises `0XXXXXXXXX` and `+233XXXXXXXXX` forms to a canonical Ghana number, rejects malformed entries, and stores the withdrawal as a review request. The customer no longer selects crypto for withdrawal and no screenshot field is shown.
+
+The local GHS deposit surface is now named **Mobile Money deposit** and is reserved for future Aqùapay support. It indicates that MTN, Telecel, and other provider-supported networks will activate only after the provider’s official contract and server-side configuration are in place. The `AQUAPAY_API_URL`, `AQUAPAY_API_KEY`, and `AQUAPAY_WEBHOOK_SECRET` placeholders are server-only. The application does not expose their values, call invented endpoints, accept a client-side payment-success result, credit a balance, or send a withdrawal.
+
+| Verification surface | Result |
+| --- | --- |
+| Gateway boundary | Aqùapay readiness test confirms a non-secret `unconfigured` state until all server-only configuration values are supplied. |
+| Customer flow | Desktop visual verification confirmed the renamed Mobile Money deposit card, its secure-activation state, fixed deposit amounts, and the unchanged TRC20 proof-review route. |
+| Withdrawal contract | Automated tests verify Ghana Mobile Money number normalisation and rejection of malformed numbers; component coverage verifies the no-screenshot withdrawal form. |
+| Final validation | `pnpm test` passed **58 tests across 21 files**; `pnpm check`, `pnpm build`, and `git diff --check` passed. |

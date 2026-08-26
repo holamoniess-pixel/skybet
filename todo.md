@@ -128,3 +128,7 @@
 - [x] Add essential administrator safety controls for payment operations, including user payment holds, review status filters, reviewer attribution, and reasoned rejection handling.
 - [ ] Add Aqùapay integration configuration and webhook verification only after official documentation and secure merchant credentials are supplied.
 - [x] Save a validated payment-workflow checkpoint after the final reviewer-attribution control is implemented and recorded in the verification notes.
+- [x] Prepare a server-only Aqùapay Mobile Money adapter contract and deferred webhook verification path without embedding API keys or changing frontend code after credentials are added.
+- [x] Change customer withdrawals to collect and validate a Ghana Mobile Money number only, removing the crypto withdrawal option and any screenshot requirement.
+- [x] Reframe the local GHS deposit path as future Aqùapay Mobile Money support for MTN, Telecel, and other provider-supported networks while retaining the manual proof-review boundary until activation.
+- [x] Add regression coverage, responsive verification, documentation, and a checkpoint for the Mobile Money readiness update.

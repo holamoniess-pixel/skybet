@@ -471,10 +471,9 @@ export async function createDepositRequest(input: DepositRequestInput) {
 
 type WithdrawalRequestInput = {
   userId: number;
-  method: "crypto_trc20" | "aquapay";
   amount: number;
   publicReference: string;
-  payoutDestination: string;
+  mobileMoneyNumber: string;
 };
 
 export async function createWithdrawalRequest(input: WithdrawalRequestInput) {
@@ -482,18 +481,17 @@ export async function createWithdrawalRequest(input: WithdrawalRequestInput) {
   if (!db) return undefined;
   return db.transaction(async tx => {
     await assertAccountCanSubmitPayment(tx, input.userId);
-    await assertMethodEnabled(tx, input.method);
     const inserted = await tx.insert(paymentRequests).values({
       publicReference: input.publicReference,
       userId: input.userId,
       requestType: "withdrawal",
-      method: input.method,
+      method: "aquapay",
       currency: "GHS",
       amount: input.amount.toFixed(2),
-      payoutDestination: input.payoutDestination,
+      payoutDestination: input.mobileMoneyNumber,
     });
     const requestId = Number(inserted[0].insertId);
-    await tx.insert(paymentRequestEvents).values({ paymentRequestId: requestId, actorUserId: input.userId, actorRole: "customer", action: "submitted", detailsJson: JSON.stringify({ requestType: "withdrawal", method: input.method, amount: input.amount, currency: "GHS" }) });
+    await tx.insert(paymentRequestEvents).values({ paymentRequestId: requestId, actorUserId: input.userId, actorRole: "customer", action: "submitted", detailsJson: JSON.stringify({ requestType: "withdrawal", channel: "mobile_money", amount: input.amount, currency: "GHS" }) });
     return (await tx.select().from(paymentRequests).where(eq(paymentRequests.id, requestId)).limit(1))[0];
   });
 }

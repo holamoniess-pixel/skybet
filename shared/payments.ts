@@ -18,6 +18,15 @@ export function validateWithdrawalAmount(rawAmount: string) {
   return { ok: true as const, amount: Math.round(amount * 100) / 100 };
 }
 
+export function validateGhanaMobileMoneyNumber(rawNumber: string) {
+  const digits = rawNumber.replace(/[\s()-]/g, "").replace(/^\+/, "");
+  const normalized = digits.startsWith("0") ? `233${digits.slice(1)}` : digits;
+  if (!/^233\d{9}$/.test(normalized)) {
+    return { ok: false as const, reason: "Enter a valid Ghana Mobile Money number." };
+  }
+  return { ok: true as const, number: normalized };
+}
+
 export function validateReferralCommissionPercentage(rawPercentage: string) {
   const percentage = Number(rawPercentage);
   if (!Number.isFinite(percentage) || percentage < 0 || percentage > 100) {
