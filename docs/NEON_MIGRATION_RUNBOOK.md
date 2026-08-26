@@ -29,3 +29,7 @@ The remaining runtime step is to update Railway’s `DATABASE_URL` to the Neon c
 ## Railway runtime cutover verification
 
 The owner updated Railway’s production `DATABASE_URL` using the Neon production connection string and the service redeployed. The live Railway health endpoint returned HTTP 200 with `{"ok":true,"service":"skybet-api"}`. The live unauthenticated customer session endpoint returned HTTP 200 with `{"user":null}`. A deliberately nonexistent login returned HTTP 401 JSON, confirming the auth route is live and can safely handle a database lookup without creating an account. No test customer or payment record was inserted.
+
+## Official workflow references
+
+The GitHub branch lifecycle workflow follows Neon’s documented pattern for creating and deleting pull-request branches: [Automate branching with GitHub Actions](https://neon.com/docs/guides/branching-github-actions) and [The Neon GitHub integration](https://neon.com/docs/guides/neon-github-integration). The repository uses `NEON_API_KEY` as a GitHub Actions secret and `NEON_PROJECT_ID` as a repository variable; their values are intentionally not read or printed by the local verification process.

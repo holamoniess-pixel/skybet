@@ -78,3 +78,7 @@ A Neon project named `skybet` exists in the owner’s organization with a single
 ## Supabase capability boundary
 
 Supabase is not the hosting runtime for the current SKYBET application. The backend is a Node.js/Express/tRPC service and remains hosted on Railway, with Neon as its PostgreSQL database. A separate Supabase account may be retained for an explicitly approved auxiliary function such as an isolated webhook or storage workflow, but it must not become a second source of truth for customer credentials, sessions, balances, payment requests, or review records. No Supabase project was connected or modified by this work.
+
+## Sentry integration result
+
+A dedicated Sentry project named `skybet-api` was created in the owner’s existing Sentry organization for the Express backend. The repository now initializes Sentry only when `SENTRY_DSN` is configured, disables default personal data collection, limits tracing to a conservative sample rate, removes user context, and retains only the request method and pathname in captured request metadata. The DSN was supplied through the secure project secret flow and added to Railway without being committed or printed. The live Railway health endpoint remained HTTP 200 after the deployment.
