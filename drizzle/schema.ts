@@ -37,6 +37,29 @@ export const localAdminCredentials = mysqlTable("local_admin_credentials", {
 
 export type LocalAdminCredential = typeof localAdminCredentials.$inferSelect;
 
+/** Server-owned customer email, phone, and password credential record. */
+export const customerCredentials = mysqlTable("customer_credentials", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  phone: varchar("phone", { length: 32 }).notNull().unique(),
+  passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Hashed, expiring first-party customer sessions; raw tokens never persist. */
+export const customerSessions = mysqlTable("customer_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  tokenHash: varchar("tokenHash", { length: 128 }).notNull().unique(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CustomerCredential = typeof customerCredentials.$inferSelect;
+export type CustomerSession = typeof customerSessions.$inferSelect;
+
 /** Versioned, programme-wide referral reward configurations. */
 export const referralRewardRules = mysqlTable("referral_reward_rules", {
   id: int("id").autoincrement().primaryKey(),

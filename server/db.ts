@@ -1,4 +1,5 @@
 import { and, desc, eq, like, or } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import { drizzle } from "drizzle-orm/mysql2";
 import { alias } from "drizzle-orm/mysql-core";
 import {
@@ -7,6 +8,8 @@ import {
   adminAuditEvents,
   bonusPolicyOverrides,
   bonusPolicyRules,
+  customerCredentials,
+  customerSessions,
   InsertUser,
   localAdminCredentials,
   paymentMethodConfigs,
@@ -104,6 +107,89 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createCustomerWithCredentials(input: {
+  email: string;
+  phone: string;
+  passwordHash: string;
+  name?: string;
+}) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return db.transaction(async tx => {
+    const openId = `customer:${randomUUID()}`;
+    const inserted = await tx.insert(users).values({
+      openId,
+      name: input.name || null,
+      email: input.email,
+      loginMethod: "password",
+      role: "user",
+      lastSignedIn: new Date(),
+    });
+    const userId = Number(inserted[0].insertId);
+    await tx.insert(customerCredentials).values({
+      userId,
+      email: input.email,
+      phone: input.phone,
+      passwordHash: input.passwordHash,
+    });
+    const created = await tx.select().from(users).where(eq(users.id, userId)).limit(1);
+    return created[0];
+  });
+}
+
+export async function getCustomerCredentialByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select({ credential: customerCredentials, user: users })
+    .from(customerCredentials)
+    .innerJoin(users, eq(customerCredentials.userId, users.id))
+    .where(eq(customerCredentials.email, email))
+    .limit(1);
+  return result[0];
+}
+
+export async function getCustomerCredentialByPhone(phone: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select({ credential: customerCredentials, user: users })
+    .from(customerCredentials)
+    .innerJoin(users, eq(customerCredentials.userId, users.id))
+    .where(eq(customerCredentials.phone, phone))
+    .limit(1);
+  return result[0];
+}
+
+export async function createCustomerSession(input: { userId: number; tokenHash: string; expiresAt: Date }) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(customerSessions).values(input);
+}
+
+export async function getCustomerSessionUser(tokenHash: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select({ session: customerSessions, user: users })
+    .from(customerSessions)
+    .innerJoin(users, eq(customerSessions.userId, users.id))
+    .where(eq(customerSessions.tokenHash, tokenHash))
+    .limit(1);
+  const record = result[0];
+  if (!record || record.session.expiresAt.getTime() <= Date.now()) {
+    if (record) await db.delete(customerSessions).where(eq(customerSessions.id, record.session.id));
+    return undefined;
+  }
+  return record.user;
+}
+
+export async function deleteCustomerSession(tokenHash: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(customerSessions).where(eq(customerSessions.tokenHash, tokenHash));
 }
 
 export async function getLocalAdminCredentialByEmail(email: string) {

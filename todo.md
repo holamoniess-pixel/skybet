@@ -134,7 +134,7 @@
 - [x] Add regression coverage, responsive verification, documentation, and a checkpoint for the Mobile Money readiness update.
 - [ ] Assess the current SKYBET deployment and compare GitHub-driven Netlify deployment with the existing managed hosting, including an appropriate backend runtime.
 - [ ] Prepare a GitHub repository deployment configuration that supports controlled production updates from the SKYBET main branch.
-- [ ] Replace Manus OAuth with Clerk authentication and migrate the protected administrator role model without exposing credentials.
+- [x] Supersede the planned Manus OAuth-to-Clerk migration with the owner-approved first-party authentication approach; no Clerk integration is required.
 - [ ] Provision or connect a Neon PostgreSQL database, migrate the non-destructive SKYBET schema and data safely, and update server-side access configuration.
 - [ ] Configure Sentry error and performance monitoring with server-only credentials and a non-sensitive alerting model.
 - [ ] Configure Sanity as the CMS boundary for approved editorial content without moving payment, ledger, or authentication data into the CMS.
@@ -148,4 +148,10 @@
 - [x] Handle the Railway service’s missing Manus OAuth configuration safely by disabling its legacy route until Clerk replaces it; do not invent an OAuth server URL.
 - [x] Add a safe unauthenticated backend health endpoint and document the Railway public-domain generation and verification steps.
 - [ ] Verify the Railway service’s public domain, health response, CORS allowlist, and rollback path after the owner generates a domain in Railway settings.
-- [ ] Replace the legacy Manus OAuth dependency with Clerk before treating Railway as the production authentication backend.
+- [x] Remove the legacy Manus OAuth callback dependency; preserve only the local administrator session verifier while first-party customer auth handles customers.
+- [x] Replace the planned Better Auth integration with first-party customer sign-up using email, Ghana phone number, password, and password confirmation.
+- [x] Implement first-party customer email/password login with secure server-side password hashing, generic errors, HTTP-only sessions, logout, and protected-session validation.
+- [x] Preserve the existing administrator authentication boundary while removing customer dependency on Manus OAuth.
+- [x] Add authentication regression tests, responsive sign-up/login UI verification, and migration documentation.
+- [ ] Save a dedicated first-party authentication checkpoint after final validation.
+- [x] Document and verify that the first-party customer authentication uses database-backed hashed sessions only, with no Better Auth Infrastructure key or additional auth secret.

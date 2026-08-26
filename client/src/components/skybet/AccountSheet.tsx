@@ -1,7 +1,8 @@
 import { Bell, ChevronRight, Copy, Heart, ShieldCheck, Sparkles, UserRound } from "lucide-react";
-import { startLogin } from "@/const";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { useState } from "react";
+import { CustomerAuthDialog } from "@/components/CustomerAuthDialog";
 import {
   Sheet,
   SheetContent,
@@ -24,6 +25,7 @@ const accountItems = [
 
 export function AccountSheet({ open, onOpenChange }: AccountSheetProps) {
   const [, setLocation] = useLocation();
+  const [authOpen, setAuthOpen] = useState(false);
 
   const navigateTo = (path: string) => {
     onOpenChange(false);
@@ -31,7 +33,8 @@ export function AccountSheet({ open, onOpenChange }: AccountSheetProps) {
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[92%] border-[var(--sky-blue-100)] bg-[var(--sky-white-50)] p-0 dark:border-white/10 dark:bg-[var(--card)] sm:max-w-md">
         <SheetHeader className="border-b border-[var(--sky-blue-100)] p-5 text-left dark:border-white/10">
           <SheetTitle className="flex items-center gap-2 text-xl font-extrabold tracking-[-0.04em] text-[var(--sky-navy-950)] dark:text-white"><UserRound className="size-5 text-[var(--sky-blue-600)]" /> Account centre</SheetTitle>
@@ -40,7 +43,7 @@ export function AccountSheet({ open, onOpenChange }: AccountSheetProps) {
         <div className="space-y-3 p-5">
           <div className="rounded-2xl bg-[var(--sky-navy-950)] p-4 text-white">
             <div className="flex items-start justify-between"><div><p className="text-xs font-bold tracking-[0.12em] text-[var(--sky-blue-300)] uppercase">Visitor view</p><p className="mt-1 text-lg font-extrabold">Explore with confidence</p></div><Bell className="size-5 text-[var(--sky-blue-300)]" /></div>
-            <Button className="mt-4 h-10 w-full rounded-xl bg-white font-extrabold text-[var(--sky-blue-700)] hover:bg-[var(--sky-ice-50)]" onClick={startLogin}>Sign in to SKYBET</Button>
+            <Button className="mt-4 h-10 w-full rounded-xl bg-white font-extrabold text-[var(--sky-blue-700)] hover:bg-[var(--sky-ice-50)]" onClick={() => setAuthOpen(true)}>Sign in to SKYBET</Button>
           </div>
           {accountItems.map(([Icon, title, description, href]) => (
             <button key={title} type="button" onClick={() => navigateTo(href)} className="flex min-h-[4.5rem] w-full items-center gap-3 rounded-2xl border border-[var(--sky-blue-100)] bg-white p-3 text-left transition hover:border-[var(--sky-blue-300)] hover:bg-[var(--sky-ice-50)] dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10">
@@ -50,7 +53,9 @@ export function AccountSheet({ open, onOpenChange }: AccountSheetProps) {
             </button>
           ))}
         </div>
-      </SheetContent>
-    </Sheet>
+            </SheetContent>
+      </Sheet>
+      <CustomerAuthDialog open={authOpen} onOpenChange={setAuthOpen} />
+    </>
   );
 }

@@ -4,18 +4,15 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CustomerAccountMenu } from "./CustomerAccountMenu";
 
-const { authState, startLogin } = vi.hoisted(() => ({
+const { authState } = vi.hoisted(() => ({
   authState: { user: null as { name: string; email: string } | null, loading: false, logout: vi.fn() },
-  startLogin: vi.fn(),
 }));
 
 vi.mock("@/_core/hooks/useAuth", () => ({ useAuth: () => authState }));
-vi.mock("@/const", () => ({ startLogin }));
 
 afterEach(() => {
   cleanup();
   authState.user = null;
-  startLogin.mockClear();
   authState.logout.mockClear();
   window.history.pushState({}, "", "/");
 });
@@ -30,7 +27,9 @@ describe("CustomerAccountMenu", () => {
     expect(screen.getByRole("menuitem", { name: "Create account" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "Deposit" })).toBeInTheDocument();
     await user.click(screen.getByRole("menuitem", { name: "Sign in" }));
-    expect(startLogin).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.getByLabelText("Password")).toBeInTheDocument();
   });
 
   it("shows logout for a signed-in customer and routes payment entries to the gated wallet", async () => {

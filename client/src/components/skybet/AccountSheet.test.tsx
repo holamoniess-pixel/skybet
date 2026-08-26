@@ -6,10 +6,6 @@ import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AccountSheet } from "./AccountSheet";
 
-const { mockStartLogin } = vi.hoisted(() => ({ mockStartLogin: vi.fn() }));
-
-vi.mock("@/const", () => ({ startLogin: mockStartLogin }));
-
 function renderAccountSheet() {
   return render(
     <ThemeProvider defaultTheme="light" switchable>
@@ -33,18 +29,19 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup();
-  mockStartLogin.mockClear();
   window.history.pushState({}, "", "/");
 });
 
 describe("AccountSheet", () => {
-  it("starts the existing authentication flow from the sign-in control", async () => {
+  it("opens the first-party authentication dialog from the sign-in control", async () => {
     const user = userEvent.setup();
     renderAccountSheet();
 
     await user.click(screen.getByRole("button", { name: "Sign in to SKYBET" }));
 
-    expect(mockStartLogin).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.getByLabelText("Password")).toBeInTheDocument();
   });
 
   it("routes drawer destinations to the available account and activity sections", async () => {

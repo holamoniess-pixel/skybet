@@ -4,13 +4,12 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { createAdminLoginHandler } from "../adminLogin";
-import { registerOAuthRoutes } from "./oauth";
+import { createFirstPartyAuthHandlers } from "../firstPartyAuth";
 import { registerStorageProxy } from "./storageProxy";
-import { ENV } from "./env";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { createRuntimeHealthPayload, isLegacyOAuthConfigured } from "../runtimeHealth";
+import { createRuntimeHealthPayload } from "../runtimeHealth";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -41,11 +40,12 @@ async function startServer() {
     res.status(200).json(createRuntimeHealthPayload());
   });
   registerStorageProxy(app);
-  if (isLegacyOAuthConfigured(ENV.oAuthServerUrl)) {
-    registerOAuthRoutes(app);
-  } else {
-    console.warn("[OAuth] Legacy Manus OAuth routes are disabled until Clerk replaces this authentication path.");
-  }
+  console.warn("[OAuth] Legacy Manus OAuth routes are disabled; SKYBET uses first-party customer auth and local administrator sessions.");
+  const firstPartyAuth = createFirstPartyAuthHandlers();
+  app.post("/api/auth/signup", firstPartyAuth.signup);
+  app.post("/api/auth/login", firstPartyAuth.login);
+  app.post("/api/auth/logout", firstPartyAuth.logout);
+  app.get("/api/auth/me", firstPartyAuth.me);
   app.post("/api/admin/login", createAdminLoginHandler());
   // tRPC API
   app.use(

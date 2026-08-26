@@ -1,7 +1,8 @@
 import { CreditCard, History, Landmark, ListChecks, LogIn, LogOut, Settings2, UserRound, WalletCards } from "lucide-react";
 import { useLocation } from "wouter";
+import { useState } from "react";
+import { CustomerAuthDialog } from "@/components/CustomerAuthDialog";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,13 +19,15 @@ type CustomerAccountMenuProps = {
 
 export function CustomerAccountMenu({ compact = false }: CustomerAccountMenuProps) {
   const [, setLocation] = useLocation();
+  const [authOpen, setAuthOpen] = useState(false);
   const { user, loading, logout } = useAuth();
   const accountName = user?.name || "SKYBET member";
 
   const goTo = (path: string) => setLocation(path);
 
   return (
-    <DropdownMenu>
+    <>
+      <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {compact ? (
           <button type="button" className="sky-preview-wallet-account" aria-label="Open account menu" disabled={loading}>
@@ -43,8 +46,8 @@ export function CustomerAccountMenu({ compact = false }: CustomerAccountMenuProp
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-[var(--sky-blue-100)] dark:bg-white/10" />
         {!user ? <>
-          <DropdownMenuItem onSelect={startLogin} className="min-h-10 rounded-xl font-bold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]"><LogIn className="size-4" />Sign in</DropdownMenuItem>
-          <DropdownMenuItem onSelect={startLogin} className="min-h-10 rounded-xl font-bold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]"><UserRound className="size-4" />Create account</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setAuthOpen(true)} className="min-h-10 rounded-xl font-bold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]"><LogIn className="size-4" />Sign in</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setAuthOpen(true)} className="min-h-10 rounded-xl font-bold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]"><UserRound className="size-4" />Create account</DropdownMenuItem>
           <DropdownMenuSeparator className="bg-[var(--sky-blue-100)] dark:bg-white/10" />
         </> : null}
         <DropdownMenuItem onSelect={() => goTo("/profile")} className="min-h-10 rounded-xl font-semibold"><UserRound className="size-4" />Profile</DropdownMenuItem>
@@ -62,5 +65,7 @@ export function CustomerAccountMenu({ compact = false }: CustomerAccountMenuProp
         </> : null}
       </DropdownMenuContent>
     </DropdownMenu>
+      <CustomerAuthDialog open={authOpen} onOpenChange={setAuthOpen} />
+    </>
   );
 }

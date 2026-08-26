@@ -242,3 +242,21 @@ Legacy Manus OAuth callback registration now occurs only when a non-empty OAuth 
 | Local runtime probe | `GET http://127.0.0.1:3000/health` returned HTTP success with the expected non-sensitive JSON payload. |
 | Build validation | `pnpm check`, `pnpm build`, and `git diff --check` passed. |
 | Owner handoff | `docs/RAILWAY_SETUP_GUIDE.md` provides step-by-step Railway domain, GitHub source, variable, health, and rollback instructions. |
+
+## First-party customer authentication — 27 August 2026
+
+The owner selected a simpler database-backed authentication design instead of Better Auth Infrastructure or Clerk. Customer sign-up now collects email, Ghana phone number, password, and matching password confirmation. Customer login uses email and password. Passwords are stored as `scrypt`-derived hashes, customer sessions store only SHA-256 token hashes with expiry, and the browser receives an HTTP-only `skybet-session` cookie. The implementation does not require the previously discussed Better Auth Infrastructure key or a separate new auth secret.
+
+The legacy Manus OAuth callback route is disabled. The existing local administrator login/session boundary remains separate so administrator access is not accidentally granted to customer sessions. Customer sessions are recognized by the server context for protected customer procedures. The public `GET /api/auth/me` endpoint returns `{"user":null}` when no session cookie is present.
+
+| Verification surface | Result |
+| --- | --- |
+| Server authentication tests | `server/firstPartyAuth.test.ts` passed password hashing/verification, Ghana number normalization, password-confirmation rejection, and generic unknown-account errors. |
+| Customer UI tests | `CustomerAuthDialog`, `AccountSheet`, and `CustomerAccountMenu` tests passed login/sign-up dialog, confirmation-field, and guest-account-menu coverage. |
+| Database migration | Additive migration `0007_cool_prodigy.sql` created `customer_credentials` and `customer_sessions`; no existing customer balance or payment rows were altered. |
+| Railway public health | `https://skybet-production.up.railway.app/health` returned `{"ok":true,"service":"skybet-api"}` without an authentication token. |
+| Full validation | `pnpm test` passed **67 tests across 25 files**; `pnpm check`, `pnpm build`, and `git diff --check` passed. |
+
+### First-party auth final validation addendum — 27 August 2026
+
+After removing the Better Auth Infrastructure secret dependency and disabling the Manus OAuth callback registration, the final run passed **69 tests across 25 files**, `pnpm check`, `pnpm build`, and `git diff --check`. The running service returned `{"user":null}` from unauthenticated `GET /api/auth/me`, and the owner-provided Railway endpoint returned `{"ok":true,"service":"skybet-api"}`. The production bundle completed with the existing non-blocking large-chunk advisory only.
