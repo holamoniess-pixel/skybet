@@ -146,7 +146,7 @@
 - [ ] Verify the Neon GitHub integration and safe branch workflow.
 - [x] Verify the owner-connected Neon SKYBET project and confirm no plaintext database credentials are present in tracked repository files.
 - [ ] Verify that the new Supabase account is isolated from unrelated projects and decide whether it is required for a specific auxiliary capability before integrating it.
-- [ ] Document the verified Railway/Netlify/Neon operating model, remaining Clerk/Sentry/Sanity prerequisites, and the staged cutover sequence.
+- [x] Document the verified Railway/Netlify/Neon operating model, remaining first-party-auth/Sentry/Sanity prerequisites, and the staged cutover sequence.
 - [x] Handle the Railway service’s missing Manus OAuth configuration safely by disabling its legacy route until Clerk replaces it; do not invent an OAuth server URL.
 - [x] Add a safe unauthenticated backend health endpoint and document the Railway public-domain generation and verification steps.
 - [ ] Verify the Railway service’s CORS allowlist and rollback path in the owner’s Railway console.
@@ -162,3 +162,8 @@
 - [x] Make customer-auth request handling reject non-JSON responses with a safe user-facing message instead of exposing a raw parser error.
 - [x] Add regression coverage for deployed-style HTML responses and verify the Netlify-to-Railway API route configuration.
 - [x] Validate customer sign-up and login against the corrected deployment path and publish a checkpoint.
+- [x] Inventory the current MySQL schema, Drizzle dialect, database helpers, and Railway database configuration for the Neon migration.
+- [x] Port the SKYBET Drizzle schema and database helpers to PostgreSQL-compatible behavior.
+- [x] Generate and validate the PostgreSQL schema on an isolated Neon staging branch without changing production.
+- [x] Apply the verified SKYBET schema to Neon production and document the Railway DATABASE_URL cutover.
+- [x] Run the complete regression suite and publish the Neon migration checkpoint.

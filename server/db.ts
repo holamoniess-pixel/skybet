@@ -1,7 +1,8 @@
 import { and, desc, eq, like, or } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
-import { drizzle } from "drizzle-orm/mysql2";
-import { alias } from "drizzle-orm/mysql-core";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { alias } from "drizzle-orm/pg-core";
 import {
   accountBalanceSummaries,
   accountPaymentControls,
@@ -24,12 +25,14 @@ import {
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _sql: ReturnType<typeof postgres> | null = null;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _sql = postgres(process.env.DATABASE_URL, { max: 5, prepare: false });
+      _db = drizzle(_sql);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -88,7 +91,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
+    await db.insert(users).values(values).onConflictDoUpdate({
+      target: users.openId,
       set: updateSet,
     });
   } catch (error) {
@@ -126,8 +130,8 @@ export async function createCustomerWithCredentials(input: {
       loginMethod: "password",
       role: "user",
       lastSignedIn: new Date(),
-    });
-    const userId = Number(inserted[0].insertId);
+    }).returning({ id: users.id });
+    const userId = inserted[0].id;
     await tx.insert(customerCredentials).values({
       userId,
       email: input.email,
@@ -227,8 +231,8 @@ export async function bootstrapLocalAdminCredential(input: {
       loginMethod: "password",
       role: "admin",
       lastSignedIn: new Date(),
-    });
-    const userId = Number(insertUser[0].insertId);
+    }).returning({ id: users.id });
+    const userId = insertUser[0].id;
     await tx.insert(localAdminCredentials).values({ userId, email: input.email, passwordHash: input.passwordHash });
     const created = await tx
       .select({ credential: localAdminCredentials, user: users })
@@ -292,8 +296,8 @@ export async function saveReferralRewardRule(input: ReferralRuleInput) {
       currency: input.currency,
       reason: input.reason,
       createdBy: input.actorUserId,
-    });
-    const ruleId = Number(insertResult[0].insertId);
+    }).returning({ id: referralRewardRules.id });
+    const ruleId = insertResult[0].id;
 
     await tx.insert(adminAuditEvents).values({
       actorUserId: input.actorUserId,
@@ -349,8 +353,8 @@ export async function saveReferralRewardOverride(input: ReferralOverrideInput) {
       currency: input.currency,
       reason: input.reason,
       createdBy: input.actorUserId,
-    });
-    const overrideId = Number(insertResult[0].insertId);
+    }).returning({ id: referralRewardOverrides.id });
+    const overrideId = insertResult[0].id;
 
     await tx.insert(adminAuditEvents).values({
       actorUserId: input.actorUserId,
@@ -423,8 +427,8 @@ export async function saveBonusPolicyRule(input: BonusPolicyInput) {
       settlementBonusAmount: input.settlementBonusAmount.toFixed(2),
       reason: input.reason,
       createdBy: input.actorUserId,
-    });
-    const policyId = Number(insertResult[0].insertId);
+    }).returning({ id: bonusPolicyRules.id });
+    const policyId = insertResult[0].id;
     const afterJson = JSON.stringify({ ...input, actorUserId: undefined });
     await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "bonus_policy_rule", entityId: policyId, action: "created", beforeJson: previous ? JSON.stringify(previous) : null, afterJson });
     return (await tx.select().from(bonusPolicyRules).where(eq(bonusPolicyRules.id, policyId)).limit(1))[0];
@@ -460,8 +464,8 @@ export async function saveBonusPolicyOverride(input: BonusPolicyOverrideInput) {
       settlementBonusAmount: input.settlementBonusAmount.toFixed(2),
       reason: input.reason,
       createdBy: input.actorUserId,
-    });
-    const overrideId = Number(insertResult[0].insertId);
+    }).returning({ id: bonusPolicyOverrides.id });
+    const overrideId = insertResult[0].id;
     const afterJson = JSON.stringify({ ...input, actorUserId: undefined });
     await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "bonus_policy_override", entityId: overrideId, action: "created", beforeJson: previous ? JSON.stringify(previous) : null, afterJson });
     return (await tx.select().from(bonusPolicyOverrides).where(eq(bonusPolicyOverrides.id, overrideId)).limit(1))[0];
@@ -548,8 +552,8 @@ export async function createDepositRequest(input: DepositRequestInput) {
       customerPaymentReference: input.customerPaymentReference,
       proofStorageKey: input.proofStorageKey,
       proofMimeType: input.proofMimeType,
-    });
-    const requestId = Number(inserted[0].insertId);
+    }).returning({ id: paymentRequests.id });
+    const requestId = inserted[0].id;
     await tx.insert(paymentRequestEvents).values({ paymentRequestId: requestId, actorUserId: input.userId, actorRole: "customer", action: "submitted", detailsJson: JSON.stringify({ requestType: "deposit", method: input.method, amount: input.amount, currency: "GHS" }) });
     return (await tx.select().from(paymentRequests).where(eq(paymentRequests.id, requestId)).limit(1))[0];
   });
@@ -575,8 +579,8 @@ export async function createWithdrawalRequest(input: WithdrawalRequestInput) {
       currency: "GHS",
       amount: input.amount.toFixed(2),
       payoutDestination: input.mobileMoneyNumber,
-    });
-    const requestId = Number(inserted[0].insertId);
+    }).returning({ id: paymentRequests.id });
+    const requestId = inserted[0].id;
     await tx.insert(paymentRequestEvents).values({ paymentRequestId: requestId, actorUserId: input.userId, actorRole: "customer", action: "submitted", detailsJson: JSON.stringify({ requestType: "withdrawal", channel: "mobile_money", amount: input.amount, currency: "GHS" }) });
     return (await tx.select().from(paymentRequests).where(eq(paymentRequests.id, requestId)).limit(1))[0];
   });
@@ -650,8 +654,8 @@ export async function saveReferralCommissionRule(input: CommissionInput) {
   return db.transaction(async tx => {
     const previous = (await tx.select().from(referralCommissionRules).where(eq(referralCommissionRules.status, "active")).orderBy(desc(referralCommissionRules.effectiveAt), desc(referralCommissionRules.id)).limit(1))[0];
     if (previous) await tx.update(referralCommissionRules).set({ status: "superseded" }).where(eq(referralCommissionRules.id, previous.id));
-    const inserted = await tx.insert(referralCommissionRules).values({ percentage: input.percentage.toFixed(2), reason: input.reason, createdBy: input.actorUserId });
-    const ruleId = Number(inserted[0].insertId);
+    const inserted = await tx.insert(referralCommissionRules).values({ percentage: input.percentage.toFixed(2), reason: input.reason, createdBy: input.actorUserId }).returning({ id: referralCommissionRules.id });
+    const ruleId = inserted[0].id;
     await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "referral_commission_rule", entityId: ruleId, action: "created", beforeJson: previous ? JSON.stringify(previous) : null, afterJson: JSON.stringify({ percentage: input.percentage, reason: input.reason }) });
     return (await tx.select().from(referralCommissionRules).where(eq(referralCommissionRules.id, ruleId)).limit(1))[0];
   });
@@ -665,8 +669,8 @@ export async function saveReferralCommissionOverride(input: CommissionInput & { 
     if (!customer[0]) throw new Error("Customer not found");
     const previous = (await tx.select().from(referralCommissionOverrides).where(and(eq(referralCommissionOverrides.userId, input.userId), eq(referralCommissionOverrides.status, "active"))).orderBy(desc(referralCommissionOverrides.effectiveAt), desc(referralCommissionOverrides.id)).limit(1))[0];
     if (previous) await tx.update(referralCommissionOverrides).set({ status: "superseded" }).where(eq(referralCommissionOverrides.id, previous.id));
-    const inserted = await tx.insert(referralCommissionOverrides).values({ userId: input.userId, percentage: input.percentage.toFixed(2), reason: input.reason, createdBy: input.actorUserId });
-    const overrideId = Number(inserted[0].insertId);
+    const inserted = await tx.insert(referralCommissionOverrides).values({ userId: input.userId, percentage: input.percentage.toFixed(2), reason: input.reason, createdBy: input.actorUserId }).returning({ id: referralCommissionOverrides.id });
+    const overrideId = inserted[0].id;
     await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "referral_commission_override", entityId: overrideId, action: "created", beforeJson: previous ? JSON.stringify(previous) : null, afterJson: JSON.stringify({ userId: input.userId, percentage: input.percentage, reason: input.reason }) });
     return (await tx.select().from(referralCommissionOverrides).where(eq(referralCommissionOverrides.id, overrideId)).limit(1))[0];
   });
