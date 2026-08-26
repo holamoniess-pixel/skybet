@@ -153,5 +153,5 @@
 - [x] Implement first-party customer email/password login with secure server-side password hashing, generic errors, HTTP-only sessions, logout, and protected-session validation.
 - [x] Preserve the existing administrator authentication boundary while removing customer dependency on Manus OAuth.
 - [x] Add authentication regression tests, responsive sign-up/login UI verification, and migration documentation.
-- [ ] Save a dedicated first-party authentication checkpoint after final validation.
+- [x] Save a dedicated first-party authentication checkpoint after final validation.
 - [x] Document and verify that the first-party customer authentication uses database-backed hashed sessions only, with no Better Auth Infrastructure key or additional auth secret.
