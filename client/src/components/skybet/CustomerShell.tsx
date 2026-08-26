@@ -1,9 +1,10 @@
-import { Moon, Search, Sun, UserRound } from "lucide-react";
+import { Moon, Search, Sun } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
 import { MobileBottomNav } from "./MobileBottomNav";
+import { CustomerAccountMenu } from "./CustomerAccountMenu";
 import { SkybetBrandMark } from "./SkybetBrandMark";
 
 const desktopLinks = [
@@ -41,7 +42,7 @@ export function CustomerShell({ activeMobileNav, children }: CustomerShellProps)
           <div className="ml-auto flex items-center gap-1.5">
             <Button variant="ghost" size="icon" className="size-10 rounded-xl text-[var(--sky-navy-700)] dark:text-slate-200" aria-label="Search SKYBET events" onClick={() => setLocation("/search")}><Search className="size-[18px]" /></Button>
             <Button variant="ghost" size="icon" className="hidden size-10 rounded-xl text-[var(--sky-navy-700)] sm:inline-flex dark:text-slate-200" aria-label={theme === "dark" ? "Use light theme" : "Use dark theme"} onClick={toggleTheme}>{theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}</Button>
-            <Button variant="outline" className="hidden h-10 rounded-xl border-[var(--sky-blue-200)] px-4 font-bold text-[var(--sky-blue-700)] md:inline-flex dark:border-white/15 dark:text-white" onClick={() => setLocation("/account")}><UserRound className="size-4" />Account</Button>
+            <CustomerAccountMenu />
           </div>
         </div>
       </header>

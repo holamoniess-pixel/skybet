@@ -26,6 +26,11 @@ vi.mock("@/lib/trpc", () => ({
         }),
       },
     },
+    auth: {
+      me: { useQuery: () => ({ data: null, isLoading: false, error: null }) },
+      logout: { useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }) },
+    },
+    useUtils: () => ({ auth: { me: { setData: vi.fn(), invalidate: vi.fn() } } }),
   },
 }));
 
@@ -100,14 +105,10 @@ describe("Skybet Home", () => {
     expect(screen.getAllByText("Harbour City vs Northvale FC · Over 2.5 goals")).not.toHaveLength(0);
   });
 
-  it("routes the account-first header action and primary hero action to their dedicated views", async () => {
+  it("routes the primary hero action to its dedicated live view", async () => {
     const user = userEvent.setup();
     renderHome();
 
-    await user.click(screen.getByRole("button", { name: "Open account controls" }));
-    expect(window.location.pathname).toBe("/account");
-
-    window.history.pushState({}, "", "/");
     await user.click(screen.getByRole("button", { name: "Open live board" }));
     expect(window.location.pathname).toBe("/live");
   });
@@ -158,11 +159,13 @@ describe("Skybet Home", () => {
     expect(window.location.pathname).toBe("/account");
   });
 
-  it("exposes a safe preview-code affordance beside the enlarged floating slip", () => {
+  it("keeps a compact round Preview Slip action and exposes authored-code entry inside the sheet", async () => {
+    const user = userEvent.setup();
     renderHome();
 
-    expect(screen.getByRole("button", { name: "Load preview code" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Open preview slip" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open preview slip" })).toHaveClass("sky-preview-slip-fab");
+    await user.click(screen.getByRole("button", { name: "Open preview slip" }));
+    expect(screen.getByRole("textbox", { name: "Enter an authored preview code" })).toBeInTheDocument();
   });
 
   it("provides keyboard-accessible manual controls for the ten-frame hero rotation", async () => {
@@ -192,18 +195,18 @@ describe("Skybet Home", () => {
   it("restores a known local preview code into the non-transactional slip and guides an unknown code", async () => {
     const user = userEvent.setup();
     renderHome();
-    const eventCode = screen.getByRole("textbox", { name: "Enter an event code" });
+    await user.click(screen.getByRole("button", { name: "Open preview slip" }));
+    const eventCode = screen.getByRole("textbox", { name: "Enter an authored preview code" });
 
-    await user.type(eventCode, "live-skyline");
-    await user.click(screen.getByRole("button", { name: "Load" }));
+    await user.type(eventCode, "SKY-LIVE-01");
+    await user.click(screen.getByRole("button", { name: "Load code" }));
     expect(window.location.pathname).toBe("/");
     expect(screen.getByText("Review your selection")).toBeInTheDocument();
     expect(screen.getByText(/Loaded Harbour City into your local Preview slip/)).toBeInTheDocument();
 
-    await user.keyboard("{Escape}");
     await user.clear(eventCode);
     await user.type(eventCode, "not-a-preview-event");
-    await user.click(screen.getByRole("button", { name: "Load" }));
+    await user.click(screen.getByRole("button", { name: "Load code" }));
     expect(screen.getByText(/No preview event was found for/)).toBeInTheDocument();
   });
 });

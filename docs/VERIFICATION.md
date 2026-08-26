@@ -145,3 +145,18 @@ The latest refinement replaces the static home artwork with an **original ten-fr
 | Browser diagnostics | Focused mobile interaction replay reported **0 errors and 0 warnings** in the browser console. |
 
 The mobile screenshot review intentionally used the normal viewport capture to include fixed controls. It confirmed that the enlarged Preview slip and Load code buttons remain above the bottom navigation, while the full-page captures confirm the compact home, games, activity, and account layouts. No payment, wager, deposit, payout, KYC, referral-reward credit, or other transaction path was added or exercised.
+
+## Account-menu and authored-code frontend refinement — 26 August 2026
+
+The customer header now uses a shared account menu rather than a direct account link. In a guest state it exposes **Sign in** and **Create account**; in an authenticated state it exposes **Profile**, **Settings**, **Bets list**, **Running bets**, **Bet history**, and **Log out**. Deposit and withdrawal entries open `/wallet#deposit` and `/wallet#withdraw` only. The wallet page explicitly confirms that no money movement can occur before the payment backend is configured server-side.
+
+The floating Preview Slip is again a compact round button at the lower right. Its ticket icon was checked at `375×812` after the contrast correction. The previously standalone code bar is removed from below the hero; instead, the Preview Slip sheet contains the animated, keyboard-labelled authored-code field. `SKY-LIVE-01`, `SKY-HOOPS-02`, `SKY-CUP-03`, `SKY-COURT-04`, and `SKY-SPRINT-05` are local authored identifiers that restore a non-transactional selection within the current route. Invalid codes display inline recovery guidance.
+
+| Verification surface | Result |
+| --- | --- |
+| Automated validation | `pnpm test` passed **38 tests across 12 files**. `pnpm check` and `pnpm build` passed; the existing bundle-size advisory remains non-blocking. |
+| Account and wallet interactions | Mobile browser replay opened the account menu, found Running bets, Bet history, Deposit, and Withdraw, then opened `/wallet#deposit` without initiating any payment. |
+| Preview Slip presentation | Desktop and mobile screenshots confirmed the compact round control remains above the mobile navigation; the final mobile capture confirmed its ticket icon has visible white contrast. |
+| Browser diagnostics | The focused account-menu and protected wallet replay returned **0 browser-console errors** and **0 warnings**. |
+
+An original ten-asset hero set remains pending. A generation attempt was blocked by the free-plan image-generation quota (`20/20` reached). The live-data adapter is documented in `docs/SPORTS_DATA_ADAPTER_NOTES.md`; the available OpticOdds connector remains disabled until the provider is confirmed and its licence is configured securely.

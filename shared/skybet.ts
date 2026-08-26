@@ -8,6 +8,7 @@ export type SkybetEvent = {
   startsAt: string;
   status: string;
   isLive: boolean;
+  previewCode?: string;
   score?: string;
   markets: Array<{ label: string; value: string }>;
 };
@@ -23,6 +24,7 @@ export const SKYBET_SPORTS = [
 export const SKYBET_EVENTS: SkybetEvent[] = [
   {
     id: "live-skyline",
+    previewCode: "SKY-LIVE-01",
     sport: "Football",
     competition: "Skyline Premier · Live",
     teams: ["Harbour City", "Northvale FC"],
@@ -41,6 +43,7 @@ export const SKYBET_EVENTS: SkybetEvent[] = [
   },
   {
     id: "live-coastline",
+    previewCode: "SKY-HOOPS-02",
     sport: "Basketball",
     competition: "Coastline League · Live",
     teams: ["Cedar Waves", "Metro Comets"],
@@ -59,6 +62,7 @@ export const SKYBET_EVENTS: SkybetEvent[] = [
   },
   {
     id: "upcoming-capital",
+    previewCode: "SKY-CUP-03",
     sport: "Football",
     competition: "Capital Cup · Today",
     teams: ["Riverside Athletic", "Eastbridge United"],
@@ -76,6 +80,7 @@ export const SKYBET_EVENTS: SkybetEvent[] = [
   },
   {
     id: "upcoming-tennis",
+    previewCode: "SKY-COURT-04",
     sport: "Tennis",
     competition: "Grand Court Series · Today",
     teams: ["A. Mensah", "L. Moretti"],
@@ -91,6 +96,7 @@ export const SKYBET_EVENTS: SkybetEvent[] = [
   },
   {
     id: "upcoming-virtual",
+    previewCode: "SKY-SPRINT-05",
     sport: "Virtuals",
     competition: "Skyline Sprint · Next round",
     teams: ["Blue Lane", "Emerald Lane"],
@@ -122,4 +128,9 @@ export function filterSkybetEvents(
 
 export function formatSelection(event: SkybetEvent, marketLabel: string): string {
   return `${event.teams[0]} vs ${event.teams[1]} · ${marketLabel}`;
+}
+
+export function findSkybetEventByPreviewCode(events: SkybetEvent[], code: string): SkybetEvent | undefined {
+  const normalizedCode = code.trim().toLowerCase();
+  return events.find(event => event.previewCode?.toLowerCase() === normalizedCode || event.id.toLowerCase() === normalizedCode);
 }

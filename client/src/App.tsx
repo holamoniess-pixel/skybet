@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Admin from "./pages/Admin";
 import { AccountPage, ActivityPage, EventDetailPage, GamesPage, LivePage, SearchPage, SportsPage } from "./pages/CustomerPages";
+import { AccountWorkspacePage } from "./pages/AccountWorkspacePage";
 import Home from "./pages/Home";
 
 function Router() {
@@ -20,6 +21,12 @@ function Router() {
       <Route path={"/search"} component={SearchPage} />
       <Route path={"/activity"} component={ActivityPage} />
       <Route path={"/account"} component={AccountPage} />
+      <Route path={"/profile"} component={AccountWorkspacePage} />
+      <Route path={"/settings"} component={AccountWorkspacePage} />
+      <Route path={"/bets"} component={AccountWorkspacePage} />
+      <Route path={"/bets/running"} component={AccountWorkspacePage} />
+      <Route path={"/bets/history"} component={AccountWorkspacePage} />
+      <Route path={"/wallet"} component={AccountWorkspacePage} />
       <Route path={"/admin"} component={Admin} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

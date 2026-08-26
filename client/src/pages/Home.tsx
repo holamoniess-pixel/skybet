@@ -16,10 +16,10 @@ import {
   Sun,
   Ticket,
   Trophy,
-  UserRound,
 } from "lucide-react";
 import {
   filterSkybetEvents,
+  findSkybetEventByPreviewCode,
   formatSelection,
   SKYBET_EVENTS,
   SKYBET_SPORTS,
@@ -30,7 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTheme } from "@/contexts/ThemeContext";
-import { AccountSheet } from "@/components/skybet/AccountSheet";
+import { CustomerAccountMenu } from "@/components/skybet/CustomerAccountMenu";
 import { GamesFeedPreview } from "@/components/skybet/GamesFeedPreview";
 import { MobileBottomNav } from "@/components/skybet/MobileBottomNav";
 import { MobileMatchRail } from "@/components/skybet/MobileMatchRail";
@@ -72,9 +72,7 @@ export default function Home() {
   const [sport, setSport] = useState("All");
   const [selection, setSelection] = useState<Selection | null>(null);
   const [slipOpen, setSlipOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
   const [activeMobileNav, setActiveMobileNav] = useState("Home");
-  const [eventCode, setEventCode] = useState("");
   const [eventCodeMessage, setEventCodeMessage] = useState("");
   const [heroSlide, setHeroSlide] = useState(0);
 
@@ -98,16 +96,16 @@ export default function Home() {
     chooseSelection(event, label, value);
   };
 
-  const handleEventCodeLookup = () => {
-    const normalizedCode = eventCode.trim().toLowerCase();
+  const handleEventCodeLookup = (code: string) => {
+    const normalizedCode = code.trim().toLowerCase();
     if (!normalizedCode) {
-      setEventCodeMessage("Enter a preview event code, for example live-skyline.");
+      setEventCodeMessage("Enter an authored preview code, for example SKY-LIVE-01.");
       return;
     }
 
-    const event = SKYBET_EVENTS.find(item => item.id.toLowerCase() === normalizedCode);
+    const event = findSkybetEventByPreviewCode(SKYBET_EVENTS, normalizedCode);
     if (!event) {
-      setEventCodeMessage(`No preview event was found for “${eventCode.trim()}”. Try live-skyline.`);
+      setEventCodeMessage(`No preview event was found for “${code.trim()}”. Try SKY-LIVE-01.`);
       return;
     }
 
@@ -143,12 +141,6 @@ export default function Home() {
     document.getElementById("skybet-events")?.scrollIntoView?.({ behavior: "smooth" });
   };
 
-  const focusPreviewCode = () => {
-    const field = document.getElementById("preview-code") as HTMLInputElement | null;
-    field?.scrollIntoView?.({ behavior: "smooth", block: "center" });
-    window.setTimeout(() => field?.focus(), 250);
-  };
-
   return (
     <div className="min-h-[100dvh] bg-[var(--sky-white-50)] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-[var(--sky-navy-950)] dark:bg-[var(--background)] dark:text-white md:pb-0">
       <header className="sticky top-0 z-40 border-b border-[var(--sky-blue-100)] bg-[color-mix(in_oklab,var(--sky-white-50)_94%,transparent)] backdrop-blur-xl dark:border-white/10 dark:bg-[color-mix(in_oklab,var(--background)_94%,transparent)]">
@@ -172,15 +164,7 @@ export default function Home() {
                 <span className="sky-preview-wallet-amount">GH₵ 0.00</span>
                 <span className="sky-preview-wallet-bonus">Bonus: GH₵ 0.00</span>
               </button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="sky-preview-wallet-account"
-                aria-label="Open account controls"
-                onClick={() => setLocation("/account")}
-              >
-                <UserRound className="size-[18px]" />
-              </Button>
+              <CustomerAccountMenu compact />
             </div>
             <Button
               variant="ghost"
@@ -246,38 +230,6 @@ export default function Home() {
               </button>
             ))}
           </div>
-        </section>
-
-        <section className="mt-4 rounded-2xl border border-[var(--sky-blue-100)] bg-[var(--sky-navy-950)] p-3 shadow-[0_12px_28px_rgba(6,26,59,0.18)] dark:border-white/10">
-          <form
-            className="flex gap-2"
-            onSubmit={event => {
-              event.preventDefault();
-              handleEventCodeLookup();
-            }}
-          >
-            <div className="relative min-w-0 flex-1">
-              <Ticket className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[var(--sky-blue-300)]" />
-              <input
-                aria-label="Enter an event code"
-                id="preview-code"
-                placeholder="Enter a preview code"
-                value={eventCode}
-                onChange={event => {
-                  setEventCode(event.target.value);
-                  if (eventCodeMessage) setEventCodeMessage("");
-                }}
-                aria-describedby="event-code-help"
-                className="h-11 w-full rounded-xl border border-white/10 bg-white/8 pr-3 pl-10 text-sm text-white outline-none placeholder:text-slate-400 focus:border-[var(--sky-blue-400)] focus:ring-2 focus:ring-[var(--sky-blue-400)]/25"
-              />
-            </div>
-            <Button type="submit" className="h-11 rounded-xl bg-[var(--sky-emerald-600)] px-4 font-extrabold text-white hover:bg-[var(--sky-emerald-700)]">
-              Load
-            </Button>
-          </form>
-          <p id="event-code-help" aria-live="polite" className="mt-2 min-h-5 text-xs font-semibold text-[var(--sky-blue-200)]">
-            {eventCodeMessage || "Open a known event with its preview code."}
-          </p>
         </section>
 
         <section className="mt-5 -mr-4 overflow-x-auto pb-1 pr-4 sm:mr-0 sm:pr-0" aria-label="SKYBET quick filters">
@@ -430,10 +382,9 @@ export default function Home() {
         </section>
       </main>
 
-      <PreviewSlipFab selection={selection} onOpen={() => setSlipOpen(true)} onLoadCode={focusPreviewCode} />
+      <PreviewSlipFab selection={selection} onOpen={() => setSlipOpen(true)} />
       <MobileBottomNav activeItem={activeMobileNav} onNavigate={handleMobileNavigation} />
-      <SelectionSheet open={slipOpen} onOpenChange={setSlipOpen} selection={selection} />
-      <AccountSheet open={accountOpen} onOpenChange={setAccountOpen} />
+      <SelectionSheet open={slipOpen} onOpenChange={setSlipOpen} selection={selection} onLoadCode={handleEventCodeLookup} codeMessage={eventCodeMessage} />
     </div>
   );
 }

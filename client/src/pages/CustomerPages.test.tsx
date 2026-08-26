@@ -6,6 +6,16 @@ import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ActivityPage, EventDetailPage } from "./CustomerPages";
 
+vi.mock("@/lib/trpc", () => ({
+  trpc: {
+    auth: {
+      me: { useQuery: () => ({ data: null, isLoading: false, error: null }) },
+      logout: { useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }) },
+    },
+    useUtils: () => ({ auth: { me: { setData: vi.fn(), invalidate: vi.fn() } } }),
+  },
+}));
+
 function renderEventDetail() {
   window.history.pushState({}, "", "/event/live-skyline");
   return render(

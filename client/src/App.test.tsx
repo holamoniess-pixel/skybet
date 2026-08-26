@@ -16,6 +16,11 @@ vi.mock("@/lib/trpc", () => ({
         }),
       },
     },
+    auth: {
+      me: { useQuery: () => ({ data: null, isLoading: false, error: null }) },
+      logout: { useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }) },
+    },
+    useUtils: () => ({ auth: { me: { setData: vi.fn(), invalidate: vi.fn() } } }),
   },
 }));
 

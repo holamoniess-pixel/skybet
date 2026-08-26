@@ -90,3 +90,13 @@
 - [x] Add regression coverage and verify responsive behaviour for the visual-editor refinements.
 - [x] Restore a known preview selection directly into the non-transactional Preview slip from a local preview code without routing to an event page.
 - [x] Add regression and browser verification for successful and invalid local preview-code restoration.
+- [ ] Collect ten genuinely distinct, brand-approved hero assets and replace composition-only image variants in the homepage rotation.
+- [x] Restore the Preview Slip as a compact round bottom-right action and move code loading into its preview interaction.
+- [x] Add an accessible account menu with profile, settings, bets, running-bets, history, authentication, and clearly gated transaction-navigation states.
+- [ ] Establish the approved live sports-data provider, credentials, update cadence, licence boundaries, and adapter contract before connecting customer data.
+- [x] Add authored per-event preview codes with validation and direct local selection restoration.
+- [x] Add regression coverage and desktop/mobile verification for the expanded account, hero, and preview-code surfaces.
+- [ ] Implement the approved live sports-data adapter surface, then add regression coverage and desktop/mobile verification for that connected data experience.
+- [x] Build the auth-aware customer account dropdown with guest sign-in/sign-up and signed-in profile, settings, bets, running-bets, bet-history, and logout states.
+- [x] Add clearly gated deposit and withdrawal entry surfaces that are ready for future Flutterwave backend wiring but cannot move money before secure credentials and server validation exist.
+- [x] Document the secure Flutterwave and live sports-data backend handoff without collecting credentials or business documents in chat.
