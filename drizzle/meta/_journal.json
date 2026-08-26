@@ -29,6 +29,27 @@
       "when": 1787717226078,
       "tag": "0003_rainy_doctor_doom",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1787741208302,
+      "tag": "0004_talented_chameleon",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1787741316916,
+      "tag": "0005_sad_pete_wisdom",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1787741363971,
+      "tag": "0006_cultured_meggan",
+      "breakpoints": true
     }
   ]
 }

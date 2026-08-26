@@ -119,3 +119,12 @@
 - [x] Configure two server-side NVIDIA models and two server-side OpenRouter models as ordered normalization fallbacks without exposing their keys.
 - [x] Implement the licensed-feed-first orchestration boundary and keep browser collection disabled until source URLs and written permission are recorded.
 - [x] Add provider health checks, model failover tests, and an operational runbook for the dual-provider fallback boundary.
+- [x] Research Aqùapay’s official Ghana payment API, webhook support, merchant onboarding requirements, and server-side credential model before any gateway connection.
+- [x] Add auditable database records for customer deposit requests, TRC20 payment proofs, withdrawal requests, approval/rejection decisions, and duplicate-reference controls.
+- [x] Add protected customer TRC20 deposit and withdrawal request flows with the approved preset GHS amounts and screenshot proof upload only for deposits.
+- [ ] Enable the selectable local GHS Aqùapay request flow only after official provider documentation, merchant onboarding details, and secure credentials are supplied.
+- [x] Add administrator payment-review queues with proof viewing, amount/reference checks, approve/reject actions with mandatory decisions, and immutable audit trails.
+- [x] Replace fixed referral reward configuration with versioned global and per-user referral commission percentage controls while preserving the deposit-versus-bonus ledger boundary.
+- [x] Add essential administrator safety controls for payment operations, including user payment holds, review status filters, reviewer attribution, and reasoned rejection handling.
+- [ ] Add Aqùapay integration configuration and webhook verification only after official documentation and secure merchant credentials are supplied.
+- [x] Save a validated payment-workflow checkpoint after the final reviewer-attribution control is implemented and recorded in the verification notes.

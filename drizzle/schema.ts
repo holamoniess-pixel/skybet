@@ -1,4 +1,4 @@
-import { decimal, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { decimal, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -120,3 +120,89 @@ export const accountBalanceSummaries = mysqlTable("account_balance_summaries", {
 export type BonusPolicyRule = typeof bonusPolicyRules.$inferSelect;
 export type BonusPolicyOverride = typeof bonusPolicyOverrides.$inferSelect;
 export type AccountBalanceSummary = typeof accountBalanceSummaries.$inferSelect;
+
+/** Administrator-managed customer deposit method configuration; gateway credentials remain server-only. */
+export const paymentMethodConfigs = mysqlTable("payment_method_configs", {
+  id: int("id").autoincrement().primaryKey(),
+  method: mysqlEnum("method", ["crypto_trc20", "aquapay"]).notNull().unique(),
+  displayName: varchar("displayName", { length: 100 }).notNull(),
+  network: varchar("network", { length: 32 }),
+  destination: varchar("destination", { length: 255 }),
+  status: mysqlEnum("status", ["enabled", "disabled"]).default("disabled").notNull(),
+  updatedBy: int("updatedBy"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Customer payment or withdrawal request; an approved review is not a money movement. */
+export const paymentRequests = mysqlTable("payment_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  publicReference: varchar("publicReference", { length: 48 }).notNull().unique(),
+  userId: int("userId").notNull(),
+  requestType: mysqlEnum("requestType", ["deposit", "withdrawal"]).notNull(),
+  method: mysqlEnum("method", ["crypto_trc20", "aquapay"]).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  customerPaymentReference: varchar("customerPaymentReference", { length: 128 }),
+  payoutDestination: varchar("payoutDestination", { length: 255 }),
+  proofStorageKey: varchar("proofStorageKey", { length: 512 }),
+  proofMimeType: varchar("proofMimeType", { length: 100 }),
+  status: mysqlEnum("status", ["submitted", "under_review", "approved", "rejected", "cancelled"]).default("submitted").notNull(),
+  reviewReason: text("reviewReason"),
+  reviewedBy: int("reviewedBy"),
+  reviewedAt: timestamp("reviewedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [
+  uniqueIndex("payment_requests_method_reference_unique").on(table.method, table.customerPaymentReference),
+]);
+
+/** Append-only lifecycle record for customer submissions and administrator review decisions. */
+export const paymentRequestEvents = mysqlTable("payment_request_events", {
+  id: int("id").autoincrement().primaryKey(),
+  paymentRequestId: int("paymentRequestId").notNull(),
+  actorUserId: int("actorUserId").notNull(),
+  actorRole: mysqlEnum("actorRole", ["customer", "admin"]).notNull(),
+  action: varchar("action", { length: 64 }).notNull(),
+  detailsJson: text("detailsJson").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/** Account-level operational hold used to stop new payment requests pending a documented review. */
+export const accountPaymentControls = mysqlTable("account_payment_controls", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  status: mysqlEnum("status", ["active", "held"]).default("active").notNull(),
+  reason: text("reason").notNull(),
+  updatedBy: int("updatedBy").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Versioned global referral commission percentage, retained separately from legacy fixed reward history. */
+export const referralCommissionRules = mysqlTable("referral_commission_rules", {
+  id: int("id").autoincrement().primaryKey(),
+  percentage: decimal("percentage", { precision: 5, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["active", "superseded"]).default("active").notNull(),
+  reason: text("reason").notNull(),
+  effectiveAt: timestamp("effectiveAt").defaultNow().notNull(),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/** Versioned customer-specific referral commission percentage override. */
+export const referralCommissionOverrides = mysqlTable("referral_commission_overrides", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  percentage: decimal("percentage", { precision: 5, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["active", "superseded"]).default("active").notNull(),
+  reason: text("reason").notNull(),
+  effectiveAt: timestamp("effectiveAt").defaultNow().notNull(),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PaymentMethodConfig = typeof paymentMethodConfigs.$inferSelect;
+export type PaymentRequest = typeof paymentRequests.$inferSelect;
+export type PaymentRequestEvent = typeof paymentRequestEvents.$inferSelect;
+export type AccountPaymentControl = typeof accountPaymentControls.$inferSelect;
+export type ReferralCommissionRule = typeof referralCommissionRules.$inferSelect;
+export type ReferralCommissionOverride = typeof referralCommissionOverrides.$inferSelect;

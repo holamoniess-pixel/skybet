@@ -203,3 +203,16 @@ The live-data preparation now has two validated NVIDIA models followed by two va
 | Provider credentials | NVIDIA and OpenRouter model-list health checks both passed without logging either secret. |
 | Fallback safety | Regression coverage verified ordered NVIDIA→NVIDIA→OpenRouter→OpenRouter fallback, failure continuation, and rejection of non-licensed browser data. |
 | Full validation | `pnpm test` passed **51 tests across 18 files**; `pnpm check` and `pnpm build` passed. |
+
+## Payment request review and referral commission controls — 26 August 2026
+
+The protected `/wallet` route now provides a customer payment-request workflow. It presents the approved GHS request amounts of **200, 300, 500, 1,000, 1,500, and 2,000**; displays the configured TRC20 destination; and requires a PNG or JPEG deposit screenshot of at most 5 MB plus a customer transfer reference. Withdrawals request a payout destination but do not require a screenshot. Aqùapay is visible but disabled because a verified official developer reference and merchant credentials have not been provided.
+
+The administrator workspace now has a percentage-based global referral commission control, per-customer overrides, a status-filtered payment-review queue, protected evidence viewing, mandatory decision reasons, customer payment holds, and reviewer attribution. Approved and rejected queue entries show the reviewer identity and review timestamp. A recorded payment review intentionally has **no ledger effect**: it does not credit `depositedBalance`, change `bonusBalance`, send a withdrawal, or settle a bet. Each customer submission and administrator decision is written to append-only lifecycle or audit records.
+
+| Verification surface | Result |
+| --- | --- |
+| Database migration | Applied additive migrations `0004`, `0005`, and `0006`; verified two payment methods, with TRC20 enabled and Aqùapay disabled. |
+| Desktop review | `/wallet` displayed both configured methods, all six GHS amount buttons, proof upload, the TRC20 address, and the unchanged balance separation panel. `/admin` displayed the commission policy, payment queue, account hold controls, and bonus policy together. |
+| Mobile review | `/wallet` at `375×812` retained clear method cards, touch-sized preset buttons, proof upload, address-copy control, and no horizontal overflow. |
+| Automated validation | `pnpm test` passed **56 tests across 20 files**; `pnpm check`, `pnpm build`, and the whitespace check passed. |

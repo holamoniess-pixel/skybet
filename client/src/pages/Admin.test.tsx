@@ -33,6 +33,13 @@ vi.mock("@/components/DashboardLayout", () => ({
 vi.mock("@/lib/trpc", () => ({
   trpc: {
     useUtils: () => ({
+      commissions: {
+        activeRule: { invalidate: vi.fn() },
+        activeOverride: { invalidate: vi.fn() },
+      },
+      paymentReview: {
+        queue: { invalidate: vi.fn() },
+      },
       referrals: {
         activeRule: { invalidate: vi.fn() },
       },
@@ -72,6 +79,18 @@ vi.mock("@/lib/trpc", () => ({
         useMutation: () => ({ mutate: vi.fn(), isPending: false }),
       },
     },
+    commissions: {
+      activeRule: { useQuery: () => ({ data: undefined, isLoading: false }) },
+      activeOverride: { useQuery: () => ({ data: undefined, isLoading: false }) },
+      saveDefaultRule: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+      saveUserOverride: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+    },
+    paymentReview: {
+      queue: { useQuery: () => ({ data: [], isLoading: false }) },
+      proofUrl: { useQuery: () => ({ data: undefined, isLoading: false }) },
+      review: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+      setAccountHold: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+    },
   },
 }));
 
@@ -85,9 +104,9 @@ describe("Skybet Admin", () => {
     render(<Admin />);
 
     expect(screen.getByRole("heading", { name: "Operations with guardrails." })).toBeInTheDocument();
-    expect(screen.getByLabelText("Programme default reward")).toHaveValue("10");
+    expect(screen.getByLabelText("Global commission percentage")).toHaveValue("0");
+    expect(screen.getByText("Payment review queue")).toBeInTheDocument();
     expect(screen.getByText("Bonus ledger policy")).toBeInTheDocument();
-    expect(screen.getAllByLabelText("Referral commission")[0]).toHaveValue("0.00");
   });
 
   it("blocks customer roles from sensitive admin controls", () => {
@@ -95,6 +114,6 @@ describe("Skybet Admin", () => {
     render(<Admin />);
 
     expect(screen.getByRole("heading", { name: "Administrator access required" })).toBeInTheDocument();
-    expect(screen.queryByLabelText("Programme default reward")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Global commission percentage")).not.toBeInTheDocument();
   });
 });

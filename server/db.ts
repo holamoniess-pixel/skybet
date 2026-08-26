@@ -1,12 +1,19 @@
 import { and, desc, eq, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import { alias } from "drizzle-orm/mysql-core";
 import {
   accountBalanceSummaries,
+  accountPaymentControls,
   adminAuditEvents,
   bonusPolicyOverrides,
   bonusPolicyRules,
   InsertUser,
   localAdminCredentials,
+  paymentMethodConfigs,
+  paymentRequestEvents,
+  paymentRequests,
+  referralCommissionOverrides,
+  referralCommissionRules,
   referralRewardOverrides,
   referralRewardRules,
   users,
@@ -403,4 +410,180 @@ export async function searchSkybetUsers(input: { query: string; role: "all" | "u
     .limit(50);
 
   return filters.length > 0 ? query.where(and(...filters)) : query;
+}
+
+export async function getPaymentMethods(includeDisabled = false) {
+  const db = await getDb();
+  if (!db) return [];
+  const query = db.select().from(paymentMethodConfigs).orderBy(paymentMethodConfigs.id);
+  return includeDisabled ? query : query.where(eq(paymentMethodConfigs.status, "enabled"));
+}
+
+export async function getAccountPaymentControl(userId: number) {
+  const db = await getDb();
+  if (!db) return { userId, status: "active" as const, reason: "" };
+  const result = await db.select().from(accountPaymentControls).where(eq(accountPaymentControls.userId, userId)).limit(1);
+  return result[0] ?? { userId, status: "active" as const, reason: "" };
+}
+
+async function assertAccountCanSubmitPayment(tx: any, userId: number) {
+  const control = await tx.select().from(accountPaymentControls).where(eq(accountPaymentControls.userId, userId)).limit(1);
+  if (control[0]?.status === "held") throw new Error("Payment requests are currently held for this account.");
+}
+
+async function assertMethodEnabled(tx: any, method: "crypto_trc20" | "aquapay") {
+  const configured = await tx.select().from(paymentMethodConfigs).where(eq(paymentMethodConfigs.method, method)).limit(1);
+  if (!configured[0] || configured[0].status !== "enabled") throw new Error("The selected payment method is not available.");
+}
+
+type DepositRequestInput = {
+  userId: number;
+  method: "crypto_trc20" | "aquapay";
+  amount: number;
+  publicReference: string;
+  customerPaymentReference: string;
+  proofStorageKey: string;
+  proofMimeType: string;
+};
+
+export async function createDepositRequest(input: DepositRequestInput) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return db.transaction(async tx => {
+    await assertAccountCanSubmitPayment(tx, input.userId);
+    await assertMethodEnabled(tx, input.method);
+    const inserted = await tx.insert(paymentRequests).values({
+      publicReference: input.publicReference,
+      userId: input.userId,
+      requestType: "deposit",
+      method: input.method,
+      currency: "GHS",
+      amount: input.amount.toFixed(2),
+      customerPaymentReference: input.customerPaymentReference,
+      proofStorageKey: input.proofStorageKey,
+      proofMimeType: input.proofMimeType,
+    });
+    const requestId = Number(inserted[0].insertId);
+    await tx.insert(paymentRequestEvents).values({ paymentRequestId: requestId, actorUserId: input.userId, actorRole: "customer", action: "submitted", detailsJson: JSON.stringify({ requestType: "deposit", method: input.method, amount: input.amount, currency: "GHS" }) });
+    return (await tx.select().from(paymentRequests).where(eq(paymentRequests.id, requestId)).limit(1))[0];
+  });
+}
+
+type WithdrawalRequestInput = {
+  userId: number;
+  method: "crypto_trc20" | "aquapay";
+  amount: number;
+  publicReference: string;
+  payoutDestination: string;
+};
+
+export async function createWithdrawalRequest(input: WithdrawalRequestInput) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return db.transaction(async tx => {
+    await assertAccountCanSubmitPayment(tx, input.userId);
+    await assertMethodEnabled(tx, input.method);
+    const inserted = await tx.insert(paymentRequests).values({
+      publicReference: input.publicReference,
+      userId: input.userId,
+      requestType: "withdrawal",
+      method: input.method,
+      currency: "GHS",
+      amount: input.amount.toFixed(2),
+      payoutDestination: input.payoutDestination,
+    });
+    const requestId = Number(inserted[0].insertId);
+    await tx.insert(paymentRequestEvents).values({ paymentRequestId: requestId, actorUserId: input.userId, actorRole: "customer", action: "submitted", detailsJson: JSON.stringify({ requestType: "withdrawal", method: input.method, amount: input.amount, currency: "GHS" }) });
+    return (await tx.select().from(paymentRequests).where(eq(paymentRequests.id, requestId)).limit(1))[0];
+  });
+}
+
+export async function getCustomerPaymentRequests(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(paymentRequests).where(eq(paymentRequests.userId, userId)).orderBy(desc(paymentRequests.createdAt), desc(paymentRequests.id)).limit(50);
+}
+
+export async function getAdminPaymentRequests(status: "all" | "submitted" | "under_review" | "approved" | "rejected") {
+  const db = await getDb();
+  if (!db) return [];
+  const reviewer = alias(users, "payment_reviewer");
+  const query = db.select({ request: paymentRequests, user: { id: users.id, name: users.name, email: users.email }, reviewer: { id: reviewer.id, name: reviewer.name, email: reviewer.email } }).from(paymentRequests).innerJoin(users, eq(paymentRequests.userId, users.id)).leftJoin(reviewer, eq(paymentRequests.reviewedBy, reviewer.id)).orderBy(desc(paymentRequests.createdAt), desc(paymentRequests.id)).limit(100);
+  return status === "all" ? query : query.where(eq(paymentRequests.status, status));
+}
+
+export async function reviewPaymentRequest(input: { requestId: number; actorUserId: number; decision: "approved" | "rejected"; reason: string }) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return db.transaction(async tx => {
+    const current = await tx.select().from(paymentRequests).where(eq(paymentRequests.id, input.requestId)).limit(1);
+    const request = current[0];
+    if (!request) throw new Error("Payment request not found");
+    if (request.userId === input.actorUserId) throw new Error("Administrators cannot review their own payment request");
+    if (request.status !== "submitted" && request.status !== "under_review") throw new Error("Only submitted payment requests can be reviewed");
+
+    await tx.update(paymentRequests).set({ status: input.decision, reviewReason: input.reason, reviewedBy: input.actorUserId, reviewedAt: new Date() }).where(eq(paymentRequests.id, request.id));
+    await tx.insert(paymentRequestEvents).values({ paymentRequestId: request.id, actorUserId: input.actorUserId, actorRole: "admin", action: input.decision, detailsJson: JSON.stringify({ reason: input.reason, ledgerEffect: "none" }) });
+    await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "payment_request", entityId: request.id, action: input.decision, beforeJson: JSON.stringify({ status: request.status }), afterJson: JSON.stringify({ status: input.decision, reason: input.reason, ledgerEffect: "none" }) });
+    return (await tx.select().from(paymentRequests).where(eq(paymentRequests.id, request.id)).limit(1))[0];
+  });
+}
+
+export async function setAccountPaymentControl(input: { userId: number; status: "active" | "held"; reason: string; actorUserId: number }) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return db.transaction(async tx => {
+    const customer = await tx.select({ id: users.id }).from(users).where(eq(users.id, input.userId)).limit(1);
+    if (!customer[0]) throw new Error("Customer not found");
+    const existing = await tx.select().from(accountPaymentControls).where(eq(accountPaymentControls.userId, input.userId)).limit(1);
+    if (existing[0]) {
+      await tx.update(accountPaymentControls).set({ status: input.status, reason: input.reason, updatedBy: input.actorUserId }).where(eq(accountPaymentControls.id, existing[0].id));
+    } else {
+      await tx.insert(accountPaymentControls).values({ userId: input.userId, status: input.status, reason: input.reason, updatedBy: input.actorUserId });
+    }
+    await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "account_payment_control", entityId: input.userId, action: input.status, beforeJson: existing[0] ? JSON.stringify(existing[0]) : null, afterJson: JSON.stringify({ status: input.status, reason: input.reason }) });
+    return (await tx.select().from(accountPaymentControls).where(eq(accountPaymentControls.userId, input.userId)).limit(1))[0];
+  });
+}
+
+type CommissionInput = { percentage: number; reason: string; actorUserId: number };
+
+export async function getActiveReferralCommissionRule() {
+  const db = await getDb();
+  if (!db) return undefined;
+  return (await db.select().from(referralCommissionRules).where(eq(referralCommissionRules.status, "active")).orderBy(desc(referralCommissionRules.effectiveAt), desc(referralCommissionRules.id)).limit(1))[0];
+}
+
+export async function getActiveReferralCommissionOverride(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return (await db.select().from(referralCommissionOverrides).where(and(eq(referralCommissionOverrides.userId, userId), eq(referralCommissionOverrides.status, "active"))).orderBy(desc(referralCommissionOverrides.effectiveAt), desc(referralCommissionOverrides.id)).limit(1))[0];
+}
+
+export async function saveReferralCommissionRule(input: CommissionInput) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return db.transaction(async tx => {
+    const previous = (await tx.select().from(referralCommissionRules).where(eq(referralCommissionRules.status, "active")).orderBy(desc(referralCommissionRules.effectiveAt), desc(referralCommissionRules.id)).limit(1))[0];
+    if (previous) await tx.update(referralCommissionRules).set({ status: "superseded" }).where(eq(referralCommissionRules.id, previous.id));
+    const inserted = await tx.insert(referralCommissionRules).values({ percentage: input.percentage.toFixed(2), reason: input.reason, createdBy: input.actorUserId });
+    const ruleId = Number(inserted[0].insertId);
+    await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "referral_commission_rule", entityId: ruleId, action: "created", beforeJson: previous ? JSON.stringify(previous) : null, afterJson: JSON.stringify({ percentage: input.percentage, reason: input.reason }) });
+    return (await tx.select().from(referralCommissionRules).where(eq(referralCommissionRules.id, ruleId)).limit(1))[0];
+  });
+}
+
+export async function saveReferralCommissionOverride(input: CommissionInput & { userId: number }) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return db.transaction(async tx => {
+    const customer = await tx.select({ id: users.id }).from(users).where(eq(users.id, input.userId)).limit(1);
+    if (!customer[0]) throw new Error("Customer not found");
+    const previous = (await tx.select().from(referralCommissionOverrides).where(and(eq(referralCommissionOverrides.userId, input.userId), eq(referralCommissionOverrides.status, "active"))).orderBy(desc(referralCommissionOverrides.effectiveAt), desc(referralCommissionOverrides.id)).limit(1))[0];
+    if (previous) await tx.update(referralCommissionOverrides).set({ status: "superseded" }).where(eq(referralCommissionOverrides.id, previous.id));
+    const inserted = await tx.insert(referralCommissionOverrides).values({ userId: input.userId, percentage: input.percentage.toFixed(2), reason: input.reason, createdBy: input.actorUserId });
+    const overrideId = Number(inserted[0].insertId);
+    await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "referral_commission_override", entityId: overrideId, action: "created", beforeJson: previous ? JSON.stringify(previous) : null, afterJson: JSON.stringify({ userId: input.userId, percentage: input.percentage, reason: input.reason }) });
+    return (await tx.select().from(referralCommissionOverrides).where(eq(referralCommissionOverrides.id, overrideId)).limit(1))[0];
+  });
 }
