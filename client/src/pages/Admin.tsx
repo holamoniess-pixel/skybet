@@ -16,6 +16,7 @@ import { validateReferralRewardAmount } from "@shared/referrals";
 import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { AdminUserSearch } from "@/components/skybet/AdminUserSearch";
+import { BonusPolicyAdminCard } from "@/components/skybet/BonusPolicyAdminCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -174,6 +175,8 @@ function AdminOverview() {
           </CardContent>
         </Card>
       </section>
+
+      <BonusPolicyAdminCard />
 
       <Card className="border-[var(--sky-blue-100)] bg-white dark:border-white/10 dark:bg-[var(--card)]">
         <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><span className="grid size-10 place-items-center rounded-xl bg-[var(--sky-ice-100)] text-[var(--sky-blue-700)]"><ClipboardList className="size-5" /></span><div><p className="font-extrabold text-[var(--sky-navy-950)] dark:text-white">Referral changes are captured for audit</p><p className="mt-1 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">Programme rules and customer overrides create append-only administrator audit events. Audit search and export remain a planned operational view.</p></div></div><UsersRound className="size-6 text-[var(--sky-blue-300)]" /></CardContent>

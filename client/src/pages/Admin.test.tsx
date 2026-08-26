@@ -36,6 +36,10 @@ vi.mock("@/lib/trpc", () => ({
       referrals: {
         activeRule: { invalidate: vi.fn() },
       },
+      bonusPolicies: {
+        activeRule: { invalidate: vi.fn() },
+        activeOverride: { invalidate: vi.fn() },
+      },
     }),
     referrals: {
       activeRule: {
@@ -46,6 +50,20 @@ vi.mock("@/lib/trpc", () => ({
       },
       searchUsers: {
         useQuery: () => ({ data: [], isLoading: false }),
+      },
+      saveDefaultRule: {
+        useMutation: () => ({ mutate: vi.fn(), isPending: false }),
+      },
+      saveUserOverride: {
+        useMutation: () => ({ mutate: vi.fn(), isPending: false }),
+      },
+    },
+    bonusPolicies: {
+      activeRule: {
+        useQuery: () => ({ data: undefined, isLoading: false }),
+      },
+      activeOverride: {
+        useQuery: () => ({ data: undefined, isLoading: false }),
       },
       saveDefaultRule: {
         useMutation: () => ({ mutate: vi.fn(), isPending: false }),
@@ -68,6 +86,8 @@ describe("Skybet Admin", () => {
 
     expect(screen.getByRole("heading", { name: "Operations with guardrails." })).toBeInTheDocument();
     expect(screen.getByLabelText("Programme default reward")).toHaveValue("10");
+    expect(screen.getByText("Bonus ledger policy")).toBeInTheDocument();
+    expect(screen.getAllByLabelText("Referral commission")[0]).toHaveValue("0.00");
   });
 
   it("blocks customer roles from sensitive admin controls", () => {

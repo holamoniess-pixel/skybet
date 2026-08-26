@@ -65,3 +65,46 @@ export const adminAuditEvents = mysqlTable("admin_audit_events", {
 export type ReferralRewardRule = typeof referralRewardRules.$inferSelect;
 export type ReferralRewardOverride = typeof referralRewardOverrides.$inferSelect;
 export type AdminAuditEvent = typeof adminAuditEvents.$inferSelect;
+
+/** Versioned programme-wide policy for credits that belong only in the bonus balance. */
+export const bonusPolicyRules = mysqlTable("bonus_policy_rules", {
+  id: int("id").autoincrement().primaryKey(),
+  currency: varchar("currency", { length: 3 }).notNull(),
+  referralCommissionAmount: decimal("referralCommissionAmount", { precision: 12, scale: 2 }).notNull(),
+  depositBonusAmount: decimal("depositBonusAmount", { precision: 12, scale: 2 }).notNull(),
+  settlementBonusAmount: decimal("settlementBonusAmount", { precision: 12, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["active", "superseded"]).default("active").notNull(),
+  reason: text("reason").notNull(),
+  effectiveAt: timestamp("effectiveAt").defaultNow().notNull(),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/** Audited user-specific exception to a programme-wide bonus policy. */
+export const bonusPolicyOverrides = mysqlTable("bonus_policy_overrides", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  currency: varchar("currency", { length: 3 }).notNull(),
+  referralCommissionAmount: decimal("referralCommissionAmount", { precision: 12, scale: 2 }).notNull(),
+  depositBonusAmount: decimal("depositBonusAmount", { precision: 12, scale: 2 }).notNull(),
+  settlementBonusAmount: decimal("settlementBonusAmount", { precision: 12, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["active", "superseded"]).default("active").notNull(),
+  reason: text("reason").notNull(),
+  effectiveAt: timestamp("effectiveAt").defaultNow().notNull(),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/** Read model that keeps deposited funds distinct from non-withdrawable bonus credits. */
+export const accountBalanceSummaries = mysqlTable("account_balance_summaries", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  currency: varchar("currency", { length: 3 }).notNull(),
+  depositedBalance: decimal("depositedBalance", { precision: 12, scale: 2 }).default("0.00").notNull(),
+  bonusBalance: decimal("bonusBalance", { precision: 12, scale: 2 }).default("0.00").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type BonusPolicyRule = typeof bonusPolicyRules.$inferSelect;
+export type BonusPolicyOverride = typeof bonusPolicyOverrides.$inferSelect;
+export type AccountBalanceSummary = typeof accountBalanceSummaries.$inferSelect;

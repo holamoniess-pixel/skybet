@@ -172,3 +172,20 @@ The homepage also has a ten-slot asset manifest in `shared/heroAssets.ts`, with 
 | Adapter contract | Server regression coverage verifies the exact explicit unconfigured response without contacting a provider. |
 | Customer status surface | Mobile checks of `/` and `/games` at `375×812` show the provider-state notice cleanly within the match-feed card. |
 | Regression and type safety | `pnpm test` passed **39 tests across 13 files** and `pnpm check` passed. |
+
+## Bonus ledger and settlement-preview refinement — 26 August 2026
+
+The administrator area keeps the existing versioned referral-rule controls and now adds a **Bonus ledger policy** surface. An administrator can set a global or per-user referral commission, deposit bonus, and settlement-bonus configuration. Each change is designed as an audited policy version; it does not create a customer ledger entry, pay a commission, or alter a balance.
+
+The database migration `0002_boring_captain_america.sql` was reviewed and applied. It adds `bonus_policy_rules`, `bonus_policy_overrides`, and `account_balance_summaries` without dropping or altering existing data. The account summary contract keeps **deposited funds** and **bonus balance** in separate fields. The configured customer rule is explicit: only confirmed deposits belong in deposited funds, while commissions and every non-deposit bonus belong in bonus balance.
+
+The `/bets/history` workspace now exposes **Open win treatment preview**. Its responsive modal uses the cup artwork supplied by the project owner within an original SKYBET presentation, states **Bonus balance** as the destination for a non-deposit settlement credit, and clearly says that no balance, bonus, or payout has changed. Browser replay at `375×812` opened the modal and found its no-credit boundary. The replay produced **0 console errors**.
+
+| Verification surface | Result |
+| --- | --- |
+| Database migration | The three new non-destructive tables were created and verified through `information_schema`. |
+| Automated tests | `pnpm test` passed **43 tests across 15 files**, including bonus-policy validation and settlement modal tests. |
+| Build safety | `pnpm check` and `pnpm build` passed. The existing bundle-size advisory remains non-blocking. |
+| Customer rendering | Mobile snapshots verified the bet-history action, safe wallet boundary, separated-balance card, and settlement-preview behavior. |
+
+Desktop review at `1280×720` confirmed that `/bets/history` preserves a clear wide-screen two-column layout: the win-treatment entry remains within the protected activity card and the separated deposited-funds and bonus-balance card stays readable alongside it. The matching `/wallet` view preserves the same ledger card while keeping both deposit and withdrawal entry tiles explicitly server-gated. No overlap, clipping, or horizontal overflow was observed.

@@ -1,12 +1,13 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getMockGamesFeed } from "@shared/mockGamesFeed";
+import { validateBonusPolicyAmounts } from "@shared/bonusPolicies";
 import { validateReferralRewardAmount } from "@shared/referrals";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { adminProcedure, publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { getSportsDataConnectionStatus } from "./sportsDataAdapter";
 
 export const appRouter = router({
@@ -87,6 +88,36 @@ export const appRouter = router({
           throw error;
         }
       }),
+  }),
+  bonusPolicies: router({
+    activeRule: adminProcedure.query(() => db.getActiveBonusPolicyRule()),
+    activeOverride: adminProcedure.input(z.object({ userId: z.number().int().positive() })).query(({ input }) => db.getActiveBonusPolicyOverride(input.userId)),
+    saveDefaultRule: adminProcedure
+      .input(z.object({ referralCommissionAmount: z.string(), depositBonusAmount: z.string(), settlementBonusAmount: z.string(), currency: z.literal("GHS"), reason: z.string().trim().min(5).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        const validation = validateBonusPolicyAmounts(input);
+        if (!validation.ok) throw new TRPCError({ code: "BAD_REQUEST", message: validation.reason });
+        const policy = await db.saveBonusPolicyRule({ ...validation.amounts, currency: input.currency, reason: input.reason, actorUserId: ctx.user.id });
+        if (!policy) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Bonus settings are unavailable. Try again later." });
+        return policy;
+      }),
+    saveUserOverride: adminProcedure
+      .input(z.object({ userId: z.number().int().positive(), referralCommissionAmount: z.string(), depositBonusAmount: z.string(), settlementBonusAmount: z.string(), currency: z.literal("GHS"), reason: z.string().trim().min(5).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        const validation = validateBonusPolicyAmounts(input);
+        if (!validation.ok) throw new TRPCError({ code: "BAD_REQUEST", message: validation.reason });
+        try {
+          const policy = await db.saveBonusPolicyOverride({ ...validation.amounts, userId: input.userId, currency: input.currency, reason: input.reason, actorUserId: ctx.user.id });
+          if (!policy) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Bonus settings are unavailable. Try again later." });
+          return policy;
+        } catch (error) {
+          if (error instanceof Error && error.message === "Customer not found") throw new TRPCError({ code: "NOT_FOUND", message: "Customer ID was not found." });
+          throw error;
+        }
+      }),
+  }),
+  account: router({
+    balanceSummary: protectedProcedure.query(({ ctx }) => db.getAccountBalanceSummary(ctx.user.id)),
   }),
 });
 

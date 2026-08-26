@@ -1,7 +1,10 @@
 import { and, desc, eq, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
+  accountBalanceSummaries,
   adminAuditEvents,
+  bonusPolicyOverrides,
+  bonusPolicyRules,
   InsertUser,
   referralRewardOverrides,
   referralRewardRules,
@@ -232,6 +235,97 @@ export async function getActiveReferralRewardOverride(userId: number) {
     .limit(1);
 
   return result[0];
+}
+
+type BonusPolicyInput = {
+  referralCommissionAmount: number;
+  depositBonusAmount: number;
+  settlementBonusAmount: number;
+  currency: string;
+  reason: string;
+  actorUserId: number;
+};
+
+export async function getActiveBonusPolicyRule() {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(bonusPolicyRules)
+    .where(eq(bonusPolicyRules.status, "active"))
+    .orderBy(desc(bonusPolicyRules.effectiveAt), desc(bonusPolicyRules.id))
+    .limit(1);
+  return result[0];
+}
+
+export async function saveBonusPolicyRule(input: BonusPolicyInput) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  return db.transaction(async tx => {
+    const current = await tx.select().from(bonusPolicyRules).where(eq(bonusPolicyRules.status, "active")).orderBy(desc(bonusPolicyRules.effectiveAt), desc(bonusPolicyRules.id)).limit(1);
+    const previous = current[0];
+    if (previous) await tx.update(bonusPolicyRules).set({ status: "superseded" }).where(eq(bonusPolicyRules.id, previous.id));
+
+    const insertResult = await tx.insert(bonusPolicyRules).values({
+      currency: input.currency,
+      referralCommissionAmount: input.referralCommissionAmount.toFixed(2),
+      depositBonusAmount: input.depositBonusAmount.toFixed(2),
+      settlementBonusAmount: input.settlementBonusAmount.toFixed(2),
+      reason: input.reason,
+      createdBy: input.actorUserId,
+    });
+    const policyId = Number(insertResult[0].insertId);
+    const afterJson = JSON.stringify({ ...input, actorUserId: undefined });
+    await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "bonus_policy_rule", entityId: policyId, action: "created", beforeJson: previous ? JSON.stringify(previous) : null, afterJson });
+    return (await tx.select().from(bonusPolicyRules).where(eq(bonusPolicyRules.id, policyId)).limit(1))[0];
+  });
+}
+
+type BonusPolicyOverrideInput = BonusPolicyInput & { userId: number };
+
+export async function getActiveBonusPolicyOverride(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(bonusPolicyOverrides).where(and(eq(bonusPolicyOverrides.userId, userId), eq(bonusPolicyOverrides.status, "active"))).orderBy(desc(bonusPolicyOverrides.effectiveAt), desc(bonusPolicyOverrides.id)).limit(1);
+  return result[0];
+}
+
+export async function saveBonusPolicyOverride(input: BonusPolicyOverrideInput) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  return db.transaction(async tx => {
+    const target = await tx.select({ id: users.id }).from(users).where(eq(users.id, input.userId)).limit(1);
+    if (!target[0]) throw new Error("Customer not found");
+    const current = await tx.select().from(bonusPolicyOverrides).where(and(eq(bonusPolicyOverrides.userId, input.userId), eq(bonusPolicyOverrides.status, "active"))).orderBy(desc(bonusPolicyOverrides.effectiveAt), desc(bonusPolicyOverrides.id)).limit(1);
+    const previous = current[0];
+    if (previous) await tx.update(bonusPolicyOverrides).set({ status: "superseded" }).where(eq(bonusPolicyOverrides.id, previous.id));
+
+    const insertResult = await tx.insert(bonusPolicyOverrides).values({
+      userId: input.userId,
+      currency: input.currency,
+      referralCommissionAmount: input.referralCommissionAmount.toFixed(2),
+      depositBonusAmount: input.depositBonusAmount.toFixed(2),
+      settlementBonusAmount: input.settlementBonusAmount.toFixed(2),
+      reason: input.reason,
+      createdBy: input.actorUserId,
+    });
+    const overrideId = Number(insertResult[0].insertId);
+    const afterJson = JSON.stringify({ ...input, actorUserId: undefined });
+    await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "bonus_policy_override", entityId: overrideId, action: "created", beforeJson: previous ? JSON.stringify(previous) : null, afterJson });
+    return (await tx.select().from(bonusPolicyOverrides).where(eq(bonusPolicyOverrides.id, overrideId)).limit(1))[0];
+  });
+}
+
+export async function getAccountBalanceSummary(userId: number) {
+  const db = await getDb();
+  if (!db) return { userId, currency: "GHS", depositedBalance: "0.00", bonusBalance: "0.00", source: "unconfigured" as const };
+  const result = await db.select().from(accountBalanceSummaries).where(eq(accountBalanceSummaries.userId, userId)).limit(1);
+  const summary = result[0];
+  return summary ? { ...summary, source: "persisted" as const } : { userId, currency: "GHS", depositedBalance: "0.00", bonusBalance: "0.00", source: "unconfigured" as const };
 }
 
 export async function searchSkybetUsers(input: { query: string; role: "all" | "user" | "admin" }) {

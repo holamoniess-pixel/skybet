@@ -103,3 +103,9 @@
 - [x] Correct the balance-capsule account-icon alignment across mobile and desktop breakpoints, then re-verify the visual treatment.
 - [x] Add a credential-free provider-ready sports-data adapter contract with an explicit unconfigured status surface and regression coverage.
 - [x] Add a documented hero-asset manifest contract for ten distinct approved images, ready for secure asset replacement when they are supplied.
+- [x] Review the current admin workspace and referral controls against the requested per-user commission and bonus rules.
+- [x] Define separate deposited-funds and bonus-credit ledger contracts so only deposits appear in actual balance while commissions and bonuses appear in bonus balance.
+- [x] Add administrator controls for global and per-user referral commission and bonus settings without crediting real funds.
+- [x] Add a non-transactional settlement-preview modal using the user-approved supplied cup artwork.
+- [x] Add regression, responsive visual verification, and backend-handoff notes for the bonus ledger and settlement-preview components.
+- [x] Add desktop visual verification for the bonus-ledger and settlement-preview surfaces, then record the result.
