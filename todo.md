@@ -138,12 +138,12 @@
 - [x] Provision or connect a Neon PostgreSQL database, migrate the non-destructive SKYBET schema and data safely, and update server-side access configuration.
 - [ ] Configure Sentry error and performance monitoring with server-only credentials and a non-sensitive alerting model.
 - [ ] Configure Sanity as the CMS boundary for approved editorial content without moving payment, ledger, or authentication data into the CMS.
-- [ ] Document the Supabase capability boundary: it may support database, storage, or functions, but it is not the planned hosting runtime for the current Express application.
+- [x] Document the Supabase capability boundary: it may support database, storage, or functions, but it is not the planned hosting runtime for the current Express application.
 - [ ] Verify the external deployment architecture and publish a checkpoint only after authenticated and database-backed critical flows have passed regression checks.
 - [ ] Verify the connected Railway backend service’s GitHub deployment source, production environment variables, CORS allowlist, and rollback path without exposing secrets.
 - [x] Verify the connected Railway backend health endpoint and owner-provided public domain without exposing secrets.
 - [x] Verify that the connected Netlify site is linked to the SKYBET GitHub repository and uses the intended production branch, build command, SPA rewrites, and backend API base URL.
-- [ ] Verify the Neon GitHub integration and safe branch workflow.
+- [x] Verify the Neon GitHub integration and safe branch workflow.
 - [x] Verify the owner-connected Neon SKYBET project and confirm no plaintext database credentials are present in tracked repository files.
 - [ ] Verify that the new Supabase account is isolated from unrelated projects and decide whether it is required for a specific auxiliary capability before integrating it.
 - [x] Document the verified Railway/Netlify/Neon operating model, remaining first-party-auth/Sentry/Sanity prerequisites, and the staged cutover sequence.

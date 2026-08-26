@@ -74,3 +74,7 @@ The owner’s private GitHub repository is `holamoniess-pixel/skybet` with `main
 The owner-provided Railway domain `https://skybet-production.up.railway.app` returned the expected public health payload `{"ok":true,"service":"skybet-api"}`. After the proxy deployment, the live Netlify request to `/api/auth/me` returned `200 application/json` with `{"user":null}`, and an invalid sign-up request returned a structured JSON validation error. No customer account was created during verification.
 
 A Neon project named `skybet` exists in the owner’s organization with a single ready `production` branch. Read-only table inspection found only Neon’s own `neon_auth` tables and no SKYBET application tables, so the current MySQL/TiDB application database has not been migrated. No migration or production database cutover was performed. The safe next step is a staged PostgreSQL schema port and disposable branch verification before any production-branch application.
+
+## Supabase capability boundary
+
+Supabase is not the hosting runtime for the current SKYBET application. The backend is a Node.js/Express/tRPC service and remains hosted on Railway, with Neon as its PostgreSQL database. A separate Supabase account may be retained for an explicitly approved auxiliary function such as an isolated webhook or storage workflow, but it must not become a second source of truth for customer credentials, sessions, balances, payment requests, or review records. No Supabase project was connected or modified by this work.
