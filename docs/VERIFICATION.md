@@ -229,3 +229,16 @@ The local GHS deposit surface is now named **Mobile Money deposit** and is reser
 | Customer flow | Desktop visual verification confirmed the renamed Mobile Money deposit card, its secure-activation state, fixed deposit amounts, and the unchanged TRC20 proof-review route. |
 | Withdrawal contract | Automated tests verify Ghana Mobile Money number normalisation and rejection of malformed numbers; component coverage verifies the no-screenshot withdrawal form. |
 | Final validation | `pnpm test` passed **58 tests across 21 files**; `pnpm check`, `pnpm build`, and `git diff --check` passed. |
+
+## Railway runtime readiness — 27 August 2026
+
+The Railway deployment log confirmed that the current Node/Express server starts successfully on the platform-provided port but lacked the retiring Manus OAuth server URL. The backend now exposes a plain `GET /health` endpoint that responds with `{"ok":true,"service":"skybet-api"}` and contains no secret, customer, balance, payment, or database information. Local verification against the running service returned exactly that payload.
+
+Legacy Manus OAuth callback registration now occurs only when a non-empty OAuth server URL is configured. Without one, the server logs a warning that the legacy path is disabled pending the Clerk migration rather than reporting a misleading startup error. This does not authenticate customers or administrators; protected routes remain protected and the Clerk migration is still required.
+
+| Verification surface | Result |
+| --- | --- |
+| Health payload test | `server/runtimeHealth.test.ts` passed 2 assertions covering the public health payload and the non-blank legacy-OAuth configuration guard. |
+| Local runtime probe | `GET http://127.0.0.1:3000/health` returned HTTP success with the expected non-sensitive JSON payload. |
+| Build validation | `pnpm check`, `pnpm build`, and `git diff --check` passed. |
+| Owner handoff | `docs/RAILWAY_SETUP_GUIDE.md` provides step-by-step Railway domain, GitHub source, variable, health, and rollback instructions. |
