@@ -170,3 +170,4 @@
 - [x] Create a dedicated Sentry project named SKYBET in the existing Sentry organization.
 - [x] Configure privacy-safe Sentry monitoring with server-only or explicitly scoped DSN settings and regression coverage.
 - [x] Validate Sentry configuration and publish its checkpoint.
+- [x] Fix the Sentry ESM startup order warning so Express is instrumented before the server module loads.
