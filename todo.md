@@ -142,7 +142,7 @@
 - [ ] Verify the external deployment architecture and publish a checkpoint only after authenticated and database-backed critical flows have passed regression checks.
 - [ ] Verify the connected Railway backend service’s GitHub deployment source, production environment variables, CORS allowlist, and rollback path without exposing secrets.
 - [x] Verify the connected Railway backend health endpoint and owner-provided public domain without exposing secrets.
-- [ ] Verify that the connected Netlify site is linked to the SKYBET GitHub repository and uses the intended production branch, build command, SPA rewrites, and backend API base URL.
+- [x] Verify that the connected Netlify site is linked to the SKYBET GitHub repository and uses the intended production branch, build command, SPA rewrites, and backend API base URL.
 - [ ] Verify the Neon GitHub integration and safe branch workflow.
 - [x] Verify the owner-connected Neon SKYBET project and confirm no plaintext database credentials are present in tracked repository files.
 - [ ] Verify that the new Supabase account is isolated from unrelated projects and decide whether it is required for a specific auxiliary capability before integrating it.
@@ -158,3 +158,7 @@
 - [x] Add authentication regression tests, responsive sign-up/login UI verification, and migration documentation.
 - [x] Save a dedicated first-party authentication checkpoint after final validation.
 - [x] Document and verify that the first-party customer authentication uses database-backed hashed sessions only, with no Better Auth Infrastructure key or additional auth secret.
+- [x] Fix the deployed customer-auth API base/routing mismatch that returned Netlify HTML to sign-up and login requests.
+- [x] Make customer-auth request handling reject non-JSON responses with a safe user-facing message instead of exposing a raw parser error.
+- [x] Add regression coverage for deployed-style HTML responses and verify the Netlify-to-Railway API route configuration.
+- [x] Validate customer sign-up and login against the corrected deployment path and publish a checkpoint.
