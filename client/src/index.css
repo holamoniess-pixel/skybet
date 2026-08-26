@@ -207,13 +207,22 @@
 
   .sky-preview-wallet-account {
     align-self: center;
+    display: grid;
+    flex: 0 0 2.45rem;
     width: 2.45rem;
     height: 2.45rem;
+    place-items: center;
+    padding: 0;
+    line-height: 1;
     margin-right: 0.3rem;
     border: 1px solid color-mix(in oklab, var(--sky-blue-300) 22%, transparent);
     border-radius: 999px;
     background: color-mix(in oklab, var(--sky-blue-600) 45%, transparent);
     color: var(--sky-emerald-500);
+  }
+
+  .sky-preview-wallet-account > svg {
+    display: block;
   }
 
   .sky-preview-wallet-account:hover {
