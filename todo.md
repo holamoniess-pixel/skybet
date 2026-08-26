@@ -137,7 +137,7 @@
 - [x] Supersede the planned Manus OAuth-to-Clerk migration with the owner-approved first-party authentication approach; no Clerk integration is required.
 - [x] Provision or connect a Neon PostgreSQL database, migrate the non-destructive SKYBET schema and data safely, and update server-side access configuration.
 - [x] Configure Sentry error and performance monitoring with server-only credentials and a non-sensitive alerting model.
-- [ ] Configure Sanity as the CMS boundary for approved editorial content without moving payment, ledger, or authentication data into the CMS.
+- [x] Configure Sanity as the CMS boundary for approved editorial content without moving payment, ledger, or authentication data into the CMS.
 - [x] Document the Supabase capability boundary: it may support database, storage, or functions, but it is not the planned hosting runtime for the current Express application.
 - [x] Verify the external deployment architecture and publish a checkpoint only after authenticated and database-backed critical flows have passed regression checks.
 - [ ] Verify the connected Railway backend service’s GitHub deployment source, production environment variables, CORS allowlist, and rollback path without exposing secrets.
@@ -171,3 +171,6 @@
 - [x] Configure privacy-safe Sentry monitoring with server-only or explicitly scoped DSN settings and regression coverage.
 - [x] Validate Sentry configuration and publish its checkpoint.
 - [x] Fix the Sentry ESM startup order warning so Express is instrumented before the server module loads.
+- [x] Create a dedicated Sanity project and dataset for SKYBET editorial content.
+- [x] Deploy the SKYBET editorial-only Sanity schema and hosted Studio.
+- [x] Validate and document the Sanity content boundary without moving transactional data into the CMS.
