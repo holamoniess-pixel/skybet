@@ -67,3 +67,12 @@ Supabase Edge Functions are Deno-compatible TypeScript functions. They can suppo
 [10]: [Railway: Using variables](https://docs.railway.com/variables)
 
 [11]: [Railway: Deployment actions](https://docs.railway.com/deployments/deployment-actions)
+
+
+## Current owner-connected deployment verification — 27 August 2026
+
+The owner’s private GitHub repository is `holamoniess-pixel/skybet` with `main` as the default branch. A secret-free GitHub Actions workflow now validates the repository with `pnpm check` and `pnpm build` on pushes and pull requests to `main`. The owner-connected Netlify account contains a ready site named `skyybet` with production and main-branch URLs, but the available project record does not confirm that it is linked to the SKYBET GitHub repository. The repository’s `netlify.toml` publishes `dist/public` as a static Vite frontend with an SPA fallback; the current Express/tRPC backend remains a separate Railway service.
+
+The owner-provided Railway domain `https://skybet-production.up.railway.app` returned the expected public health payload `{"ok":true,"service":"skybet-api"}`. Its `/api/auth/me` route currently returned the frontend HTML shell, which indicates that the Railway service has not yet deployed the latest first-party-auth backend build or that the domain is mapped to the frontend service; it must not be treated as an authenticated API endpoint until the deployment source and route mapping are corrected.
+
+A Neon project named `skybet` exists in the owner’s organization with a single ready `production` branch. Read-only table inspection found only Neon’s own `neon_auth` tables and no SKYBET application tables, so the current MySQL/TiDB application database has not been migrated. No migration or production database cutover was performed. The safe next step is a staged PostgreSQL schema port and disposable branch verification before any production-branch application.

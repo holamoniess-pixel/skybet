@@ -132,7 +132,7 @@
 - [x] Change customer withdrawals to collect and validate a Ghana Mobile Money number only, removing the crypto withdrawal option and any screenshot requirement.
 - [x] Reframe the local GHS deposit path as future Aqùapay Mobile Money support for MTN, Telecel, and other provider-supported networks while retaining the manual proof-review boundary until activation.
 - [x] Add regression coverage, responsive verification, documentation, and a checkpoint for the Mobile Money readiness update.
-- [ ] Assess the current SKYBET deployment and compare GitHub-driven Netlify deployment with the existing managed hosting, including an appropriate backend runtime.
+- [x] Assess the current SKYBET deployment and compare GitHub-driven Netlify deployment with the existing managed hosting, including an appropriate backend runtime.
 - [x] Prepare a GitHub repository deployment configuration that supports controlled production updates from the SKYBET main branch.
 - [x] Supersede the planned Manus OAuth-to-Clerk migration with the owner-approved first-party authentication approach; no Clerk integration is required.
 - [ ] Provision or connect a Neon PostgreSQL database, migrate the non-destructive SKYBET schema and data safely, and update server-side access configuration.
@@ -140,9 +140,11 @@
 - [ ] Configure Sanity as the CMS boundary for approved editorial content without moving payment, ledger, or authentication data into the CMS.
 - [ ] Document the Supabase capability boundary: it may support database, storage, or functions, but it is not the planned hosting runtime for the current Express application.
 - [ ] Verify the external deployment architecture and publish a checkpoint only after authenticated and database-backed critical flows have passed regression checks.
-- [ ] Verify the connected Railway backend service, its GitHub deployment source, health endpoint, production environment variables, and rollback path without exposing secrets.
+- [ ] Verify the connected Railway backend service’s GitHub deployment source, production environment variables, CORS allowlist, and rollback path without exposing secrets.
+- [x] Verify the connected Railway backend health endpoint and owner-provided public domain without exposing secrets.
 - [ ] Verify that the connected Netlify site is linked to the SKYBET GitHub repository and uses the intended production branch, build command, SPA rewrites, and backend API base URL.
-- [ ] Verify the Neon GitHub integration, database project, safe branch workflow, and absence of plaintext database credentials in repository files.
+- [ ] Verify the Neon GitHub integration and safe branch workflow.
+- [x] Verify the owner-connected Neon SKYBET project and confirm no plaintext database credentials are present in tracked repository files.
 - [ ] Verify that the new Supabase account is isolated from unrelated projects and decide whether it is required for a specific auxiliary capability before integrating it.
 - [ ] Document the verified Railway/Netlify/Neon operating model, remaining Clerk/Sentry/Sanity prerequisites, and the staged cutover sequence.
 - [x] Handle the Railway service’s missing Manus OAuth configuration safely by disabling its legacy route until Clerk replaces it; do not invent an OAuth server URL.
