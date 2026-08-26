@@ -92,10 +92,6 @@ export default function Home() {
     setSlipOpen(true);
   };
 
-  const chooseFeedSelection = (event: SkybetEvent, label: string, value: string) => {
-    chooseSelection(event, label, value);
-  };
-
   const handleEventCodeLookup = (code: string) => {
     const normalizedCode = code.trim().toLowerCase();
     if (!normalizedCode) {
@@ -252,7 +248,7 @@ export default function Home() {
         </section>
 
         <div id="skybet-games-feed" className="scroll-mt-28">
-          <GamesFeedPreview onMarketSelect={chooseFeedSelection} />
+          <GamesFeedPreview />
         </div>
 
         <section className="mt-6 grid items-start gap-5 xl:mt-7 xl:grid-cols-[13rem_minmax(0,1fr)_20rem]" id="skybet-events">

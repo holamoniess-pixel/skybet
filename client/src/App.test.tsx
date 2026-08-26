@@ -5,19 +5,9 @@ import App from "./App";
 
 vi.mock("@/lib/trpc", () => ({
   trpc: {
-    games: {
-      mockFeed: {
-        useQuery: () => ({
-          data: { source: "preview", refreshedAt: "2026-08-25T12:00:00.000Z", refreshAfterSeconds: 30, events: [] },
-          isLoading: false,
-          isError: false,
-          isFetching: false,
-          refetch: vi.fn(),
-        }),
-      },
-    },
     sportsData: {
-      status: { useQuery: () => ({ data: { state: "unconfigured", provider: null, refreshStrategy: "provider-sse-or-server-polling", message: "Live sports data will appear after an approved provider is configured securely." } }) },
+      status: { useQuery: () => ({ data: { state: "preview-configured", provider: "ESPN unofficial site API", refreshStrategy: "server-cache-on-demand", message: "Best-effort scores and fixtures preview sourced from ESPN. Not official betting odds, not an ESPN partnership, and not used for wagers or settlement." } }) },
+      scoreboard: { useQuery: () => ({ data: { source: "espn-unofficial-preview", attribution: "Data sourced from ESPN", league: "eng.1", fetchedAt: "2026-08-25T12:00:00.000Z", refreshAfterSeconds: 120, stale: false, message: "Best-effort scores and fixtures preview. Not official betting odds and not an ESPN partnership.", events: [] }, isLoading: false, isError: false, isFetching: false, refetch: vi.fn() }) },
     },
     auth: {
       me: { useQuery: () => ({ data: null, isLoading: false, error: null }) },
@@ -47,11 +37,12 @@ describe("Skybet customer routes", () => {
     expect(screen.getByRole("heading", { name: "Upcoming events" })).toBeInTheDocument();
   });
 
-  it("renders the games route with its non-transactional preview boundary", () => {
+  it("renders the games route with its ESPN score-preview boundary", () => {
     renderAt("/games");
-    expect(screen.getByRole("heading", { name: "Virtual match board" })).toBeInTheDocument();
-    expect(screen.getByText("Virtual games · preview catalogue")).toBeInTheDocument();
-    expect(screen.getByText(/does not accept wagers, deposits, or payouts/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "ESPN match preview" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Scores and fixtures" })).toBeInTheDocument();
+    expect(screen.getByText("Data sourced from ESPN · independent preview")).toBeInTheDocument();
+    expect(screen.getAllByText(/not official betting odds/i).length).toBeGreaterThan(0);
   });
 
   it("renders the account controls route", () => {

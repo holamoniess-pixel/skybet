@@ -41,14 +41,7 @@ export function SportsPage() {
 }
 
 export function GamesPage() {
-  const [selection, setSelection] = useState<PreviewSelection>(null);
-  const [selectionOpen, setSelectionOpen] = useState(false);
-  const chooseSelection = (event: SkybetEvent, label: string, value: string) => {
-    setSelection({ event, label, value });
-    setSelectionOpen(true);
-  };
-
-  return <CustomerShell activeMobileNav="Sports"><PageHeader eyebrow="Games hub" title="Virtual match board" description="Browse the current virtual match catalogue and open a local preview selection." /><main className="container py-5 md:py-6"><GamesFeedPreview onMarketSelect={chooseSelection} /><Card className="mt-3 border-[var(--sky-blue-100)] bg-[var(--sky-navy-950)] text-white dark:border-white/10"><CardContent className="flex items-center gap-3 p-3"><Gamepad2 className="size-5 text-[var(--sky-blue-300)]" /><div><p className="text-sm font-extrabold">Preview boundary</p><p className="mt-1 text-xs leading-5 text-slate-300">This catalogue is for interface preview only and does not accept wagers, deposits, or payouts.</p></div></CardContent></Card></main><PreviewSlipFab selection={selection} onOpen={() => setSelectionOpen(true)} /><SelectionSheet open={selectionOpen} onOpenChange={setSelectionOpen} selection={selection} /></CustomerShell>;
+  return <CustomerShell activeMobileNav="Sports"><PageHeader eyebrow="Games hub" title="ESPN match preview" description="View best-effort scores and fixtures from a server-cached ESPN preview feed." /><main className="container py-5 md:py-6"><GamesFeedPreview heading="Scores and fixtures" /><Card className="mt-3 border-[var(--sky-blue-100)] bg-[var(--sky-navy-950)] text-white dark:border-white/10"><CardContent className="flex items-center gap-3 p-3"><Gamepad2 className="size-5 text-[var(--sky-blue-300)]" /><div><p className="text-sm font-extrabold">Preview boundary</p><p className="mt-1 text-xs leading-5 text-slate-300">This unofficial, best-effort score preview is not official betting odds and cannot create wagers, deposits, payouts, or settlement results.</p></div></CardContent></Card></main></CustomerShell>;
 }
 
 export function SearchPage() {

@@ -6,28 +6,13 @@ import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Home from "./Home";
 
-const { mockFeedRefetch } = vi.hoisted(() => ({ mockFeedRefetch: vi.fn() }));
+const { scoreboardRefetch } = vi.hoisted(() => ({ scoreboardRefetch: vi.fn() }));
 
 vi.mock("@/lib/trpc", () => ({
   trpc: {
-    games: {
-      mockFeed: {
-        useQuery: () => ({
-          data: {
-            source: "preview",
-            refreshedAt: "2026-08-25T12:00:00.000Z",
-            refreshAfterSeconds: 30,
-            events: [],
-          },
-          isLoading: false,
-          isError: false,
-          isFetching: false,
-          refetch: mockFeedRefetch,
-        }),
-      },
-    },
     sportsData: {
-      status: { useQuery: () => ({ data: { state: "unconfigured", provider: null, refreshStrategy: "provider-sse-or-server-polling", message: "Live sports data will appear after an approved provider is configured securely." } }) },
+      status: { useQuery: () => ({ data: { state: "preview-configured", provider: "ESPN unofficial site API", refreshStrategy: "server-cache-on-demand", message: "Best-effort scores and fixtures preview sourced from ESPN. Not official betting odds, not an ESPN partnership, and not used for wagers or settlement." } }) },
+      scoreboard: { useQuery: () => ({ data: { source: "espn-unofficial-preview", attribution: "Data sourced from ESPN", league: "eng.1", refreshedAt: "2026-08-25T12:00:00.000Z", refreshAfterSeconds: 120, stale: false, message: "Best-effort scores and fixtures preview. Not official betting odds and not an ESPN partnership.", events: [] }, isLoading: false, isError: false, isFetching: false, refetch: scoreboardRefetch }) },
     },
     auth: {
       me: { useQuery: () => ({ data: null, isLoading: false, error: null }) },
@@ -60,7 +45,7 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup();
-  mockFeedRefetch.mockClear();
+  scoreboardRefetch.mockClear();
   window.history.pushState({}, "", "/");
 });
 
@@ -71,7 +56,7 @@ describe("Skybet Home", () => {
     expect(screen.getByRole("heading", { name: "Live centre" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Harbour City2.18" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cedar Waves1.68" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Featured virtual matches" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "ESPN match preview" })).toBeInTheDocument();
     expect(document.querySelectorAll(".sky-hero-slide")).toHaveLength(10);
   });
 
@@ -143,13 +128,13 @@ describe("Skybet Home", () => {
     expect(screen.getByRole("link", { name: "Email SKYBET customer service" })).toHaveAttribute("href", "mailto:Skybet0553@gmail.com");
   });
 
-  it("allows the games feed to be refreshed from the preview control", async () => {
+  it("allows the ESPN match preview to be refreshed from its server-backed control", async () => {
     const user = userEvent.setup();
     renderHome();
 
-    await user.click(screen.getByRole("button", { name: "Refresh games feed" }));
+    await user.click(screen.getByRole("button", { name: "Refresh ESPN match preview" }));
 
-    expect(mockFeedRefetch).toHaveBeenCalledTimes(1);
+    expect(scoreboardRefetch).toHaveBeenCalledTimes(1);
   });
 
   it("routes the mobile account action to the dedicated account page", async () => {

@@ -82,3 +82,7 @@ Supabase is not the hosting runtime for the current SKYBET application. The back
 ## Sentry integration result
 
 A dedicated Sentry project named `skybet-api` was created in the owner’s existing Sentry organization for the Express backend. The repository now initializes Sentry only when `SENTRY_DSN` is configured, disables default personal data collection, limits tracing to a conservative sample rate, removes user context, and retains only the request method and pathname in captured request metadata. The DSN was supplied through the secure project secret flow and added to Railway without being committed or printed. The live Railway health endpoint remained HTTP 200 after the deployment.
+
+## Supabase isolation result
+
+The owner’s Supabase account currently exposes one project named `skybet`, in the `eu-west-1` region, with a healthy status. No unrelated Supabase project was visible in the read-only project listing. SKYBET does not require Supabase for its current runtime: the Express API runs on Railway, application data runs on Neon, and editorial content runs in Sanity. The Supabase project therefore remains isolated and unused unless a future auxiliary capability is explicitly approved.

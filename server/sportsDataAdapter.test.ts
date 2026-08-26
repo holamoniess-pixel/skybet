@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { getSportsDataConnectionStatus } from "./sportsDataAdapter";
 
 describe("sports data adapter contract", () => {
-  it("reports an explicit unconfigured state without attempting a provider call", () => {
+  it("reports the approved ESPN preview boundary without representing it as odds data", () => {
     expect(getSportsDataConnectionStatus()).toEqual({
-      state: "unconfigured",
-      provider: null,
-      refreshStrategy: "provider-sse-or-server-polling",
-      message: "Live sports data will appear after an approved provider is configured securely. Licensed source data is normalized server-side with guarded model fallbacks; browser collection remains disabled until source permission is recorded.",
+      state: "preview-configured",
+      provider: "ESPN unofficial site API",
+      refreshStrategy: "server-cache-on-demand",
+      message: "Best-effort scores and fixtures preview sourced from ESPN. Not official betting odds, not an ESPN partnership, and not used for wagers or settlement.",
     });
   });
 });

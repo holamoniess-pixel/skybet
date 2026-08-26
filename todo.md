@@ -140,16 +140,16 @@
 - [x] Configure Sanity as the CMS boundary for approved editorial content without moving payment, ledger, or authentication data into the CMS.
 - [x] Document the Supabase capability boundary: it may support database, storage, or functions, but it is not the planned hosting runtime for the current Express application.
 - [x] Verify the external deployment architecture and publish a checkpoint only after authenticated and database-backed critical flows have passed regression checks.
-- [ ] Verify the connected Railway backend service’s GitHub deployment source, production environment variables, CORS allowlist, and rollback path without exposing secrets.
+- [x] Verify the connected Railway backend service’s GitHub deployment source, production environment variables, CORS allowlist, and rollback path without exposing secrets.
 - [x] Verify the connected Railway backend health endpoint and owner-provided public domain without exposing secrets.
 - [x] Verify that the connected Netlify site is linked to the SKYBET GitHub repository and uses the intended production branch, build command, SPA rewrites, and backend API base URL.
 - [x] Verify the Neon GitHub integration and safe branch workflow.
 - [x] Verify the owner-connected Neon SKYBET project and confirm no plaintext database credentials are present in tracked repository files.
-- [ ] Verify that the new Supabase account is isolated from unrelated projects and decide whether it is required for a specific auxiliary capability before integrating it.
+- [x] Verify that the new Supabase account is isolated from unrelated projects and decide whether it is required for a specific auxiliary capability before integrating it.
 - [x] Document the verified Railway/Netlify/Neon operating model, remaining first-party-auth/Sentry/Sanity prerequisites, and the staged cutover sequence.
 - [x] Handle the Railway service’s missing Manus OAuth configuration safely by disabling its legacy route until Clerk replaces it; do not invent an OAuth server URL.
 - [x] Add a safe unauthenticated backend health endpoint and document the Railway public-domain generation and verification steps.
-- [ ] Verify the Railway service’s CORS allowlist and rollback path in the owner’s Railway console.
+- [x] Verify the Railway service’s CORS allowlist and rollback path in the owner’s Railway console.
 - [x] Verify the owner-provided Railway public domain and health response without using the exposed temporary token.
 - [x] Remove the legacy Manus OAuth callback dependency; preserve only the local administrator session verifier while first-party customer auth handles customers.
 - [x] Replace the planned Better Auth integration with first-party customer sign-up using email, Ghana phone number, password, and password confirmation.
@@ -174,3 +174,18 @@
 - [x] Create a dedicated Sanity project and dataset for SKYBET editorial content.
 - [x] Deploy the SKYBET editorial-only Sanity schema and hosted Studio.
 - [x] Validate and document the Sanity content boundary without moving transactional data into the CMS.
+
+- [ ] Choose an approved sports-data source for the automated two-minute refresh; free sources remain preview-only until commercial rights are confirmed.
+- [ ] Implement a server-side scheduled refresh handler with idempotent storage, stale-data protection, and no balance or settlement mutations.
+- [x] Retire the ordered NVIDIA/OpenRouter sports normalization fallback after the owner selected an ESPN scores-and-fixtures preview instead.
+- [ ] Add schedule/refresh observability, regression tests, and deployment verification for the automated sports refresh.
+- [x] Supersede the proposed AI probability-estimate contract; the owner selected an ESPN scores-and-fixtures preview with no AI estimates.
+- [ ] Add a live-score and match-status refresh path using an approved free preview source, with freshness timestamps and stale-data protection.
+- [x] Supersede AI-estimate input validation and invented-odds tests because no AI estimate path remains.
+- [x] Supersede the AI estimate label because customer sports previews now omit AI probabilities entirely.
+- [x] Supersede API-Sports onboarding after the owner selected the approved ESPN unofficial scores-and-fixtures preview.
+- [x] Supersede the API-Sports key request because the ESPN preview requires no API credential.
+- [x] Confirm the ESPN unofficial proxy scope, initial `eng.1` target league, attribution, and non-wagering-only boundary with the owner.
+- [x] Build the ESPN server-side scoreboard proxy with cache, rate limiting, response validation, and stale fallback.
+- [x] Remove the AI sports normalizer from the active customer-facing preview path and retire the isolated model modules.
+- [x] Add ESPN source attribution, endpoint-shape regression tests, stale-state visibility, and deployment safeguards for the preview-only path.

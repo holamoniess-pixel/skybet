@@ -9,6 +9,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { getSportsDataConnectionStatus } from "./sportsDataAdapter";
+import { espnPreviewClient } from "./espnPreview";
 import { commissionRouter, paymentReviewAdminRouter, paymentReviewRouter } from "./routers/paymentReview";
 
 export const appRouter = router({
@@ -29,6 +30,9 @@ export const appRouter = router({
   }),
   sportsData: router({
     status: publicProcedure.query(() => getSportsDataConnectionStatus()),
+    scoreboard: publicProcedure
+      .input(z.object({ league: z.literal("eng.1") }).optional())
+      .query(({ input }) => espnPreviewClient.scoreboard(input?.league ?? "eng.1")),
   }),
   referrals: router({
     activeRule: adminProcedure.query(async () => {

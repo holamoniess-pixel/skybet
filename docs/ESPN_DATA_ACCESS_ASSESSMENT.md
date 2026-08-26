@@ -2,15 +2,18 @@
 
 ## Outcome
 
-ESPN was evaluated as the proposed live-data source. The review did **not** identify an official, public developer API or a documented commercial data-feed onboarding route suitable for treating ESPN web score data as a launch-ready sports-betting feed. Third-party references describe web JSON endpoints as undocumented and note that ESPN discontinued its public API programme; those routes are therefore not an approved production integration basis.[1] [2]
+ESPN does not provide SKYBET with an official, documented commercial odds or wagering-data agreement through its public web endpoints. References describe those endpoints as undocumented, and ESPN’s former public API programme has been discontinued.[1] [2]
+
+The owner approved a narrow exception: SKYBET may use the unofficial `soccer/eng.1` scoreboard route as a **best-effort, server-proxied scores-and-fixtures preview**. The implemented boundary permits only team names, competition, start time, match status, and score. It does not read or expose odds fields, does not authenticate with ESPN, does not scrape pages or bypass paywalls, and does not feed bet acceptance, pricing, balances, payment flows, or settlement.
 
 | Decision | Rationale |
 | --- | --- |
-| Do not connect unofficial ESPN web endpoints | Their status, coverage, rate limits, and commercial-use rights are not an approved provider contract. |
-| Keep the current adapter unconfigured | The customer interface continues to state accurately that live data appears only after an approved provider is configured. |
-| Select a licensed data provider | A provider agreement should establish the permitted sport/leagues, live-update mechanism, service availability, data-rights scope, and support path. |
+| Server-only proxy with cache, validation, limiter, and stale fallback | Limits customer-origin calls and allows the application to degrade safely if the undocumented response changes or becomes unavailable. |
+| Visible ESPN attribution and preview disclaimer | Makes the unofficial source and non-wagering limitation understandable to customers. |
+| No scheduled polling yet | A deployed, authenticated Railway-compatible handler must be tested before the owner enables a recurring job. |
+| Licensed provider still required for wagering | A commercial provider agreement must define permitted leagues, availability, market lifecycle, results, and settlement support. |
 
-The existing provider-ready adapter and administration boundaries remain ready for this handoff. No credentials were requested or used.
+No ESPN credential was requested or used.
 
 ## References
 

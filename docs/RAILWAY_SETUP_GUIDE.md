@@ -75,3 +75,13 @@ After the health URL is working, send only the public URL in the project convers
 [2]: [Railway: Using variables](https://docs.railway.com/variables)
 
 [3]: [Railway: Deployment actions](https://docs.railway.com/deployments/deployment-actions)
+
+## Latest log verification note
+
+A production deployment log reviewed on 2026-08-26 shows the SKYBET container starting successfully and listening on Railway’s assigned port. The legacy Manus OAuth messages are expected because those routes are intentionally disabled in favor of first-party customer authentication. `Missing session cookie` messages are expected for unauthenticated requests to protected endpoints and do not indicate a deployment failure.
+
+## Owner-console verification
+
+The active Railway deployment menu exposed `View logs`, `Restart`, `Deploy`, and `Remove`. An older successful deployment exposed `View logs`, `Redeploy`, and `Rollback`. The rollback option was observed but not selected, preserving the live deployment.
+
+SKYBET’s frontend uses the Netlify same-origin `/api` proxy to Railway, so browser requests do not require a wildcard Railway CORS policy. The production frontend origin is the approved Netlify site, and no payment or authentication secret is exposed to the browser.

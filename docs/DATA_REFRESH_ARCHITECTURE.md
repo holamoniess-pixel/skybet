@@ -1,30 +1,26 @@
-# Live Data Refresh Architecture
+# Scores and Fixtures Preview Architecture
 
-## Purpose
+## Implemented boundary
 
-The requested refresh should keep match information current at a two-minute cadence. It must not treat a browser model as a data provider, manufacture match details, or publish odds from unverified content. The customer application remains in its existing non-transactional preview state until a licensed source is connected and server-side validation is complete.
+SKYBET now uses a **server-only, best-effort ESPN scores-and-fixtures preview** for the English Premier League (`soccer/eng.1`) endpoint. The browser talks only to SKYBET’s typed API; it never requests ESPN directly. The proxy validates the response, allows only an explicit league registry, keeps a two-minute last-good cache, limits repeat outbound calls, and returns a stale marker when a refresh fails.
 
-| Approach | Trade-offs | Cost | Setup complexity |
-| --- | --- | --- | --- |
-| Licensed sports-data feed with scheduled server refresh | Deterministic data, documented coverage, and a stable support path. The model is optional and limited to normalizing provider text into a validated schema. | Provider subscription plus any model usage. | Moderate. Requires provider credentials, source mapping, and a scheduled refresh handler. |
-| Permissioned browser collection with model-assisted extraction | Useful only when the specific source gives written permission and no API exists. It is more fragile, needs strict rate limits and source-specific parsers, and must not bypass access controls. | Potential model usage plus maintenance. | High. Requires approved source URLs, rights confirmation, parsing tests, and monitoring. |
+| Included in the preview | Explicitly excluded |
+| --- | --- |
+| Fixture identifiers, competition labels, team names, start times, match status, live state, and scores. | Odds, prices, probabilities, selections, bet-slip actions, wallet effects, wagers, settlement, payment decisions, or model-generated estimates. |
 
-## Recommended operating boundary
+The interface displays **“Data sourced from ESPN”**, its refresh interval, and a clear statement that the material is a best-effort preview rather than official betting odds or an ESPN partnership. ESPN’s public web endpoints are undocumented and should be considered operationally unstable; their availability or commercial suitability is not guaranteed.[1] [2]
 
-The first approach should be used for launch. A server-side job can run every two minutes, fetch only the approved provider’s documented endpoints, validate the response, store a timestamped snapshot, and retain the last known good data when a refresh fails. The job must be idempotent, must not change user balances or settle selections, and must keep live provider data separate from the existing preview catalogue.
+## Resilience and scheduling boundary
 
-NVIDIA NIM can be used only as an optional server-side transformation step. Its documented OpenAI-compatible API supports structured model inference, but a model response must never be accepted as a source of truth for fixture, score, or odds data.[1] A strict schema validator should reject incomplete, stale, malformed, or unverified output.
+The current implementation refreshes only on demand through the cache; it does not install a background timer, cron task, or continuous worker. A future two-minute scheduled handler must be an authenticated, idempotent `/api/scheduled/*` route deployed and manually tested before the owner enables a Railway-compatible scheduler. That handler must remain isolated from customer balances, transactions, bet acceptance, and settlement.
 
-No NVIDIA credential, data provider, source URL, browser automation, schedule, or live odds integration is enabled by this document. Credentials must be added only through secure project configuration.
+The in-memory cache is appropriate for an initial preview and stale fallback but is process-local. A multi-instance production deployment will require a shared cache or persisted snapshot if continuously scheduled refresh becomes necessary.
 
-## Configured model fallback order
+## Retired AI sports-data path
 
-The server-side normalizer now has four ordered fallbacks: NVIDIA `meta/llama-3.1-8b-instruct`, NVIDIA `meta/llama-3.3-70b-instruct`, OpenRouter `nvidia/nemotron-3.5-lightning:free`, and OpenRouter `liquid/lfm-2.5-2.6b:free`. Provider keys remain server-only. The normalizer accepts only a `licensed-feed` snapshot and uses zero-temperature structured output for display metadata only. It must omit odds, prices, probabilities, scores, and calculated values; the original licensed-feed event payload remains the sole canonical record for those fields.
-
-## Required source handoff
-
-Before implementation, provide the licensed data-provider name and confirmation of the approved leagues. If browser collection is intended instead, provide the specific source URLs and written permission to collect from them.
+The NVIDIA/OpenRouter sports normalizer and provider-health modules have been removed. SKYBET does not use an AI model to acquire, infer, normalize, or generate customer-facing scores, fixtures, odds, or probabilities. If a future licensed provider requires metadata transformation, that should be treated as a separate, explicitly approved design and cannot alter canonical sporting or wagering data.
 
 ## References
 
-[1]: https://docs.nvidia.com/nim/large-language-models/latest/reference/api-reference.html "NVIDIA NIM API Reference"
+[1]: https://www.cmswire.com/cms/customer-experience/espn-slam-dunks-its-public-api-026291.php "ESPN Slam Dunks Its Public API"
+[2]: https://publicapis.io/espn-sports-api "ESPN API - Free Hidden Endpoints, No Key Required"

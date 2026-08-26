@@ -1,20 +1,19 @@
 export type SportsDataConnectionStatus = {
-  state: "unconfigured";
-  provider: null;
-  refreshStrategy: "provider-sse-or-server-polling";
+  state: "preview-configured";
+  provider: "ESPN unofficial site API";
+  refreshStrategy: "server-cache-on-demand";
   message: string;
 };
 
 /**
- * Deliberately does not contact a provider. It establishes a stable public
- * contract for the future server-side adapter while no approved credentials
- * or licensed provider connection have been supplied to this project.
+ * SKYBET serves this best-effort ESPN preview only through its backend. It is
+ * deliberately separate from odds, bet pricing, balances, and settlement.
  */
 export function getSportsDataConnectionStatus(): SportsDataConnectionStatus {
   return {
-    state: "unconfigured",
-    provider: null,
-    refreshStrategy: "provider-sse-or-server-polling",
-    message: "Live sports data will appear after an approved provider is configured securely. Licensed source data is normalized server-side with guarded model fallbacks; browser collection remains disabled until source permission is recorded.",
+    state: "preview-configured",
+    provider: "ESPN unofficial site API",
+    refreshStrategy: "server-cache-on-demand",
+    message: "Best-effort scores and fixtures preview sourced from ESPN. Not official betting odds, not an ESPN partnership, and not used for wagers or settlement.",
   };
 }
