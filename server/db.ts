@@ -244,6 +244,12 @@ export async function bootstrapLocalAdminCredential(input: {
   });
 }
 
+export async function updateLocalAdminCredentialPassword(input: { userId: number; passwordHash: string }) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(localAdminCredentials).set({ passwordHash: input.passwordHash }).where(eq(localAdminCredentials.userId, input.userId));
+}
+
 export async function recordLocalAdminSignIn(userId: number) {
   const db = await getDb();
   if (!db) return;

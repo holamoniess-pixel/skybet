@@ -22,6 +22,16 @@ The reported “sign-up succeeds but I am still logged out” symptom was caused
 
 If the account remains logged out after refresh, do not paste passwords, database URLs, session cookies, or screenshots containing them. Instead, send a screenshot of the Railway deployment status and the browser’s visible error text only.
 
+## Administrator sign-in recovery
+
+The administration page uses a separate local administrator session. Railway must retain `SKYBET_INITIAL_ADMIN_EMAIL`, `SKYBET_INITIAL_ADMIN_PASSWORD`, `DATABASE_URL`, and `JWT_SECRET` for the initial administrator sign-in. If the database contains an older administrator password hash but the protected Railway bootstrap credentials are correct, the current backend safely refreshes that stored hash on administrator sign-in. This prevents an old bootstrap hash from locking out the configured administrator.
+
+Do not enter the administrator email or password in Netlify, GitHub, Manus OAuth settings, browser address bars, or chat. If sign-in still returns “Invalid administrator email or password” after the new Railway deployment succeeds, the Railway values themselves need to be re-entered privately in **Railway → skybet → Variables**, then deployed again.
+
+## Do not restore Manus OAuth
+
+The values `VITE_APP_ID`, `VITE_OAUTH_PORTAL_URL`, and `OAUTH_SERVER_URL`, plus an OAuth redirect URI, belong to the previous Manus-based authentication flow. That flow is intentionally disabled and is not part of the current SKYBET login. Adding those values cannot repair the first-party sign-up/login issue and risks reintroducing an incompatible authentication path. Leave the legacy OAuth routes disabled.
+
 ## Routine checks
 
 The following responses can be safely checked without an account:

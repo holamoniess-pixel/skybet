@@ -190,3 +190,4 @@
 - [x] Remove the AI sports normalizer from the active customer-facing preview path and retire the isolated model modules.
 - [x] Add ESPN source attribution, endpoint-shape regression tests, stale-state visibility, and deployment safeguards for the preview-only path.
 - [ ] Diagnose the owner-reported live customer sign-up/login failure across the Netlify, Railway, and Neon deployment without restoring Manus OAuth.
+- [ ] Diagnose the owner-reported administrator sign-in failure while preserving the separate local administrator session boundary.

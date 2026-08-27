@@ -2,7 +2,7 @@ import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } fr
 import { promisify } from "node:util";
 import type { Request, Response } from "express";
 import { COOKIE_NAME } from "../shared/const";
-import { bootstrapLocalAdminCredential, getLocalAdminCredentialByEmail, recordLocalAdminSignIn } from "./db";
+import { bootstrapLocalAdminCredential, getLocalAdminCredentialByEmail, recordLocalAdminSignIn, updateLocalAdminCredentialPassword } from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { sdk } from "./_core/sdk";
 
@@ -35,6 +35,7 @@ export function localAdminOpenId(email: string) {
 type AdminLoginDependencies = {
   findCredential?: (email: string) => Promise<StoredAdmin | undefined>;
   bootstrap?: (input: { email: string; passwordHash: string; openId: string }) => Promise<StoredAdmin | undefined>;
+  updatePassword?: (input: { userId: number; passwordHash: string }) => Promise<void>;
   recordSignIn?: (userId: number) => Promise<void>;
   createSession?: (openId: string, name: string) => Promise<string>;
 };
@@ -42,6 +43,7 @@ type AdminLoginDependencies = {
 export function createAdminLoginHandler(dependencies: AdminLoginDependencies = {}) {
   const findCredential = dependencies.findCredential ?? getLocalAdminCredentialByEmail;
   const bootstrap = dependencies.bootstrap ?? bootstrapLocalAdminCredential;
+  const updatePassword = dependencies.updatePassword ?? updateLocalAdminCredentialPassword;
   const recordSignIn = dependencies.recordSignIn ?? recordLocalAdminSignIn;
   const createSession = dependencies.createSession ?? ((openId, name) => sdk.createSessionToken(openId, { name, expiresInMs: ADMIN_SESSION_MS }));
   return async (req: Request, res: Response) => {
@@ -50,16 +52,17 @@ export function createAdminLoginHandler(dependencies: AdminLoginDependencies = {
     const password = typeof body.password === "string" ? body.password : "";
     if (!email || !password) return res.status(400).json({ error: "Enter your administrator email and password." });
 
+    const configuredEmail = process.env.SKYBET_INITIAL_ADMIN_EMAIL;
+    const configuredPassword = process.env.SKYBET_INITIAL_ADMIN_PASSWORD;
+    const matchesConfiguredAdmin = Boolean(configuredEmail && configuredPassword && secureEqual(email, normalizeAdminEmail(configuredEmail)) && secureEqual(password, configuredPassword));
     let stored = await findCredential(email);
     if (!stored) {
-      const configuredEmail = process.env.SKYBET_INITIAL_ADMIN_EMAIL;
-      const configuredPassword = process.env.SKYBET_INITIAL_ADMIN_PASSWORD;
-      const matchesInitialAdmin = Boolean(configuredEmail && configuredPassword && secureEqual(email, normalizeAdminEmail(configuredEmail)) && secureEqual(password, configuredPassword));
-      if (!matchesInitialAdmin) return res.status(401).json({ error: "Invalid administrator email or password." });
+      if (!matchesConfiguredAdmin) return res.status(401).json({ error: "Invalid administrator email or password." });
       stored = await bootstrap({ email, passwordHash: await hashAdminPassword(password), openId: localAdminOpenId(email) });
       if (!stored) return res.status(503).json({ error: "Administrator sign-in is temporarily unavailable." });
     } else if (!(await verifyAdminPassword(password, stored.credential.passwordHash))) {
-      return res.status(401).json({ error: "Invalid administrator email or password." });
+      if (!matchesConfiguredAdmin) return res.status(401).json({ error: "Invalid administrator email or password." });
+      await updatePassword({ userId: stored.user.id, passwordHash: await hashAdminPassword(password) });
     }
 
     await recordSignIn(stored.user.id);
