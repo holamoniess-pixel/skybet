@@ -4,7 +4,7 @@ import type { Request, Response } from "express";
 import { createCustomerSession, createCustomerWithCredentials, deleteCustomerSession, getCustomerCredentialByEmail, getCustomerCredentialByPhone, getCustomerSessionUser } from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { COOKIE_NAME } from "../shared/const";
-import { sdk } from "./_core/sdk";
+import { ADMIN_SESSION_COOKIE, authenticateLocalAdminRequest } from "./localAdminSession";
 import { validateGhanaMobileMoneyNumber } from "../shared/payments";
 
 const scrypt = promisify(scryptCallback);
@@ -116,14 +116,15 @@ export function createFirstPartyAuthHandlers(deps: {
       if (typeof token === "string") await deleteCustomerSession(hashSessionToken(token));
       clearSession(res, req);
       res.clearCookie(COOKIE_NAME, { ...getSessionCookieOptions(req), maxAge: -1 });
+      res.clearCookie(ADMIN_SESSION_COOKIE, { ...getSessionCookieOptions(req), maxAge: -1 });
       return res.status(200).json({ ok: true });
     },
     me: async (req: Request, res: Response) => {
       const customer = await authenticateCustomerRequest(req);
       if (customer) return res.status(200).json({ user: publicUser(customer) });
       try {
-        const legacyUser = await sdk.authenticateRequest(req);
-        return res.status(200).json({ user: publicUser(legacyUser) });
+        const admin = await authenticateLocalAdminRequest(req);
+        return res.status(200).json({ user: admin ? publicUser(admin) : null });
       } catch {
         return res.status(200).json({ user: null });
       }

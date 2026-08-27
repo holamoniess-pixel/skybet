@@ -1,10 +1,9 @@
 import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import type { Request, Response } from "express";
-import { COOKIE_NAME } from "../shared/const";
 import { bootstrapLocalAdminCredential, getLocalAdminCredentialByEmail, recordLocalAdminSignIn, updateLocalAdminCredentialPassword } from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
-import { sdk } from "./_core/sdk";
+import { ADMIN_SESSION_COOKIE, createLocalAdminSessionToken } from "./localAdminSession";
 
 const scrypt = promisify(scryptCallback);
 const ADMIN_SESSION_MS = 12 * 60 * 60 * 1000;
@@ -45,7 +44,7 @@ export function createAdminLoginHandler(dependencies: AdminLoginDependencies = {
   const bootstrap = dependencies.bootstrap ?? bootstrapLocalAdminCredential;
   const updatePassword = dependencies.updatePassword ?? updateLocalAdminCredentialPassword;
   const recordSignIn = dependencies.recordSignIn ?? recordLocalAdminSignIn;
-  const createSession = dependencies.createSession ?? ((openId, name) => sdk.createSessionToken(openId, { name, expiresInMs: ADMIN_SESSION_MS }));
+  const createSession = dependencies.createSession ?? ((openId) => createLocalAdminSessionToken(openId, ADMIN_SESSION_MS));
   return async (req: Request, res: Response) => {
     const body = (req.body ?? {}) as AdminLoginInput;
     const email = typeof body.email === "string" ? normalizeAdminEmail(body.email) : "";
@@ -67,7 +66,7 @@ export function createAdminLoginHandler(dependencies: AdminLoginDependencies = {
 
     await recordSignIn(stored.user.id);
     const sessionToken = await createSession(stored.user.openId, stored.user.name || "SKYBET administrator");
-    res.cookie(COOKIE_NAME, sessionToken, { ...getSessionCookieOptions(req), maxAge: ADMIN_SESSION_MS });
+    res.cookie(ADMIN_SESSION_COOKIE, sessionToken, { ...getSessionCookieOptions(req), maxAge: ADMIN_SESSION_MS });
     return res.status(200).json({ ok: true, redirectTo: "/admin" });
   };
 }

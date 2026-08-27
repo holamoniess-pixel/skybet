@@ -24,7 +24,7 @@ If the account remains logged out after refresh, do not paste passwords, databas
 
 ## Administrator sign-in recovery
 
-The administration page uses a separate local administrator session. Railway must retain `SKYBET_INITIAL_ADMIN_EMAIL`, `SKYBET_INITIAL_ADMIN_PASSWORD`, `DATABASE_URL`, and `JWT_SECRET` for the initial administrator sign-in. If the database contains an older administrator password hash but the protected Railway bootstrap credentials are correct, the current backend safely refreshes that stored hash on administrator sign-in. This prevents an old bootstrap hash from locking out the configured administrator.
+The administration page uses a separate first-party local administrator session. Railway must retain `SKYBET_INITIAL_ADMIN_EMAIL`, `SKYBET_INITIAL_ADMIN_PASSWORD`, `DATABASE_URL`, and `JWT_SECRET` for the initial administrator sign-in. The administrator session uses its own SKYBET cookie and JWT scope; it does not rely on a Manus app identifier, OAuth redirect, or Manus session verifier. If the database contains an older administrator password hash but the protected Railway bootstrap credentials are correct, the current backend safely refreshes that stored hash on administrator sign-in. This prevents an old bootstrap hash from locking out the configured administrator.
 
 Do not enter the administrator email or password in Netlify, GitHub, Manus OAuth settings, browser address bars, or chat. If sign-in still returns “Invalid administrator email or password” after the new Railway deployment succeeds, the Railway values themselves need to be re-entered privately in **Railway → skybet → Variables**, then deployed again.
 

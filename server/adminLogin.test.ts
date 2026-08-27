@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createAdminLoginHandler, hashAdminPassword, localAdminOpenId, verifyAdminPassword } from "./adminLogin";
+import { ADMIN_SESSION_COOKIE } from "./localAdminSession";
 
 async function invokeAdminLogin(body: Record<string, unknown>, deps = {}) {
   let statusCode = 200;
@@ -29,7 +30,7 @@ describe("administrator credential endpoint", () => {
     });
     expect(response.statusCode).toBe(200);
     expect(response.responseBody).toEqual({ ok: true, redirectTo: "/admin" });
-    expect(response.cookie?.name).toBe("app_session_id");
+    expect(response.cookie?.name).toBe(ADMIN_SESSION_COOKIE);
     expect(JSON.stringify(response.responseBody)).not.toContain(configuredPassword!);
   });
 
