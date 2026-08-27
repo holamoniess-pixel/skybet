@@ -175,12 +175,12 @@
 - [x] Deploy the SKYBET editorial-only Sanity schema and hosted Studio.
 - [x] Validate and document the Sanity content boundary without moving transactional data into the CMS.
 
-- [ ] Choose an approved sports-data source for the automated two-minute refresh; free sources remain preview-only until commercial rights are confirmed.
+- [x] Choose ESPN’s unofficial endpoint as the approved best-effort, preview-only scores-and-fixtures source; commercial rights remain required for live wagering.
 - [x] Implement an authenticated, idempotent ESPN cache-refresh handler with stale-data protection and no balance or settlement mutations; external schedule activation remains owner-controlled.
 - [x] Retire the ordered NVIDIA/OpenRouter sports normalization fallback after the owner selected an ESPN scores-and-fixtures preview instead.
 - [ ] Choose a managed HTTP scheduler for a two-minute ESPN preview refresh, or accept Railway’s five-minute native-cron limitation; then complete deployment verification and observability.
 - [x] Supersede the proposed AI probability-estimate contract; the owner selected an ESPN scores-and-fixtures preview with no AI estimates.
-- [ ] Add a live-score and match-status refresh path using an approved free preview source, with freshness timestamps and stale-data protection.
+- [x] Add the ESPN live-score and match-status preview path with freshness timestamps and stale-data protection.
 - [x] Supersede AI-estimate input validation and invented-odds tests because no AI estimate path remains.
 - [x] Supersede the AI estimate label because customer sports previews now omit AI probabilities entirely.
 - [x] Supersede API-Sports onboarding after the owner selected the approved ESPN unofficial scores-and-fixtures preview.
@@ -195,4 +195,4 @@
 - [x] Audit and reorganize the administrator workspace into clear customer, payment-request, bonus, and site-wide configuration pages with responsive navigation.
 - [x] Add owner-only creation and management of subordinate local administrators with hashed credentials, separate roles, revocation, and audit records.
 - [x] Add safe site-wide and per-customer bonus/reward configuration views without directly moving balances or enabling wagering settlement.
-- [ ] Visually verify the expanded administrator workspace on desktop and mobile, including alignment, navigation, empty states, and access boundaries.
+- [x] Visually verify the expanded administrator workspace navigation, customer-account and owner-only pages at mobile breakpoint, plus protected entry layout at desktop/mobile, with no console errors during authenticated checks.
