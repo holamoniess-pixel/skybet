@@ -1,4 +1,4 @@
-import { and, desc, eq, like, or } from "drizzle-orm";
+import { and, count, desc, eq, isNotNull, isNull, like, lte, or } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -16,6 +16,7 @@ import {
   paymentMethodConfigs,
   paymentRequestEvents,
   paymentRequests,
+  proofRetentionRuns,
   referralCommissionOverrides,
   referralCommissionRules,
   referralRewardOverrides,
@@ -643,6 +644,8 @@ export async function createDepositRequest(input: DepositRequestInput) {
       customerPaymentReference: input.customerPaymentReference,
       proofStorageKey: input.proofStorageKey,
       proofMimeType: input.proofMimeType,
+      proofStorageProvider: "neon_s3",
+      proofExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     }).returning({ id: paymentRequests.id });
     const requestId = inserted[0].id;
     await tx.insert(paymentRequestEvents).values({ paymentRequestId: requestId, actorUserId: input.userId, actorRole: "customer", action: "submitted", detailsJson: JSON.stringify({ requestType: "deposit", method: input.method, amount: input.amount, currency: "GHS" }) });
@@ -689,6 +692,41 @@ export async function getAdminPaymentRequests(status: "all" | "submitted" | "und
   const reviewer = alias(users, "payment_reviewer");
   const query = db.select({ request: paymentRequests, user: { id: users.id, name: users.name, email: users.email }, reviewer: { id: reviewer.id, name: reviewer.name, email: reviewer.email } }).from(paymentRequests).innerJoin(users, eq(paymentRequests.userId, users.id)).leftJoin(reviewer, eq(paymentRequests.reviewedBy, reviewer.id)).orderBy(desc(paymentRequests.createdAt), desc(paymentRequests.id)).limit(100);
   return status === "all" ? query : query.where(eq(paymentRequests.status, status));
+}
+
+export async function getAdminPaymentProof(requestId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return (await db.select({ id: paymentRequests.id, proofStorageKey: paymentRequests.proofStorageKey, proofStorageProvider: paymentRequests.proofStorageProvider, proofDeletedAt: paymentRequests.proofDeletedAt }).from(paymentRequests).where(eq(paymentRequests.id, requestId)).limit(1))[0];
+}
+
+export async function getExpiredPaymentProofs(cutoffAt: Date, limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({ id: paymentRequests.id, proofStorageKey: paymentRequests.proofStorageKey, proofStorageProvider: paymentRequests.proofStorageProvider }).from(paymentRequests).where(and(isNotNull(paymentRequests.proofStorageKey), isNull(paymentRequests.proofDeletedAt), lte(paymentRequests.proofExpiresAt, cutoffAt))).orderBy(paymentRequests.proofExpiresAt).limit(limit);
+}
+
+export async function markPaymentProofDeleted(requestId: number, deletedAt: Date) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.update(paymentRequests).set({ proofStorageKey: null, proofMimeType: null, proofDeletedAt: deletedAt, updatedAt: deletedAt }).where(and(eq(paymentRequests.id, requestId), isNull(paymentRequests.proofDeletedAt))).returning({ id: paymentRequests.id });
+  return result[0];
+}
+
+export async function recordProofRetentionRun(input: { cutoffAt: Date; candidateCount: number; deletedCount: number; legacyAccessRevokedCount: number; failedCount: number; status: "completed" | "partial" }) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const inserted = await db.insert(proofRetentionRuns).values(input).returning({ id: proofRetentionRuns.id, runAt: proofRetentionRuns.runAt });
+  return inserted[0];
+}
+
+export async function getProofRetentionStatus(now = new Date()) {
+  const db = await getDb();
+  if (!db) return { dueCount: 0, nextExpiryAt: null, lastRun: null };
+  const due = await db.select({ value: count() }).from(paymentRequests).where(and(isNotNull(paymentRequests.proofStorageKey), isNull(paymentRequests.proofDeletedAt), lte(paymentRequests.proofExpiresAt, now)));
+  const next = await db.select({ proofExpiresAt: paymentRequests.proofExpiresAt }).from(paymentRequests).where(and(isNotNull(paymentRequests.proofStorageKey), isNull(paymentRequests.proofDeletedAt), isNotNull(paymentRequests.proofExpiresAt))).orderBy(paymentRequests.proofExpiresAt).limit(1);
+  const lastRun = await db.select().from(proofRetentionRuns).orderBy(desc(proofRetentionRuns.runAt)).limit(1);
+  return { dueCount: Number(due[0]?.value ?? 0), nextExpiryAt: next[0]?.proofExpiresAt ?? null, lastRun: lastRun[0] ?? null };
 }
 
 export async function reviewPaymentRequest(input: { requestId: number; actorUserId: number; decision: "approved" | "rejected"; reason: string }) {

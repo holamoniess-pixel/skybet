@@ -67,4 +67,17 @@ describe("first-party customer authentication", () => {
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({ error: "Invalid email or password." });
   });
+
+  it("prefers a valid local administrator session over an existing customer session", async () => {
+    const customer = vi.fn().mockResolvedValue({ id: 4, openId: "customer:4", name: "Customer", email: "customer@example.com", role: "user" });
+    const admin = vi.fn().mockResolvedValue({ id: 1, openId: "local-admin:1", name: "Owner", email: "owner@example.com", role: "admin" });
+    const handler = createFirstPartyAuthHandlers({ authenticateCustomer: customer, authenticateAdmin: admin });
+    const res = responseDouble();
+
+    await handler.me(requestDouble({}), res);
+
+    expect(admin).toHaveBeenCalled();
+    expect(customer).not.toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ user: { id: 1, openId: "local-admin:1", name: "Owner", email: "owner@example.com", role: "admin" } });
+  });
 });

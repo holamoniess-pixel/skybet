@@ -8,6 +8,13 @@
       "when": 1787756697644,
       "tag": "0000_loose_phil_sheldon",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787856860568,
+      "tag": "0001_stiff_molten_man",
+      "breakpoints": true
     }
   ]
 }

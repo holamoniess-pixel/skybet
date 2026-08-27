@@ -28,8 +28,8 @@ afterEach(cleanup);
 describe("WalletPaymentRequestCard", () => {
   it("shows the TRC20 method, approved fixed deposit amounts, and gateway setup state", () => {
     render(<WalletPaymentRequestCard />);
-    expect(screen.getByText("TRC20 deposit address")).toBeInTheDocument();
-    expect(screen.getByText("Mobile Money deposit")).toBeInTheDocument();
+    expect(screen.getByText("Manual TRC20 deposit address")).toBeInTheDocument();
+    expect(screen.getByText("Automatic Mobile Money (coming later)")).toBeInTheDocument();
     expect(screen.getByText("Setup pending")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "GH₵ 2,000" })).toBeInTheDocument();
     expect(screen.getByLabelText("Payment screenshot")).toBeInTheDocument();

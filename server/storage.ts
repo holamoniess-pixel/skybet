@@ -3,6 +3,9 @@
 // Downloads return /manus-storage/{key} paths served via 307 redirect.
 
 import { ENV } from "./_core/env";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createProofStorageClient, getProofStorageConfig } from "./proofStorageConfig";
 
 function getForgeConfig() {
   const forgeUrl = ENV.forgeApiUrl;
@@ -94,4 +97,52 @@ export async function storageGetSignedUrl(relKey: string): Promise<string> {
 
   const { url } = (await resp.json()) as { url: string };
   return url;
+}
+
+function getPaymentProofStorage() {
+  const config = getProofStorageConfig();
+  if (!config) throw new Error("Payment proof storage is unavailable.");
+  return { config, client: createProofStorageClient(config) };
+}
+
+function assertPaymentProofKey(key: string) {
+  if (!key.startsWith("payment-proofs/")) throw new Error("Invalid payment proof key.");
+}
+
+export async function paymentProofStoragePut(key: string, data: Buffer, contentType: "image/jpeg" | "image/png") {
+  assertPaymentProofKey(key);
+  const { config, client } = getPaymentProofStorage();
+  try {
+    await client.send(new PutObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+      Body: data,
+      ContentType: contentType,
+      CacheControl: "private, no-store",
+      ContentDisposition: "inline",
+    }));
+    return { key };
+  } finally {
+    client.destroy();
+  }
+}
+
+export async function paymentProofStorageGetSignedUrl(key: string) {
+  assertPaymentProofKey(key);
+  const { config, client } = getPaymentProofStorage();
+  try {
+    return await getSignedUrl(client, new GetObjectCommand({ Bucket: config.bucket, Key: key, ResponseContentDisposition: "inline" }), { expiresIn: 300 });
+  } finally {
+    client.destroy();
+  }
+}
+
+export async function paymentProofStorageDelete(key: string) {
+  assertPaymentProofKey(key);
+  const { config, client } = getPaymentProofStorage();
+  try {
+    await client.send(new DeleteObjectCommand({ Bucket: config.bucket, Key: key }));
+  } finally {
+    client.destroy();
+  }
 }

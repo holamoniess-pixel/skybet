@@ -4,7 +4,7 @@ import { z } from "zod";
 import { validateDepositPresetAmount, validateGhanaMobileMoneyNumber, validateReferralCommissionPercentage, validateWithdrawalAmount } from "../../shared/payments";
 import { getAquaPayGatewayReadiness } from "../aquaPayGateway";
 import * as db from "../db";
-import { storageGetSignedUrl, storagePut } from "../storage";
+import { paymentProofStorageGetSignedUrl, paymentProofStoragePut, storageGetSignedUrl } from "../storage";
 import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
 
 const paymentMethodSchema = z.enum(["crypto_trc20", "aquapay"]);
@@ -22,7 +22,7 @@ async function uploadProof(userId: number, proof: z.infer<typeof proofSchema>) {
   const body = Buffer.from(match[2], "base64");
   if (body.length === 0 || body.length > 5 * 1024 * 1024) throw new TRPCError({ code: "BAD_REQUEST", message: "The screenshot must be 5 MB or smaller." });
   const extension = proof.mimeType === "image/png" ? "png" : "jpg";
-  return storagePut(`payment-proofs/${userId}/${randomUUID()}.${extension}`, body, proof.mimeType);
+  return paymentProofStoragePut(`payment-proofs/${userId}/${randomUUID()}.${extension}`, body, proof.mimeType);
 }
 
 export const paymentReviewRouter = router({
@@ -62,8 +62,8 @@ export const paymentReviewRouter = router({
     }),
   proofUrl: protectedProcedure.input(z.object({ requestId: z.number().int().positive() })).query(async ({ ctx, input }) => {
     const request = (await db.getCustomerPaymentRequests(ctx.user.id)).find(item => item.id === input.requestId);
-    if (!request?.proofStorageKey) throw new TRPCError({ code: "NOT_FOUND", message: "Payment proof was not found." });
-    return { url: await storageGetSignedUrl(request.proofStorageKey) };
+    if (!request?.proofStorageKey || request.proofDeletedAt) throw new TRPCError({ code: "NOT_FOUND", message: "Payment proof was not found." });
+    return { url: request.proofStorageProvider === "legacy_forge" ? await storageGetSignedUrl(request.proofStorageKey) : await paymentProofStorageGetSignedUrl(request.proofStorageKey) };
   }),
 });
 
@@ -93,7 +93,12 @@ export const paymentReviewAdminRouter = router({
         throw new TRPCError({ code: error instanceof Error && error.message === "Customer not found" ? "NOT_FOUND" : "BAD_REQUEST", message: "Unable to update the account payment control." });
       }
     }),
-  proofUrl: adminProcedure.input(z.object({ storageKey: z.string().trim().min(1).max(512) })).query(async ({ input }) => ({ url: await storageGetSignedUrl(input.storageKey) })),
+  proofUrl: adminProcedure.input(z.object({ requestId: z.number().int().positive() })).query(async ({ input }) => {
+    const proof = await db.getAdminPaymentProof(input.requestId);
+    if (!proof?.proofStorageKey || proof.proofDeletedAt) throw new TRPCError({ code: "NOT_FOUND", message: "Payment proof was not found." });
+    return { url: proof.proofStorageProvider === "legacy_forge" ? await storageGetSignedUrl(proof.proofStorageKey) : await paymentProofStorageGetSignedUrl(proof.proofStorageKey) };
+  }),
+  proofRetentionStatus: adminProcedure.query(async () => ({ ...await db.getProofRetentionStatus(), retentionHours: 24, cleanupConfigured: Boolean(process.env.SKYBET_PROOF_RETENTION_CRON_SECRET) })),
 });
 
 export const commissionRouter = router({

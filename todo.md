@@ -196,3 +196,11 @@
 - [x] Add owner-only creation and management of subordinate local administrators with hashed credentials, separate roles, revocation, and audit records.
 - [x] Add safe site-wide and per-customer bonus/reward configuration views without directly moving balances or enabling wagering settlement.
 - [x] Visually verify the expanded administrator workspace navigation, customer-account and owner-only pages at mobile breakpoint, plus protected entry layout at desktop/mobile, with no console errors during authenticated checks.
+- [x] Audit the current payment-proof upload and protected-view flow before moving proof bytes to the owner-provided S3-compatible storage service.
+- [x] Add server-only S3-compatible proof storage configuration with short-lived protected viewing links and no credential exposure to Netlify or GitHub.
+- [ ] Add a deployed, authenticated 24-hour proof-retention cleanup handler that deletes expired payment screenshots and records safe deletion outcomes.
+- [ ] Add regression coverage and deployment documentation for proof access, 24-hour cleanup, storage failure, and secret rotation.
+- [x] Add a read-only administrator retention-status view showing proof expiry timing and the last daily cleanup outcome without exposing proof bytes or credentials.
+- [x] Restore the local administrator sign-in form on the unauthenticated `/admin` route so protected navigation is not shown as a dead end.
+- [x] Clarify the customer deposit UI as manual TRC20 proof upload plus a future automatic Mobile Money gateway placeholder, with no automatic balance movement.
+- [ ] Resolve the Railway connector authorization-link failure or complete the equivalent production configuration through a verified owner-controlled path without exposing secret values.

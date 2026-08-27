@@ -1,4 +1,4 @@
-import { integer, numeric, pgEnum, pgTable, serial, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
+import { index, integer, numeric, pgEnum, pgTable, serial, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", ["user", "admin"]);
 export const ruleStatusEnum = pgEnum("rule_status", ["active", "superseded"]);
@@ -178,6 +178,9 @@ export const paymentRequests = pgTable("payment_requests", {
   payoutDestination: varchar("payoutDestination", { length: 255 }),
   proofStorageKey: varchar("proofStorageKey", { length: 512 }),
   proofMimeType: varchar("proofMimeType", { length: 100 }),
+  proofStorageProvider: varchar("proofStorageProvider", { length: 32 }),
+  proofExpiresAt: timestamp("proofExpiresAt"),
+  proofDeletedAt: timestamp("proofDeletedAt"),
   status: paymentRequestStatusEnum("status").default("submitted").notNull(),
   reviewReason: text("reviewReason"),
   reviewedBy: integer("reviewedBy"),
@@ -186,7 +189,20 @@ export const paymentRequests = pgTable("payment_requests", {
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 }, table => [
   uniqueIndex("payment_requests_method_reference_unique").on(table.method, table.customerPaymentReference),
+  index("payment_requests_proof_expiry_idx").on(table.proofExpiresAt),
 ]);
+
+/** Key-free execution record for the daily payment-proof retention process. */
+export const proofRetentionRuns = pgTable("proof_retention_runs", {
+  id: serial("id").primaryKey(),
+  runAt: timestamp("runAt").defaultNow().notNull(),
+  cutoffAt: timestamp("cutoffAt").notNull(),
+  candidateCount: integer("candidateCount").notNull(),
+  deletedCount: integer("deletedCount").notNull(),
+  legacyAccessRevokedCount: integer("legacyAccessRevokedCount").notNull(),
+  failedCount: integer("failedCount").notNull(),
+  status: varchar("status", { length: 24 }).notNull(),
+});
 
 /** Append-only lifecycle record for customer submissions and administrator review decisions. */
 export const paymentRequestEvents = pgTable("payment_request_events", {

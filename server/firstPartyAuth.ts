@@ -75,11 +75,15 @@ export function createFirstPartyAuthHandlers(deps: {
   findPhone?: typeof getCustomerCredentialByPhone;
   createCustomer?: typeof createCustomerWithCredentials;
   createSession?: typeof createCustomerSession;
+  authenticateCustomer?: typeof authenticateCustomerRequest;
+  authenticateAdmin?: typeof authenticateLocalAdminRequest;
 } = {}) {
   const findEmail = deps.findEmail ?? getCustomerCredentialByEmail;
   const findPhone = deps.findPhone ?? getCustomerCredentialByPhone;
   const createCustomer = deps.createCustomer ?? createCustomerWithCredentials;
   const createSession = deps.createSession ?? createCustomerSession;
+  const authenticateCustomer = deps.authenticateCustomer ?? authenticateCustomerRequest;
+  const authenticateAdmin = deps.authenticateAdmin ?? authenticateLocalAdminRequest;
   return {
     signup: async (req: Request, res: Response) => {
       const body = (req.body ?? {}) as Credentials;
@@ -120,14 +124,14 @@ export function createFirstPartyAuthHandlers(deps: {
       return res.status(200).json({ ok: true });
     },
     me: async (req: Request, res: Response) => {
-      const customer = await authenticateCustomerRequest(req);
-      if (customer) return res.status(200).json({ user: publicUser(customer) });
       try {
-        const admin = await authenticateLocalAdminRequest(req);
-        return res.status(200).json({ user: admin ? publicUser(admin) : null });
+        const admin = await authenticateAdmin(req);
+        if (admin) return res.status(200).json({ user: publicUser(admin) });
       } catch {
-        return res.status(200).json({ user: null });
+        // A missing or expired local-admin session must not block a valid customer session.
       }
+      const customer = await authenticateCustomer(req);
+      return res.status(200).json({ user: customer ? publicUser(customer) : null });
     },
   };
 }
