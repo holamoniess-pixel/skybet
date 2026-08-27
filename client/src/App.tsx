@@ -28,6 +28,7 @@ function Router() {
       <Route path={"/bets/history"} component={AccountWorkspacePage} />
       <Route path={"/wallet"} component={AccountWorkspacePage} />
       <Route path={"/admin"} component={Admin} />
+      <Route path={"/admin/:section"} component={Admin} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

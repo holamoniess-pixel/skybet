@@ -256,6 +256,91 @@ export async function recordLocalAdminSignIn(userId: number) {
   await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, userId));
 }
 
+export async function listLocalAdminAccounts() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({ id: users.id, email: localAdminCredentials.email, name: users.name, role: users.role, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn })
+    .from(localAdminCredentials)
+    .innerJoin(users, eq(localAdminCredentials.userId, users.id))
+    .orderBy(desc(users.createdAt));
+}
+
+export async function createSubordinateLocalAdmin(input: { email: string; name: string; passwordHash: string; actorUserId: number }) {
+  const db = await getDb();
+  if (!db) return undefined;
+  return db.transaction(async tx => {
+    const existingCredential = await tx.select({ id: localAdminCredentials.id }).from(localAdminCredentials).where(eq(localAdminCredentials.email, input.email)).limit(1);
+    const existingUser = await tx.select({ id: users.id }).from(users).where(eq(users.email, input.email)).limit(1);
+    if (existingCredential[0] || existingUser[0]) throw new Error("An account already uses this email address.");
+
+    const insertedUser = await tx.insert(users).values({
+      openId: `admin:${randomUUID()}`,
+      name: input.name,
+      email: input.email,
+      loginMethod: "password",
+      role: "admin",
+      lastSignedIn: new Date(),
+    }).returning({ id: users.id, openId: users.openId });
+    const user = insertedUser[0];
+    await tx.insert(localAdminCredentials).values({ userId: user.id, email: input.email, passwordHash: input.passwordHash });
+    await tx.insert(adminAuditEvents).values({
+      actorUserId: input.actorUserId,
+      entityType: "local_admin",
+      entityId: user.id,
+      action: "created",
+      afterJson: JSON.stringify({ email: input.email, name: input.name, role: "admin" }),
+    });
+    return { id: user.id, openId: user.openId, email: input.email, name: input.name, role: "admin" as const };
+  });
+}
+
+export async function setSubordinateLocalAdminAccess(input: { targetUserId: number; status: "active" | "revoked"; actorUserId: number }) {
+  if (input.targetUserId === input.actorUserId) throw new Error("The owner administrator cannot change their own access here.");
+  const db = await getDb();
+  if (!db) return undefined;
+  return db.transaction(async tx => {
+    const target = await tx
+      .select({ id: users.id, email: localAdminCredentials.email, role: users.role })
+      .from(localAdminCredentials)
+      .innerJoin(users, eq(localAdminCredentials.userId, users.id))
+      .where(eq(users.id, input.targetUserId))
+      .limit(1);
+    if (!target[0]) throw new Error("Administrator account not found.");
+    const nextRole = input.status === "active" ? "admin" : "user" as const;
+    await tx.update(users).set({ role: nextRole, updatedAt: new Date() }).where(eq(users.id, input.targetUserId));
+    await tx.insert(adminAuditEvents).values({
+      actorUserId: input.actorUserId,
+      entityType: "local_admin",
+      entityId: input.targetUserId,
+      action: input.status === "active" ? "access_restored" : "access_revoked",
+      beforeJson: JSON.stringify({ role: target[0].role }),
+      afterJson: JSON.stringify({ email: target[0].email, role: nextRole }),
+    });
+    return { id: input.targetUserId, status: input.status };
+  });
+}
+
+export async function getAdminCustomerAccountSummary(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const selectedUser = await db.select({ id: users.id, name: users.name, email: users.email, role: users.role, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).where(eq(users.id, userId)).limit(1);
+  if (!selectedUser[0]) return undefined;
+  const [balance, paymentControl, bonusPolicy, commissionPolicy] = await Promise.all([
+    getAccountBalanceSummary(userId),
+    getAccountPaymentControl(userId),
+    getActiveBonusPolicyOverride(userId),
+    getActiveReferralCommissionOverride(userId),
+  ]);
+  return {
+    user: selectedUser[0],
+    balance: balance ?? { depositedBalance: "0.00", bonusBalance: "0.00", currency: "GHS" },
+    paymentControl: paymentControl ?? { status: "active" as const },
+    bonusPolicy,
+    commissionPolicy,
+  };
+}
+
 export async function getActiveReferralRewardRule() {
   const db = await getDb();
   if (!db) return undefined;

@@ -20,7 +20,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft } from "lucide-react";
+import { BadgeDollarSign, CreditCard, Gift, LayoutDashboard, LogOut, PanelLeft, Settings2, ShieldCheck, UsersRound, WalletCards } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -28,6 +28,13 @@ import { AdminLoginForm } from "./AdminLoginForm";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Admin overview", path: "/admin" },
+  { icon: UsersRound, label: "Customer accounts", path: "/admin/customers" },
+  { icon: CreditCard, label: "Deposits", path: "/admin/deposits" },
+  { icon: WalletCards, label: "Withdrawals", path: "/admin/withdrawals" },
+  { icon: Gift, label: "Bonuses & rewards", path: "/admin/bonuses" },
+  { icon: Settings2, label: "Site configuration", path: "/admin/site" },
+  { icon: BadgeDollarSign, label: "Match preview", path: "/admin/matches" },
+  { icon: ShieldCheck, label: "Administrators", path: "/admin/administrators" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

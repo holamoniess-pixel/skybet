@@ -12,6 +12,7 @@ import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_
 import { getSportsDataConnectionStatus } from "./sportsDataAdapter";
 import { espnPreviewClient } from "./espnPreview";
 import { commissionRouter, paymentReviewAdminRouter, paymentReviewRouter } from "./routers/paymentReview";
+import { adminManagementRouter } from "./routers/adminManagement";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -129,6 +130,7 @@ export const appRouter = router({
   payments: paymentReviewRouter,
   paymentReview: paymentReviewAdminRouter,
   commissions: commissionRouter,
+  adminManagement: adminManagementRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -43,3 +43,20 @@ export const adminProcedure = t.procedure.use(
     });
   }),
 );
+
+export function isPrimaryOwnerEmail(email: string | null | undefined) {
+  const configuredOwnerEmail = process.env.SKYBET_INITIAL_ADMIN_EMAIL?.trim().toLowerCase();
+  const signedInEmail = email?.trim().toLowerCase();
+  return Boolean(configuredOwnerEmail && signedInEmail && signedInEmail === configuredOwnerEmail);
+}
+
+export const ownerProcedure = adminProcedure.use(
+  t.middleware(async opts => {
+    const { ctx, next } = opts;
+    if (!isPrimaryOwnerEmail(ctx.user?.email)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Owner administrator access is required." });
+    }
+
+    return next({ ctx: { ...ctx, user: ctx.user } });
+  }),
+);

@@ -192,3 +192,7 @@
 - [ ] Diagnose the owner-reported live customer sign-up/login failure across the Netlify, Railway, and Neon deployment without restoring Manus OAuth.
 - [x] Diagnose and fix the owner-reported administrator sign-in failure with an isolated first-party session, then verify the deployed Netlify-to-Railway round trip.
 - [x] Verify the owner-controlled GitHub, Netlify, Railway, and Neon deployment chain and correct the missing Railway administrator-session variables.
+- [x] Audit and reorganize the administrator workspace into clear customer, payment-request, bonus, and site-wide configuration pages with responsive navigation.
+- [x] Add owner-only creation and management of subordinate local administrators with hashed credentials, separate roles, revocation, and audit records.
+- [x] Add safe site-wide and per-customer bonus/reward configuration views without directly moving balances or enabling wagering settlement.
+- [ ] Visually verify the expanded administrator workspace on desktop and mobile, including alignment, navigation, empty states, and access boundaries.

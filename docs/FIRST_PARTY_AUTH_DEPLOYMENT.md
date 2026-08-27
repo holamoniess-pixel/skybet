@@ -28,6 +28,20 @@ The administration page uses a separate first-party local administrator session.
 
 Do not enter the administrator email or password in Netlify, GitHub, Manus OAuth settings, browser address bars, or chat. If sign-in still returns “Invalid administrator email or password” after the new Railway deployment succeeds, the Railway values themselves need to be re-entered privately in **Railway → skybet → Variables**, then deployed again.
 
+## Owner-only administrator management
+
+The initial Railway bootstrap administrator is the **primary owner**. Only that account can open **Administrators** in the admin workspace to create another local administrator, revoke their access, or restore their access. Each additional administrator has a separate email and scrypt-hashed password stored in Neon; no administrator password is written to audit records or exposed to Netlify.
+
+All administrators may use the operational pages appropriate to their role, including customer accounts, deposit review, withdrawal review, bonuses and rewards, site configuration, and the ESPN scores-and-fixtures preview. The owner-only **Administrators** page protects colleague account creation and access changes with server-side authorization and an append-only audit event.
+
+| Workspace page | Purpose | Safety boundary |
+| --- | --- | --- |
+| Customer accounts | Search a customer and view deposited balance, bonus balance, payment state, and policy exceptions. | Viewing does not alter funds. |
+| Deposits and withdrawals | Review separately filtered customer requests and record reasoned decisions. | Decisions do not transfer funds or credit balances. |
+| Bonuses & rewards | Configure programme-wide or customer-specific bonus and referral policy. | Rules are audited; bonus configuration is not a balance movement. |
+| Site configuration | Route to payment review, reward policy, and editorial controls. | It does not enable an unapproved gateway or wagering service. |
+| Match preview | Show the server-cached ESPN score and fixture preview. | No odds, wager creation, payment, or settlement appears in this view. |
+
 ## Do not restore Manus OAuth
 
 The values `VITE_APP_ID`, `VITE_OAUTH_PORTAL_URL`, and `OAUTH_SERVER_URL`, plus an OAuth redirect URI, belong to the previous Manus-based authentication flow. That flow is intentionally disabled and is not part of the current SKYBET login. Adding those values cannot repair the first-party sign-up/login issue and risks reintroducing an incompatible authentication path. Leave the legacy OAuth routes disabled.
