@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createFirstPartyAuthHandlers, hashCustomerPassword, normalizeCustomerPhone, verifyCustomerPassword } from "./firstPartyAuth";
+import { createFirstPartyAuthHandlers, getCustomerSessionToken, hashCustomerPassword, normalizeCustomerPhone, verifyCustomerPassword } from "./firstPartyAuth";
 
 function responseDouble() {
   return { status: vi.fn().mockReturnThis(), json: vi.fn().mockReturnThis(), cookie: vi.fn(), clearCookie: vi.fn() } as any;
@@ -19,6 +19,12 @@ describe("first-party customer authentication", () => {
     expect(normalizeCustomerPhone("024 123 4567")).toBe("233241234567");
     expect(normalizeCustomerPhone("+233241234567")).toBe("233241234567");
     expect(normalizeCustomerPhone("12345")).toBeNull();
+  });
+
+  it("reads the customer session from a raw Cookie header when proxy middleware does not populate req.cookies", () => {
+    const token = "a".repeat(43);
+    expect(getCustomerSessionToken({ headers: { cookie: `theme=light; skybet-session=${token}; locale=en` } } as any)).toBe(token);
+    expect(getCustomerSessionToken({ headers: { cookie: "theme=light" } } as any)).toBeNull();
   });
 
   it("rejects mismatched sign-up passwords before persistence", async () => {

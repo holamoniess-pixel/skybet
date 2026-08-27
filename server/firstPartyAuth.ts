@@ -36,6 +36,21 @@ export async function verifyCustomerPassword(password: string, stored: string) {
 }
 
 function hashSessionToken(token: string) { return createHash("sha256").update(token).digest("hex"); }
+export function getCustomerSessionToken(req: Request) {
+  const parsedToken = req.cookies?.[CUSTOMER_SESSION_COOKIE];
+  if (typeof parsedToken === "string") return parsedToken;
+
+  const rawCookieHeader = req.headers?.cookie;
+  if (!rawCookieHeader) return null;
+  const cookiePair = rawCookieHeader.split(";").map(segment => segment.trim()).find(segment => segment.startsWith(`${CUSTOMER_SESSION_COOKIE}=`));
+  if (!cookiePair) return null;
+  const encodedToken = cookiePair.slice(CUSTOMER_SESSION_COOKIE.length + 1);
+  try {
+    return decodeURIComponent(encodedToken);
+  } catch {
+    return null;
+  }
+}
 function publicUser(user: { id: number; openId: string; name: string | null; email: string | null; role: "user" | "admin" }) {
   return { id: user.id, openId: user.openId, name: user.name, email: user.email, role: user.role };
 }
@@ -49,7 +64,7 @@ async function issueCustomerSession(user: { id: number; openId: string; name: st
 }
 
 export async function authenticateCustomerRequest(req: Request) {
-  const token = req.cookies?.[CUSTOMER_SESSION_COOKIE];
+  const token = getCustomerSessionToken(req);
   if (typeof token !== "string" || token.length < 32) return null;
   const user = await getCustomerSessionUser(hashSessionToken(token));
   return user ?? null;
@@ -97,7 +112,7 @@ export function createFirstPartyAuthHandlers(deps: {
       return res.status(200).json({ ok: true, user });
     },
     logout: async (req: Request, res: Response) => {
-      const token = req.cookies?.[CUSTOMER_SESSION_COOKIE];
+      const token = getCustomerSessionToken(req);
       if (typeof token === "string") await deleteCustomerSession(hashSessionToken(token));
       clearSession(res, req);
       res.clearCookie(COOKIE_NAME, { ...getSessionCookieOptions(req), maxAge: -1 });

@@ -2,15 +2,13 @@
 
 ## Purpose
 
-This guide configures the current SKYBET Node/Express backend as a Railway service. It does **not** activate payments, customer deposits, withdrawals, wagers, sports-data ingestion, or model calls. The `/health` route is safe to expose and returns only the service name and an `ok` status.
+This guide configures the current SKYBET Node/Express backend as a Railway service. It supports first-party customer authentication backed by Neon and an ESPN scores-and-fixtures preview. It does **not** activate payments, customer deposits, withdrawals, wagers, official odds, settlement, or model calls. The `/health` route is safe to expose and returns only the service name and an `ok` status.
 
 > **Important:** Do not enter any API key, password, database connection string, payment credential, or Clerk secret in GitHub files, screenshots, chat messages, or client-side environment variables. Add secret values only in Railway’s service **Variables** page.
 
 ## What the current deployment log means
 
-Railway successfully detected Node 22, installed the locked dependencies, built the Vite client and bundled Express server, and started the service on the platform-assigned port. The missing `OAUTH_SERVER_URL` message refers to the legacy Manus OAuth integration. It must not be filled with an invented value.
-
-The application now treats that legacy route as disabled when no valid URL is configured. This is a temporary compatibility boundary while Clerk replaces the legacy login flow. Protected account, administrator, payment-review, and balance routes should not be treated as production-ready until the Clerk migration and Neon cutover are complete.
+Railway successfully detected Node 22, installed the locked dependencies, built the Vite client and bundled Express server, and started the service on the platform-assigned port. The legacy Manus OAuth routes are intentionally disabled. Do not set `OAUTH_SERVER_URL` or attempt to restore Manus OAuth: customer authentication is handled by SKYBET’s first-party email/password sessions.
 
 ## Step 1 — Generate the Railway public domain
 
@@ -50,9 +48,9 @@ Open the service **Variables** page. Add the names below only when you have thei
 | --- | --- | --- |
 | `NODE_ENV` | Yes | Set to `production`. |
 | `JWT_SECRET` | Yes | Generate a strong, private server secret. Do not reuse a password. |
-| `DATABASE_URL` | Not until Neon cutover | Use the Neon production connection string only after the PostgreSQL migration is ready. |
-| `CLERK_SECRET_KEY` | Not until Clerk migration | Server-only Clerk credential. |
-| `CLERK_PUBLISHABLE_KEY` | Not until Clerk migration | Used to validate the intended Clerk integration; do not expose the server secret. |
+| `DATABASE_URL` | Yes | Use the private Neon production connection string. Never put it in Netlify or GitHub. |
+| `SKYBET_INITIAL_ADMIN_EMAIL`, `SKYBET_INITIAL_ADMIN_PASSWORD` | Only for first local-admin bootstrap | Keep both private in Railway. They are not customer login credentials. |
+| `SENTRY_DSN` | Already configured, optional for functionality | Server-side monitoring only; do not expose or duplicate it. |
 | `AQUAPAY_API_URL`, `AQUAPAY_API_KEY`, `AQUAPAY_WEBHOOK_SECRET` | No | Leave unset until official Aqùapay documentation and merchant credentials are available. |
 | `SKYBET_ESPN_CRON_SECRET` | No | Required only before enabling the ESPN preview refresh endpoint. Generate a long random value in a password manager and keep it in Railway only. |
 | `OAUTH_SERVER_URL` | No | Do not set a substitute value. It belongs to the retiring Manus OAuth flow. |
@@ -67,7 +65,7 @@ If a deployment fails after a future configuration or code change, open **Deploy
 
 ## Next required handoffs
 
-After the health URL is working, send only the public URL in the project conversation. The next safe steps are to verify the Netlify API base URL and CORS boundary, then set up Clerk and migrate the application database to Neon in a staging branch.
+After the health URL is working, verify the Netlify API proxy and first-party sign-up/login flow using `docs/FIRST_PARTY_AUTH_DEPLOYMENT.md`. Do not set up Clerk, Better Auth, or Manus OAuth for the current application. The Neon migration is already complete.
 
 ## References
 
