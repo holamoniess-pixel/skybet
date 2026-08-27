@@ -12,7 +12,11 @@ The interface displays **“Data sourced from ESPN”**, its refresh interval, a
 
 ## Resilience and scheduling boundary
 
-The current implementation refreshes only on demand through the cache; it does not install a background timer, cron task, or continuous worker. A future two-minute scheduled handler must be an authenticated, idempotent `/api/scheduled/*` route deployed and manually tested before the owner enables a Railway-compatible scheduler. That handler must remain isolated from customer balances, transactions, bet acceptance, and settlement.
+The current implementation refreshes on demand through the cache and exposes a disabled-by-default `POST /api/scheduled/espn-preview-refresh` handler for a future Railway-compatible scheduler. The handler activates only when a server-side `SKYBET_ESPN_CRON_SECRET` is configured and a caller sends the matching bearer token. It is idempotent and returns only a safe refresh summary. No scheduler, in-process timer, or recurring job has been installed yet.
+
+Railway’s native Cron Jobs are not suitable for the requested two-minute cadence: its shortest supported interval is five minutes, and its cron service must execute a short task and exit rather than run this web server.[3] If the owner later requires a two-minute refresh, use a separate managed HTTP scheduler that securely calls the deployed handler; otherwise use a five-minute cadence after confirming the trade-off. Do not use `node-cron`, `setInterval`, or a timer inside the SKYBET web process.
+
+Before the owner enables any recurring schedule, deploy this handler, configure the token only in Railway, test one authenticated run, and then configure the approved scheduler to `POST` at the selected cadence. The handler must remain isolated from customer balances, transactions, bet acceptance, and settlement.
 
 The in-memory cache is appropriate for an initial preview and stale fallback but is process-local. A multi-instance production deployment will require a shared cache or persisted snapshot if continuously scheduled refresh becomes necessary.
 
@@ -24,3 +28,4 @@ The NVIDIA/OpenRouter sports normalizer and provider-health modules have been re
 
 [1]: https://www.cmswire.com/cms/customer-experience/espn-slam-dunks-its-public-api-026291.php "ESPN Slam Dunks Its Public API"
 [2]: https://publicapis.io/espn-sports-api "ESPN API - Free Hidden Endpoints, No Key Required"
+[3]: https://docs.railway.com/cron-jobs "Railway Cron Jobs"

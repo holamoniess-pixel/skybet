@@ -176,9 +176,9 @@
 - [x] Validate and document the Sanity content boundary without moving transactional data into the CMS.
 
 - [ ] Choose an approved sports-data source for the automated two-minute refresh; free sources remain preview-only until commercial rights are confirmed.
-- [ ] Implement a server-side scheduled refresh handler with idempotent storage, stale-data protection, and no balance or settlement mutations.
+- [x] Implement an authenticated, idempotent ESPN cache-refresh handler with stale-data protection and no balance or settlement mutations; external schedule activation remains owner-controlled.
 - [x] Retire the ordered NVIDIA/OpenRouter sports normalization fallback after the owner selected an ESPN scores-and-fixtures preview instead.
-- [ ] Add schedule/refresh observability, regression tests, and deployment verification for the automated sports refresh.
+- [ ] Choose a managed HTTP scheduler for a two-minute ESPN preview refresh, or accept Railway’s five-minute native-cron limitation; then complete deployment verification and observability.
 - [x] Supersede the proposed AI probability-estimate contract; the owner selected an ESPN scores-and-fixtures preview with no AI estimates.
 - [ ] Add a live-score and match-status refresh path using an approved free preview source, with freshness timestamps and stale-data protection.
 - [x] Supersede AI-estimate input validation and invented-odds tests because no AI estimate path remains.

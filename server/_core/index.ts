@@ -11,6 +11,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { createRuntimeHealthPayload } from "../runtimeHealth";
 import { installSentryExpressErrorHandler } from "../sentry";
+import { createEspnPreviewRefreshHandler } from "../espnPreviewRefresh";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -48,6 +49,7 @@ async function startServer() {
   app.post("/api/auth/logout", firstPartyAuth.logout);
   app.get("/api/auth/me", firstPartyAuth.me);
   app.post("/api/admin/login", createAdminLoginHandler());
+  app.post("/api/scheduled/espn-preview-refresh", createEspnPreviewRefreshHandler());
   // tRPC API
   app.use(
     "/api/trpc",

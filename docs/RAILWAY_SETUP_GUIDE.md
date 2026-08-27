@@ -54,6 +54,7 @@ Open the service **Variables** page. Add the names below only when you have thei
 | `CLERK_SECRET_KEY` | Not until Clerk migration | Server-only Clerk credential. |
 | `CLERK_PUBLISHABLE_KEY` | Not until Clerk migration | Used to validate the intended Clerk integration; do not expose the server secret. |
 | `AQUAPAY_API_URL`, `AQUAPAY_API_KEY`, `AQUAPAY_WEBHOOK_SECRET` | No | Leave unset until official Aqùapay documentation and merchant credentials are available. |
+| `SKYBET_ESPN_CRON_SECRET` | No | Required only before enabling the ESPN preview refresh endpoint. Generate a long random value in a password manager and keep it in Railway only. |
 | `OAUTH_SERVER_URL` | No | Do not set a substitute value. It belongs to the retiring Manus OAuth flow. |
 
 ## Step 4 — Add the frontend origin after Netlify is confirmed
@@ -85,3 +86,18 @@ A production deployment log reviewed on 2026-08-26 shows the SKYBET container st
 The active Railway deployment menu exposed `View logs`, `Restart`, `Deploy`, and `Remove`. An older successful deployment exposed `View logs`, `Redeploy`, and `Rollback`. The rollback option was observed but not selected, preserving the live deployment.
 
 SKYBET’s frontend uses the Netlify same-origin `/api` proxy to Railway, so browser requests do not require a wildcard Railway CORS policy. The production frontend origin is the approved Netlify site, and no payment or authentication secret is exposed to the browser.
+
+## ESPN preview refresh: owner activation guide
+
+The ESPN route is a **scores-and-fixtures preview only**. It is not an odds, wager, payment, or settlement integration. The deployed `POST /api/scheduled/espn-preview-refresh` endpoint remains disabled until `SKYBET_ESPN_CRON_SECRET` is present in Railway.
+
+1. Wait until Railway has deployed the GitHub commit containing the endpoint, then open the **Variables** tab for the `skybet` service.
+2. Create `SKYBET_ESPN_CRON_SECRET` and paste a newly generated, long random value from a password manager. Do not send the value in chat, email, screenshots, source files, Netlify variables, or the browser.
+3. Redeploy the Railway service after saving the variable. Confirm that an unauthenticated `POST` to the route returns `403` rather than sports data.
+4. If a five-minute update is acceptable, a separate short-lived Railway cron service may call the route and exit. Railway’s native cron facility does not support intervals shorter than five minutes and is not appropriate for the long-running SKYBET web service.[4]
+5. If a two-minute update is necessary, use a separate managed HTTP scheduler. Configure it to make a `POST` request to `https://skybet-production.up.railway.app/api/scheduled/espn-preview-refresh` with `Authorization: Bearer <the Railway-only secret>`. Store the same secret in that scheduler’s secret store, not in the job URL or request body.
+6. Trigger exactly one manual run first. A success response includes only the source, stale flag, timestamp, and event count. If the source cannot refresh, the route returns a generic `502` and the customer application continues to use its last verified cache where available.
+
+No recurring task is enabled by this guide. Do not use `node-cron`, `setInterval`, or any in-process timer in the web service.
+
+[4]: [Railway: Cron Jobs](https://docs.railway.com/cron-jobs)
