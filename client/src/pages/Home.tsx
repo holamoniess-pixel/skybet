@@ -70,7 +70,10 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const [mode, setMode] = useState<SkybetMode>("live");
   const [sport, setSport] = useState("All");
-  const [selection, setSelection] = useState<Selection | null>(null);
+  const [selections, setSelections] = useState<Selection[]>(() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(window.localStorage.getItem("skybet-preview-slip") ?? "[]") as Selection[]; } catch { return []; }
+  });
   const [slipOpen, setSlipOpen] = useState(false);
   const [activeMobileNav, setActiveMobileNav] = useState("Home");
   const [eventCodeMessage, setEventCodeMessage] = useState("");
@@ -82,15 +85,22 @@ export default function Home() {
     return () => window.clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("skybet-preview-slip", JSON.stringify(selections));
+  }, [selections]);
+
   const events = useMemo(
     () => filterSkybetEvents(SKYBET_EVENTS, mode, sport),
     [mode, sport]
   );
 
   const chooseSelection = (event: SkybetEvent, label: string, value: string) => {
-    setSelection({ event, label, value });
+    setSelections(current => [...current.filter(item => item.event.id !== event.id), { event, label, value }]);
     setSlipOpen(true);
   };
+
+  const removeSelection = (eventId: string, label: string) => setSelections(current => current.filter(item => !(item.event.id === eventId && item.label === label)));
+  const clearSelections = () => setSelections([]);
 
   const handleEventCodeLookup = (code: string) => {
     const normalizedCode = code.trim().toLowerCase();
@@ -310,7 +320,7 @@ export default function Home() {
                   <SkybetEventCard
                     key={event.id}
                     event={event}
-                    selectedMarket={selection?.event.id === event.id ? selection.label : undefined}
+                    selectedMarket={selections.find(item => item.event.id === event.id)?.label}
                     onMarketSelect={chooseSelection}
                   />
                 ))
@@ -334,13 +344,13 @@ export default function Home() {
               </div>
               <Ticket className="size-5 text-[var(--sky-blue-500)]" />
             </div>
-            {selection ? (
+            {selections.length ? (
               <div className="mt-5 rounded-xl border border-[var(--sky-blue-100)] bg-[var(--sky-ice-50)] p-3 dark:border-white/10 dark:bg-white/5">
-                <p className="text-xs font-bold text-[var(--sky-navy-600)] dark:text-slate-400">{selection.event.competition}</p>
-                <p className="mt-2 text-sm font-extrabold leading-5 text-[var(--sky-navy-950)] dark:text-white">{formatSelection(selection.event, selection.label)}</p>
+                <p className="text-xs font-bold text-[var(--sky-navy-600)] dark:text-slate-400">{selections.length} selection{selections.length === 1 ? "" : "s"}</p>
+                <p className="mt-2 text-sm font-extrabold leading-5 text-[var(--sky-navy-950)] dark:text-white">{formatSelection(selections[0].event, selections[0].label)}{selections.length > 1 ? ` + ${selections.length - 1} more` : ""}</p>
                 <div className="mt-3 flex items-center justify-between border-t border-[var(--sky-blue-100)] pt-3 text-sm dark:border-white/10">
                   <span className="font-semibold text-[var(--sky-navy-600)] dark:text-slate-400">Market value</span>
-                  <span className="font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">{selection.value}</span>
+                  <span className="font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">{selections.reduce((total, item) => total * Number(item.value), 1).toFixed(2)}</span>
                 </div>
                 <Button className="mt-4 h-10 w-full rounded-xl bg-[var(--sky-blue-600)] font-bold hover:bg-[var(--sky-blue-700)]" onClick={() => setSlipOpen(true)}>
                   Review selection
@@ -378,9 +388,9 @@ export default function Home() {
         </section>
       </main>
 
-      <PreviewSlipFab selection={selection} onOpen={() => setSlipOpen(true)} />
+      <PreviewSlipFab selection={selections[0] ?? null} selectionCount={selections.length} onOpen={() => setSlipOpen(true)} />
       <MobileBottomNav activeItem={activeMobileNav} onNavigate={handleMobileNavigation} />
-      <SelectionSheet open={slipOpen} onOpenChange={setSlipOpen} selection={selection} onLoadCode={handleEventCodeLookup} codeMessage={eventCodeMessage} />
+      <SelectionSheet open={slipOpen} onOpenChange={setSlipOpen} selection={selections[0] ?? null} selections={selections} onRemoveSelection={removeSelection} onClearSelections={clearSelections} onLoadCode={handleEventCodeLookup} codeMessage={eventCodeMessage} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Check, KeyRound } from "lucide-react";
+import { Check, KeyRound, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { formatSelection, type SkybetEvent } from "@shared/skybet";
@@ -23,12 +23,19 @@ type SelectionSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selection: Selection | null;
+  selections?: Selection[];
+  onRemoveSelection?: (eventId: string, label: string) => void;
+  onClearSelections?: () => void;
   onLoadCode?: (code: string) => void;
   codeMessage?: string;
 };
 
-export function SelectionSheet({ open, onOpenChange, selection, onLoadCode, codeMessage }: SelectionSheetProps) {
+export function SelectionSheet({ open, onOpenChange, selection, selections, onRemoveSelection, onClearSelections, onLoadCode, codeMessage }: SelectionSheetProps) {
   const [code, setCode] = useState("");
+  const [stake, setStake] = useState("10");
+  const selectedItems = selections ?? (selection ? [selection] : []);
+  const combinedOdds = selectedItems.reduce((total: number, item: Selection) => total * Number(item.value), 1);
+  const numericStake = Number(stake);
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="max-h-[80dvh] rounded-t-[2rem] border-[var(--sky-blue-100)] bg-[var(--sky-white-50)] p-0 dark:border-white/10 dark:bg-[var(--card)] sm:mx-auto sm:max-w-lg">
@@ -42,17 +49,13 @@ export function SelectionSheet({ open, onOpenChange, selection, onLoadCode, code
             <Button type="submit" className="h-11 shrink-0 rounded-xl bg-[var(--sky-blue-600)] px-4 font-extrabold hover:bg-[var(--sky-blue-700)]">Load code</Button>
           </form> : null}
           {onLoadCode ? <p aria-live="polite" className="mt-2 min-h-5 text-xs font-semibold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">{codeMessage || "Enter an authored code to restore a local preview selection."}</p> : null}
-          {selection ? (
+          {selectedItems.length ? (
             <>
-              <div className="mt-4 rounded-2xl border border-[var(--sky-blue-100)] bg-white p-4 dark:border-white/10 dark:bg-white/5">
-                <Badge className="rounded-full bg-[var(--sky-ice-100)] text-[var(--sky-blue-700)] hover:bg-[var(--sky-ice-100)]">{selection.event.competition}</Badge>
-                <p className="mt-3 text-base font-extrabold leading-6 text-[var(--sky-navy-950)] dark:text-white">{formatSelection(selection.event, selection.label)}</p>
-                <div className="mt-4 flex items-center justify-between border-t border-[var(--sky-blue-100)] pt-4 dark:border-white/10">
-                  <span className="text-sm font-semibold text-[var(--sky-navy-600)] dark:text-slate-400">Market value</span>
-                  <span className="text-lg font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">{selection.value}</span>
-                </div>
+              <div className="mt-4 space-y-2">
+                {selectedItems.map(item => <div key={`${item.event.id}:${item.label}`} className="rounded-2xl border border-[var(--sky-blue-100)] bg-white p-4 dark:border-white/10 dark:bg-white/5"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><Badge className="rounded-full bg-[var(--sky-ice-100)] text-[var(--sky-blue-700)] hover:bg-[var(--sky-ice-100)]">{item.event.competition}</Badge><p className="mt-2 text-sm font-extrabold leading-5 text-[var(--sky-navy-950)] dark:text-white">{formatSelection(item.event, item.label)}</p></div>{onRemoveSelection ? <button type="button" aria-label={`Remove ${item.label}`} onClick={() => onRemoveSelection(item.event.id, item.label)} className="rounded-lg p-2 text-[var(--sky-navy-500)] hover:bg-red-50 hover:text-red-600"><Trash2 className="size-4" /></button> : null}</div><div className="mt-3 flex items-center justify-between border-t border-[var(--sky-blue-100)] pt-3 text-sm dark:border-white/10"><span className="font-semibold text-[var(--sky-navy-600)] dark:text-slate-400">Odds</span><span className="font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">{item.value}</span></div></div>)}
               </div>
-              <Button className="mt-4 h-12 w-full rounded-xl bg-[var(--sky-blue-600)] font-extrabold hover:bg-[var(--sky-blue-700)]" onClick={() => toast.success("Selection saved in this preview session.")}>Confirm preview selection <Check className="size-4" /></Button>
+              <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-[var(--sky-ice-50)] p-3 dark:bg-white/5"><div><p className="text-xs font-semibold text-[var(--sky-navy-600)] dark:text-slate-400">Accumulator odds</p><p className="mt-1 text-lg font-black text-[var(--sky-navy-950)] dark:text-white">{combinedOdds.toFixed(2)}</p></div><div><label htmlFor="preview-stake" className="text-xs font-semibold text-[var(--sky-navy-600)] dark:text-slate-400">Stake (GHS)</label><Input id="preview-stake" inputMode="decimal" value={stake} onChange={event => setStake(event.target.value)} className="mt-1 h-9 bg-white dark:bg-white/10" /></div><p className="col-span-2 border-t border-[var(--sky-blue-100)] pt-2 text-sm font-extrabold text-[var(--sky-blue-700)] dark:border-white/10 dark:text-[var(--sky-blue-300)]">Potential return: GH₵ {Number.isFinite(numericStake) ? (numericStake * combinedOdds).toFixed(2) : "0.00"}</p></div>
+              <div className="mt-4 flex gap-2"><Button variant="outline" className="h-11 flex-1 font-extrabold" onClick={onClearSelections}>Clear slip</Button><Button className="h-11 flex-[2] rounded-xl bg-[var(--sky-blue-600)] font-extrabold hover:bg-[var(--sky-blue-700)]" onClick={() => toast.success("Preview slip saved locally. No wager was submitted.")}>Save preview slip <Check className="size-4" /></Button></div>
             </>
           ) : (
             <p className="mt-4 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">Choose an event option or restore an authored code to continue.</p>
