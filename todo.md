@@ -204,3 +204,7 @@
 - [x] Restore the local administrator sign-in form on the unauthenticated `/admin` route so protected navigation is not shown as a dead end.
 - [x] Clarify the customer deposit UI as manual TRC20 proof upload plus a future automatic Mobile Money gateway placeholder, with no automatic balance movement.
 - [ ] Resolve the Railway connector authorization-link failure or complete the equivalent production configuration through a verified owner-controlled path without exposing secret values.
+- [x] Remove dead Manus OAuth client and server references while preserving the working first-party customer and local administrator authentication paths.
+- [x] Verify that Railway’s live DATABASE_URL targets Neon’s default production branch before modifying administrator credentials or deployment configuration.
+- [x] Rotate the actual first-party owner administrator password through the correct live account path without persisting the new credential in source control, logs, or audit records.
+- [ ] Re-verify the GitHub-to-Netlify and GitHub-to-Railway deployment configuration after legacy-auth cleanup, without copying secrets to Netlify or client code.

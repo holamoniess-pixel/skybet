@@ -43,7 +43,7 @@ async function startServer() {
     res.status(200).json(createRuntimeHealthPayload());
   });
   registerStorageProxy(app);
-  console.warn("[OAuth] Legacy Manus OAuth routes are disabled; SKYBET uses first-party customer auth and local administrator sessions.");
+  console.info("[Auth] First-party customer and local administrator authentication enabled.");
   const firstPartyAuth = createFirstPartyAuthHandlers();
   app.post("/api/auth/signup", firstPartyAuth.signup);
   app.post("/api/auth/login", firstPartyAuth.login);

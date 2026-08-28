@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { createAdminLoginHandler, hashAdminPassword, localAdminOpenId, verifyAdminPassword } from "./adminLogin";
 import { ADMIN_SESSION_COOKIE } from "./localAdminSession";
 
@@ -39,16 +39,13 @@ describe("administrator credential endpoint", () => {
     expect(response.statusCode).toBe(401);
   });
 
-  it("recovers a stale stored administrator password only when the protected bootstrap credential matches", async () => {
-    const updatePassword = vi.fn().mockResolvedValue(undefined);
+  it("does not overwrite an existing administrator credential from the bootstrap environment value", async () => {
     const response = await invokeAdminLogin({ email: process.env.SKYBET_INITIAL_ADMIN_EMAIL, password: process.env.SKYBET_INITIAL_ADMIN_PASSWORD }, {
       findCredential: async () => ({ credential: { passwordHash: await hashAdminPassword("old-password") }, user: { id: 7, openId: "local-admin:test", name: "SKYBET administrator" } }),
-      updatePassword,
       recordSignIn: async () => undefined,
       createSession: async () => "test-session",
     });
-    expect(response.statusCode).toBe(200);
-    expect(updatePassword).toHaveBeenCalledWith({ userId: 7, passwordHash: expect.stringMatching(/^scrypt\$/) });
+    expect(response.statusCode).toBe(401);
   });
 
   it("stores only a derived password value for later administrator sign-in", async () => {

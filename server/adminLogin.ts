@@ -1,7 +1,7 @@
 import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import type { Request, Response } from "express";
-import { bootstrapLocalAdminCredential, getLocalAdminCredentialByEmail, recordLocalAdminSignIn, updateLocalAdminCredentialPassword } from "./db";
+import { bootstrapLocalAdminCredential, getLocalAdminCredentialByEmail, recordLocalAdminSignIn } from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { ADMIN_SESSION_COOKIE, createLocalAdminSessionToken } from "./localAdminSession";
 
@@ -34,7 +34,6 @@ export function localAdminOpenId(email: string) {
 type AdminLoginDependencies = {
   findCredential?: (email: string) => Promise<StoredAdmin | undefined>;
   bootstrap?: (input: { email: string; passwordHash: string; openId: string }) => Promise<StoredAdmin | undefined>;
-  updatePassword?: (input: { userId: number; passwordHash: string }) => Promise<void>;
   recordSignIn?: (userId: number) => Promise<void>;
   createSession?: (openId: string, name: string) => Promise<string>;
 };
@@ -42,7 +41,6 @@ type AdminLoginDependencies = {
 export function createAdminLoginHandler(dependencies: AdminLoginDependencies = {}) {
   const findCredential = dependencies.findCredential ?? getLocalAdminCredentialByEmail;
   const bootstrap = dependencies.bootstrap ?? bootstrapLocalAdminCredential;
-  const updatePassword = dependencies.updatePassword ?? updateLocalAdminCredentialPassword;
   const recordSignIn = dependencies.recordSignIn ?? recordLocalAdminSignIn;
   const createSession = dependencies.createSession ?? ((openId) => createLocalAdminSessionToken(openId, ADMIN_SESSION_MS));
   return async (req: Request, res: Response) => {
@@ -60,8 +58,7 @@ export function createAdminLoginHandler(dependencies: AdminLoginDependencies = {
       stored = await bootstrap({ email, passwordHash: await hashAdminPassword(password), openId: localAdminOpenId(email) });
       if (!stored) return res.status(503).json({ error: "Administrator sign-in is temporarily unavailable." });
     } else if (!(await verifyAdminPassword(password, stored.credential.passwordHash))) {
-      if (!matchesConfiguredAdmin) return res.status(401).json({ error: "Invalid administrator email or password." });
-      await updatePassword({ userId: stored.user.id, passwordHash: await hashAdminPassword(password) });
+      return res.status(401).json({ error: "Invalid administrator email or password." });
     }
 
     await recordSignIn(stored.user.id);
