@@ -207,4 +207,4 @@
 - [x] Remove dead Manus OAuth client and server references while preserving the working first-party customer and local administrator authentication paths.
 - [x] Verify that Railway’s live DATABASE_URL targets Neon’s default production branch before modifying administrator credentials or deployment configuration.
 - [x] Rotate the actual first-party owner administrator password through the correct live account path without persisting the new credential in source control, logs, or audit records.
-- [ ] Re-verify the GitHub-to-Netlify and GitHub-to-Railway deployment configuration after legacy-auth cleanup, without copying secrets to Netlify or client code.
+- [x] Re-verify the GitHub-to-Netlify and GitHub-to-Railway deployment configuration after legacy-auth cleanup, without copying secrets to Netlify or client code.
