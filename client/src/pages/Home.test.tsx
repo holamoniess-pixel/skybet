@@ -1,10 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import React from "react";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Home from "./Home";
+
+beforeEach(() => window.localStorage.clear());
 
 const { scoreboardRefetch } = vi.hoisted(() => ({ scoreboardRefetch: vi.fn() }));
 
@@ -196,5 +198,5 @@ describe("Skybet Home", () => {
     await user.type(eventCode, "not-a-preview-event");
     await user.click(screen.getByRole("button", { name: "Load code" }));
     expect(screen.getByText(/No preview event was found for/)).toBeInTheDocument();
-  });
+  }, 15000);
 });

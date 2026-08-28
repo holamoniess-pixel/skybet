@@ -11,7 +11,7 @@
  */
 
 import { z } from "zod";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, router } from "./trpc";
 import {
   getScoreboard,
   getNflScoreboard,

@@ -436,11 +436,11 @@ export function getTeamLogoUrl(sport: string, teamAbbr: string, size: number = 5
 
 export function clearExpiredCache(): void {
   const now = Date.now();
-  for (const [key, entry] of cache.entries()) {
+  cache.forEach((entry, key) => {
     if (now > (entry as CacheEntry<unknown>).expires) {
       cache.delete(key);
     }
-  }
+  });
 }
 
 export function clearAllCache(): void {

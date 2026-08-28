@@ -3,6 +3,10 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import App from "./App";
 
+vi.mock("@/_core/hooks/useAuth", () => ({
+  useAuth: () => ({ user: { id: 1, openId: "test-user", name: "Test User", email: "test@example.com", role: "user" }, loading: false, error: null, isAuthenticated: true, refresh: vi.fn(), logout: vi.fn() }),
+}));
+
 vi.mock("@/lib/trpc", () => ({
   trpc: {
     sportsData: {

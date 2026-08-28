@@ -733,9 +733,20 @@ export async function reviewPaymentRequest(input: { requestId: number; actorUser
     if (request.userId === input.actorUserId) throw new Error("Administrators cannot review their own payment request");
     if (request.status !== "submitted" && request.status !== "under_review") throw new Error("Only submitted payment requests can be reviewed");
 
+    let ledgerEffect = "none";
+    if (input.decision === "approved") {
+      const balance = (await tx.select().from(accountBalanceSummaries).where(eq(accountBalanceSummaries.userId, request.userId)).limit(1))[0] ?? { depositedBalance: "0.00", bonusBalance: "0.00" };
+      const currentDeposited = Number(balance.depositedBalance);
+      const amount = Number(request.amount);
+      if (!Number.isFinite(currentDeposited) || !Number.isFinite(amount)) throw new Error("Account balance is invalid");
+      const nextDeposited = request.requestType === "deposit" ? currentDeposited + amount : currentDeposited - amount;
+      if (request.requestType === "withdrawal" && nextDeposited < 0) throw new Error("Customer has insufficient deposited funds");
+      await tx.insert(accountBalanceSummaries).values({ userId: request.userId, currency: request.currency, depositedBalance: nextDeposited.toFixed(2), bonusBalance: balance.bonusBalance }).onConflictDoUpdate({ target: accountBalanceSummaries.userId, set: { depositedBalance: nextDeposited.toFixed(2), updatedAt: new Date() } });
+      ledgerEffect = request.requestType === "deposit" ? `credited:${amount.toFixed(2)}` : `debited:${amount.toFixed(2)}`;
+    }
     await tx.update(paymentRequests).set({ status: input.decision, reviewReason: input.reason, reviewedBy: input.actorUserId, reviewedAt: new Date() }).where(eq(paymentRequests.id, request.id));
-    await tx.insert(paymentRequestEvents).values({ paymentRequestId: request.id, actorUserId: input.actorUserId, actorRole: "admin", action: input.decision, detailsJson: JSON.stringify({ reason: input.reason, ledgerEffect: "none" }) });
-    await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "payment_request", entityId: request.id, action: input.decision, beforeJson: JSON.stringify({ status: request.status }), afterJson: JSON.stringify({ status: input.decision, reason: input.reason, ledgerEffect: "none" }) });
+    await tx.insert(paymentRequestEvents).values({ paymentRequestId: request.id, actorUserId: input.actorUserId, actorRole: "admin", action: input.decision, detailsJson: JSON.stringify({ reason: input.reason, ledgerEffect }) });
+    await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "payment_request", entityId: request.id, action: input.decision, beforeJson: JSON.stringify({ status: request.status }), afterJson: JSON.stringify({ status: input.decision, reason: input.reason, ledgerEffect }) });
     return (await tx.select().from(paymentRequests).where(eq(paymentRequests.id, request.id)).limit(1))[0];
   });
 }

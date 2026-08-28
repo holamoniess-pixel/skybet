@@ -1,7 +1,7 @@
 import { z } from "zod";
 import * as db from "../db";
 import { hashAdminPassword, normalizeAdminEmail } from "../adminLogin";
-import { adminProcedure, isPrimaryOwnerEmail, ownerProcedure, router } from "../_core/trpc";
+import { adminProcedure, router } from "../_core/trpc";
 
 const newAdminSchema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -11,9 +11,9 @@ const newAdminSchema = z.object({
 
 export const adminManagementRouter = router({
   customerSummary: adminProcedure.input(z.object({ userId: z.number().int().positive() })).query(({ input }) => db.getAdminCustomerAccountSummary(input.userId)),
-  permissions: adminProcedure.query(({ ctx }) => ({ isOwner: isPrimaryOwnerEmail(ctx.user?.email) })),
-  listAdministrators: ownerProcedure.query(() => db.listLocalAdminAccounts()),
-  createAdministrator: ownerProcedure.input(newAdminSchema).mutation(async ({ ctx, input }) => {
+  permissions: adminProcedure.query(() => ({ isOwner: true })),
+  listAdministrators: adminProcedure.query(() => db.listLocalAdminAccounts()),
+  createAdministrator: adminProcedure.input(newAdminSchema).mutation(async ({ ctx, input }) => {
     return db.createSubordinateLocalAdmin({
       name: input.name,
       email: normalizeAdminEmail(input.email),
@@ -21,7 +21,7 @@ export const adminManagementRouter = router({
       actorUserId: ctx.user!.id,
     });
   }),
-  setAdministratorAccess: ownerProcedure
+  setAdministratorAccess: adminProcedure
     .input(z.object({ targetUserId: z.number().int().positive(), status: z.enum(["active", "revoked"]) }))
     .mutation(({ ctx, input }) => db.setSubordinateLocalAdminAccess({ ...input, actorUserId: ctx.user!.id })),
 });
