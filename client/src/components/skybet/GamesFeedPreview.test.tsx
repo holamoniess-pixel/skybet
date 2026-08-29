@@ -19,7 +19,8 @@ const feed = vi.hoisted(() => ({
 
 vi.mock("@/lib/trpc", () => ({
   trpc: {
-    games: { simulatedFeed: { useQuery: () => ({ data: feed.data, isLoading: false, isError: false, isFetching: false, refetch: feed.refetch }) } },
+    games: { matchFeed: { useQuery: () => ({ data: feed.data, isLoading: false, isError: false, isFetching: false, refetch: feed.refetch }) } },
+    sharedBets: { create: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) } },
   },
 }));
 
@@ -35,7 +36,7 @@ describe("GamesFeedPreview", () => {
 
     expect(screen.getByText("Orbit FC")).toBeInTheDocument();
     expect(screen.getByText(/Amina Vale FC\s*1/)).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("internally managed fixtures");
+    expect(screen.getByRole("status")).toHaveTextContent("Match updates and odds are supplied by the backend.");
     expect(screen.queryByRole("button", { name: /Add .* selection/ })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Live now" }));
     expect(screen.queryByText("Orbit FC")).not.toBeInTheDocument();

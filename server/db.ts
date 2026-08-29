@@ -18,8 +18,9 @@ import {
   paymentRequestEvents,
   paymentRequests,
   proofRetentionRuns,
-  referralAttributions,
-  referralCommissionOverrides,
+    referralAttributions,
+    referralCommissionOverrides,
+    sharedBetSlips,
   referralCommissionRules,
   referralRewardCredits,
   referralRewardOverrides,
@@ -578,6 +579,39 @@ export async function saveBonusPolicyOverride(input: BonusPolicyOverrideInput) {
 
 type WagerSelectionInput = { eventId: string; label: string; odds: string };
 
+function normalizeShareSelections(selections: WagerSelectionInput[]) {
+  if (!selections.length) throw new Error("Select at least one market before creating a share code.");
+  const feed = getSimulatedMatchFeed();
+  const normalized = selections.map(selection => {
+    const event = feed.events.find(candidate => candidate.id === selection.eventId);
+    if (!event || event.isLive || event.status === "Full time") throw new Error("One or more selected markets are no longer available.");
+    const market = event.markets.find(candidate => candidate.label === selection.label);
+    if (!market || market.value !== selection.odds) throw new Error("One or more odds changed. Refresh and try again.");
+    return { eventId: event.id, teams: event.teams, label: market.label, odds: market.value };
+  });
+  const odds = normalized.reduce((total, selection) => total * Number(selection.odds), 1);
+  return { normalized, odds };
+}
+
+export async function createSharedBetSlip(input: { creatorUserId: number; source: "admin" | "user"; selections: WagerSelectionInput[] }) {
+  const db = await getDb();
+  if (!db) throw new Error("Bet sharing is not configured yet.");
+  const { normalized, odds } = normalizeShareSelections(input.selections);
+  const code = `BET-${randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase()}`;
+  const inserted = await db.insert(sharedBetSlips).values({ code, creatorUserId: input.creatorUserId, source: input.source, selectionsJson: JSON.stringify(normalized), odds: odds.toFixed(4), createdAt: new Date() }).returning({ id: sharedBetSlips.id });
+  return (await db.select().from(sharedBetSlips).where(eq(sharedBetSlips.id, inserted[0].id)).limit(1))[0];
+}
+
+export async function getSharedBetSlip(code: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const row = (await db.select().from(sharedBetSlips).where(eq(sharedBetSlips.code, code.trim().toUpperCase())).limit(1))[0];
+  if (!row) return null;
+  let selections: WagerSelectionInput[] = [];
+  try { selections = JSON.parse(row.selectionsJson) as WagerSelectionInput[]; } catch { selections = []; }
+  return { ...row, selections };
+}
+
 export async function placeSimulationWager(input: { userId: number; idempotencyKey: string; selections: WagerSelectionInput[]; stake: number }) {
   if (!input.selections.length) throw new Error("Select at least one market before placing a bet.");
   if (!Number.isFinite(input.stake) || input.stake <= 0 || input.stake > 100000) throw new Error("Enter a valid stake between GH₵ 0.01 and GH₵ 100,000.");
@@ -599,7 +633,10 @@ export async function placeSimulationWager(input: { userId: number; idempotencyK
     const deposited = Number(balance.depositedBalance);
     if (!Number.isFinite(deposited) || deposited < input.stake) throw new Error("Your deposited balance is insufficient for this stake.");
     const nextDeposited = deposited - input.stake;
-    const inserted = await tx.insert(wagers).values({ userId: input.userId, publicReference: `BET-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`, idempotencyKey: input.idempotencyKey, currency: "GHS", stake: input.stake.toFixed(2), odds: combinedOdds.toFixed(4), potentialReturn: (input.stake * combinedOdds).toFixed(2), selectionsJson: JSON.stringify(normalizedSelections), status: "pending", createdAt: new Date() }).returning({ id: wagers.id });
+    const publicReference = `BET-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
+    const shareCode = `PICK-${randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase()}`;
+    const inserted = await tx.insert(wagers).values({ userId: input.userId, publicReference, shareCode, idempotencyKey: input.idempotencyKey, currency: "GHS", stake: input.stake.toFixed(2), odds: combinedOdds.toFixed(4), potentialReturn: (input.stake * combinedOdds).toFixed(2), selectionsJson: JSON.stringify(normalizedSelections), status: "pending", createdAt: new Date() }).returning({ id: wagers.id });
+    await tx.insert(sharedBetSlips).values({ code: shareCode, creatorUserId: input.userId, source: "user", selectionsJson: JSON.stringify(normalizedSelections), odds: combinedOdds.toFixed(4), createdAt: new Date() });
     await tx.insert(accountBalanceSummaries).values({ userId: input.userId, currency: "GHS", depositedBalance: nextDeposited.toFixed(2), bonusBalance: balance.bonusBalance }).onConflictDoUpdate({ target: accountBalanceSummaries.userId, set: { depositedBalance: nextDeposited.toFixed(2), updatedAt: new Date() } });
     return (await tx.select().from(wagers).where(eq(wagers.id, inserted[0].id)).limit(1))[0];
   });

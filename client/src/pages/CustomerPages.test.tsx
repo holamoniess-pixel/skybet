@@ -8,9 +8,10 @@ import { ActivityPage, EventDetailPage } from "./CustomerPages";
 
 vi.mock("@/lib/trpc", () => ({
   trpc: {
-    games: { simulatedFeed: { useQuery: () => ({ data: { events: [{ id: "live-skyline", sport: "Football", competition: "SKYBET Premier", teams: ["Harbour City", "Northvale FC"], score: "1 – 0", startsAt: "72'", status: "Live", isLive: true, markets: [{ label: "Harbour City", value: "2.18" }, { label: "Draw", value: "3.20" }, { label: "Northvale FC", value: "3.10" }] }] }, isLoading: false }) } },
+    games: { matchFeed: { useQuery: () => ({ data: { events: [{ id: "live-skyline", sport: "Football", competition: "SKYBET Premier", teams: ["Harbour City", "Northvale FC"], score: "1 – 0", startsAt: "72'", status: "Live", isLive: true, markets: [{ label: "Harbour City", value: "2.18" }, { label: "Draw", value: "3.20" }, { label: "Northvale FC", value: "3.10" }] }] }, isLoading: false }) } },
+    sharedBets: { load: { useQuery: () => ({ data: null, isLoading: false, isError: false, isFetching: false }) } },
     wagers: { place: { useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }) } },
-    account: { referralProfile: { useQuery: () => ({ data: { referralCode: "SKYTEST", referralsCount: 0, rewardsCredited: "0.00", currency: "GHS" } }) } },
+    account: { referralProfile: { useQuery: () => ({ data: { referralCode: "SKYTEST", referralsCount: 0, rewardsCredited: "0.00", currency: "GHS" } }) }, notifications: { useQuery: () => ({ data: [], isLoading: false }) } },
     auth: {
       me: { useQuery: () => ({ data: null, isLoading: false, error: null }) },
       logout: { useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }) },
@@ -62,8 +63,8 @@ describe("Skybet event detail", () => {
 
     await user.click(screen.getByRole("button", { name: "Harbour City2.18" }));
 
-    expect(screen.getByText("Review your betslip")).toBeInTheDocument();
-    expect(screen.getAllByText("Harbour City vs Northvale FC · Harbour City")).not.toHaveLength(0);
+    expect(screen.queryByText("Review your betslip")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open preview slip with 1 selection" })).toBeInTheDocument();
   });
 });
 

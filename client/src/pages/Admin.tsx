@@ -23,7 +23,7 @@ const sectionDetails: Record<AdminSection, { eyebrow: string; title: string; des
   withdrawals: { eyebrow: "Withdrawal review", title: "Review Mobile Money withdrawals.", description: "Review each withdrawal request, record the decision, and retain the audit trail." },
   bonuses: { eyebrow: "Bonuses & rewards", title: "Set policy, not customer funds.", description: "Manage site-wide and per-customer bonus and referral settings. All non-deposit values remain bonus balance only." },
   site: { eyebrow: "Site configuration", title: "Configure the operating boundary.", description: "Review payments, rewards, editorial content, and market settings." },
-  matches: { eyebrow: "Match engine", title: "Generated fixtures with transparent forecasts.", description: "Inspect SKYBET-generated pairings, live-state updates, internally managed odds, and model forecasts. Settlement remains an explicit administrative action." },
+  matches: { eyebrow: "Match updates", title: "Fixtures with transparent forecasts.", description: "Inspect current pairings, live-state updates, odds, and forecasts. Settlement remains an explicit administrative action." },
   administrators: { eyebrow: "Owner controls", title: "Manage administrator access.", description: "Only the primary owner can create, revoke, or restore another local administrator." },
 };
 

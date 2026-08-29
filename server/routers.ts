@@ -32,6 +32,7 @@ export const appRouter = router({
   games: router({
     mockFeed: publicProcedure.query(() => getMockGamesFeed()),
     simulatedFeed: publicProcedure.query(() => getSimulatedMatchFeed()),
+    matchFeed: publicProcedure.query(() => getSimulatedMatchFeed()),
   }),
   sportsData: router({
     status: publicProcedure.query(() => getSportsDataConnectionStatus()),
@@ -136,6 +137,13 @@ export const appRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Unable to place the bet." });
         }
       }),
+  }),
+  sharedBets: router({
+    load: publicProcedure.input(z.object({ code: z.string().trim().min(6).max(48) })).query(({ input }) => db.getSharedBetSlip(input.code)),
+    create: protectedProcedure.input(z.object({ source: z.enum(["admin", "user"]), selections: z.array(z.object({ eventId: z.string().min(1), label: z.string().min(1), odds: z.string().min(1) })).min(1).max(20) })).mutation(async ({ ctx, input }) => {
+      if (input.source === "admin" && ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Administrator access is required to create an admin share code." });
+      try { return await db.createSharedBetSlip({ creatorUserId: ctx.user.id, source: input.source, selections: input.selections }); } catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Unable to create share code." }); }
+    }),
   }),
   account: router({
     balanceSummary: protectedProcedure.query(({ ctx }) => db.getAccountBalanceSummary(ctx.user.id)),

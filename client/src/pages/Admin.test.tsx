@@ -33,8 +33,10 @@ vi.mock("@/components/DashboardLayout", () => ({
 vi.mock("@/lib/trpc", () => ({
     trpc: {
       games: {
-        simulatedFeed: { useQuery: () => ({ data: { events: [] }, isLoading: false }) },
+        matchFeed: { useQuery: () => ({ data: { events: [] }, isLoading: false }) },
       },
+      account: { notifications: { useQuery: () => ({ data: [], isLoading: false }) } },
+      sharedBets: { create: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) } },
       wagers: {
         place: { useMutation: () => ({ mutateAsync: vi.fn(), isPending: false }) },
       },
@@ -147,7 +149,7 @@ describe("Skybet Admin", () => {
 
     window.history.pushState({}, "", "/admin/matches");
     rerender(<Admin />);
-    expect(screen.getByRole("heading", { name: "Generated fixtures with transparent forecasts." })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Fixtures with transparent forecasts." })).toBeInTheDocument();
     expect(screen.getByText("Scores, fixtures & forecasts")).toBeInTheDocument();
 
     window.history.pushState({}, "", "/admin/administrators");

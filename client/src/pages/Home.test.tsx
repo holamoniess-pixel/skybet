@@ -4,6 +4,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { SKYBET_EVENTS } from "@shared/skybet";
 import Home from "./Home";
 
 beforeEach(() => window.localStorage.clear());
@@ -12,7 +13,8 @@ const { scoreboardRefetch } = vi.hoisted(() => ({ scoreboardRefetch: vi.fn() }))
 
 vi.mock("@/lib/trpc", () => ({
   trpc: {
-    games: { simulatedFeed: { useQuery: () => ({ data: { events: [] }, isLoading: false, isError: false }) } },
+    games: { matchFeed: { useQuery: () => ({ data: { events: SKYBET_EVENTS }, isLoading: false, isError: false }) } },
+    sharedBets: { load: { useQuery: () => ({ data: null, isLoading: false, isError: false, isFetching: false }) }, create: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) } },
     wagers: { place: { useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }) } },
     sportsData: {
       status: { useQuery: () => ({ data: { state: "preview-configured", provider: "ESPN unofficial site API", refreshStrategy: "server-cache-on-demand", message: "Best-effort scores and fixtures preview sourced from ESPN. Not official betting odds, not an ESPN partnership, and not used for wagers or settlement." } }) },
@@ -60,7 +62,7 @@ describe("Skybet Home", () => {
     expect(screen.getByRole("heading", { name: "Live centre" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Harbour City2.18" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cedar Waves1.68" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "ESPN match preview" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "ESPN match preview" })).not.toBeInTheDocument();
     expect(document.querySelectorAll(".sky-hero-slide")).toHaveLength(10);
   });
 
@@ -132,13 +134,11 @@ describe("Skybet Home", () => {
     expect(screen.getByRole("link", { name: "Email SKYBET customer service" })).toHaveAttribute("href", "mailto:Skybet0553@gmail.com");
   });
 
-  it("allows the ESPN match preview to be refreshed from its server-backed control", async () => {
-    const user = userEvent.setup();
+  it("does not expose the removed sports-data preview refresh panel", () => {
     renderHome();
 
-    await user.click(screen.getByRole("button", { name: "Refresh ESPN match preview" }));
-
-    expect(scoreboardRefetch).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: "Refresh ESPN match preview" })).not.toBeInTheDocument();
+    expect(scoreboardRefetch).not.toHaveBeenCalled();
   });
 
   it("routes the mobile account action to the dedicated account page", async () => {
@@ -157,7 +157,7 @@ describe("Skybet Home", () => {
 
     expect(screen.getByRole("button", { name: "Open preview slip" })).toHaveClass("sky-preview-slip-fab");
     await user.click(screen.getByRole("button", { name: "Open preview slip" }));
-    expect(screen.getByRole("textbox", { name: "Enter an event code" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Enter an event or bet code" })).toBeInTheDocument();
   });
 
   it("provides keyboard-accessible manual controls for the ten-frame hero rotation", async () => {
@@ -188,7 +188,7 @@ describe("Skybet Home", () => {
     const user = userEvent.setup();
     renderHome();
     await user.click(screen.getByRole("button", { name: "Open preview slip" }));
-    const eventCode = screen.getByRole("textbox", { name: "Enter an event code" });
+    const eventCode = screen.getByRole("textbox", { name: "Enter an event or bet code" });
 
     await user.type(eventCode, "SKY-LIVE-01");
     await user.click(screen.getByRole("button", { name: "Load code" }));

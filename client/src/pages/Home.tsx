@@ -77,9 +77,11 @@ export default function Home() {
   const [slipOpen, setSlipOpen] = useState(false);
   const [activeMobileNav, setActiveMobileNav] = useState("Home");
   const [eventCodeMessage, setEventCodeMessage] = useState("");
+  const [sharedCode, setSharedCode] = useState("");
   const [heroSlide, setHeroSlide] = useState(0);
-  const simulationFeed = trpc.games.simulatedFeed.useQuery(undefined, { refetchInterval: 30_000, refetchIntervalInBackground: false });
-  const eventCatalogue = simulationFeed.data?.events ?? [];
+  const backendFeed = trpc.games.matchFeed.useQuery(undefined, { refetchInterval: 30_000, refetchIntervalInBackground: false });
+  const sharedBet = trpc.sharedBets.load.useQuery({ code: sharedCode || "PICK-INVALID" }, { enabled: Boolean(sharedCode) });
+  const eventCatalogue = backendFeed.data?.events ?? [];
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -90,6 +92,27 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem("skybet-preview-slip", JSON.stringify(selections));
   }, [selections]);
+
+  useEffect(() => {
+    if (!sharedCode) return;
+    if (sharedBet.isError || (sharedBet.data === null && !sharedBet.isFetching)) {
+      setEventCodeMessage(`No shared bet code was found for “${sharedCode}”.`);
+      setSharedCode("");
+      return;
+    }
+    if (!sharedBet.data) return;
+    const loaded = sharedBet.data.selections.flatMap(item => {
+      const event = eventCatalogue.find(candidate => candidate.id === item.eventId);
+      return event ? [{ event, label: item.label, value: item.odds }] : [];
+    });
+    if (!loaded.length) {
+      setEventCodeMessage("The shared selections are no longer available.");
+    } else {
+      setSelections(current => [...current.filter(item => !loaded.some(next => next.event.id === item.event.id)), ...loaded]);
+      setEventCodeMessage(`Loaded ${loaded.length} shared selection${loaded.length === 1 ? "" : "s"} into your SKYBET betslip.`);
+    }
+    setSharedCode("");
+  }, [sharedBet.data, sharedBet.isError, sharedBet.isFetching, sharedCode, eventCatalogue]);
 
   const events = useMemo(
     () => filterSkybetEvents(eventCatalogue, mode, sport),
@@ -110,9 +133,15 @@ export default function Home() {
       return;
     }
 
+    if (normalizedCode.startsWith("bet-") || normalizedCode.startsWith("pick-")) {
+      setSharedCode(code.trim().toUpperCase());
+      setEventCodeMessage("Loading shared bet selections…");
+      return;
+    }
+
     const event = findSkybetEventByPreviewCode(eventCatalogue, normalizedCode);
     if (!event) {
-      setEventCodeMessage(`No event was found for “${code.trim()}”. Try SKY-LIVE-01.`);
+      setEventCodeMessage(`No event was found for “${code.trim()}”. Try a valid SKYBET event code.`);
       return;
     }
 
@@ -206,7 +235,7 @@ export default function Home() {
               Your match day, in view.
             </h1>
             <p className="mt-2 max-w-md text-[13px] leading-5 text-slate-200 sm:mt-3 sm:text-base sm:leading-7">
-              Live match states, virtual-game previews, and a clear route to the event board.
+              Live match updates, clear selections, and a direct route to the event board.
             </p>
             <div className="mt-3 flex sm:mt-5">
               <Button

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Activity, CircleAlert, RefreshCw } from "lucide-react";
+import { Activity, CircleAlert, Copy, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,10 +20,11 @@ function displayStartTime(value: string, isLive: boolean) {
 
 export function GamesFeedPreview({ heading = "SKYBET match centre", showPredictions = false }: GamesFeedPreviewProps) {
   const [category, setCategory] = useState("All");
-  const scoreboard = trpc.games.simulatedFeed.useQuery(undefined, {
+  const scoreboard = trpc.games.matchFeed.useQuery(undefined, {
     refetchInterval: 30_000,
     refetchIntervalInBackground: false,
   });
+  const createShareCode = trpc.sharedBets.create.useMutation({ onSuccess: result => { if (result) { navigator.clipboard?.writeText(result.code).catch(() => undefined); toast.success(`Share code ${result.code} copied.`); } }, onError: error => toast.error(error.message) });
   const categories = ["All", "Live now", "Upcoming"];
   const visibleEvents = useMemo(() => {
     const events = scoreboard.data?.events ?? [];
@@ -38,7 +40,7 @@ export function GamesFeedPreview({ heading = "SKYBET match centre", showPredicti
           <div className="flex items-center gap-2"><span className="grid size-7 place-items-center rounded-lg bg-[var(--sky-emerald-600)]/10 text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]"><Activity className="size-4" /></span><p className="text-xs font-extrabold tracking-[0.12em] text-[var(--sky-blue-600)] uppercase">Match updates</p></div>
           <h2 id="games-feed-heading" className="mt-1 text-xl font-extrabold tracking-[-0.05em] text-[var(--sky-navy-950)] dark:text-white">{heading}</h2>
         </div>
-        <Button type="button" variant="ghost" size="icon" aria-label="Refresh simulated match feed" className="size-10 rounded-xl text-[var(--sky-blue-700)] hover:bg-[var(--sky-ice-100)]" disabled={scoreboard.isFetching} onClick={() => scoreboard.refetch()}>
+        <Button type="button" variant="ghost" size="icon" aria-label="Refresh match updates" className="size-10 rounded-xl text-[var(--sky-blue-700)] hover:bg-[var(--sky-ice-100)]" disabled={scoreboard.isFetching} onClick={() => scoreboard.refetch()}>
           <RefreshCw className={`size-4 ${scoreboard.isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
@@ -50,10 +52,10 @@ export function GamesFeedPreview({ heading = "SKYBET match centre", showPredicti
       <Card className="overflow-hidden border-[var(--sky-blue-100)] bg-white shadow-[0_10px_24px_rgba(10,63,158,0.05)] dark:border-white/10 dark:bg-[var(--card)]">
         <CardContent className="p-0">
           <div className="flex items-center justify-between gap-3 border-b border-[var(--sky-blue-100)] bg-[var(--sky-ice-50)] px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5">
-            <span className="font-bold text-[var(--sky-navy-700)] dark:text-slate-300">match market data · current fixtures and odds</span>
-            <span className="font-semibold text-[var(--sky-navy-500)] dark:text-slate-400">{scoreboard.data ? `Refreshes every ${scoreboard.data.refreshAfterSeconds}s` : "Loading market updates"}</span>
+            <span className="font-bold text-[var(--sky-navy-700)] dark:text-slate-300">Latest match updates</span>
+            <span className="font-semibold text-[var(--sky-navy-500)] dark:text-slate-400">Backend data</span>
           </div>
-          <div role="status" className="flex items-start gap-2 border-b border-[var(--sky-blue-100)] px-3 py-2 text-xs leading-5 text-[var(--sky-navy-600)] dark:border-white/10 dark:text-slate-400"><CircleAlert className="mt-0.5 size-3.5 shrink-0 text-[var(--sky-blue-600)]" />{scoreboard.data?.message}</div>
+          <div role="status" className="flex items-start gap-2 border-b border-[var(--sky-blue-100)] px-3 py-2 text-xs leading-5 text-[var(--sky-navy-600)] dark:border-white/10 dark:text-slate-400"><CircleAlert className="mt-0.5 size-3.5 shrink-0 text-[var(--sky-blue-600)]" />Match updates and odds are supplied by the backend.</div>
           {scoreboard.isError ? <p className="p-3 text-sm text-destructive">The match feed is unavailable. Please refresh.</p> : null}
           <div className={showPredictions ? "grid gap-3 p-3" : "flex gap-2 overflow-x-auto p-2.5 pb-3 [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible"}>
             {scoreboard.isLoading ? <p className="p-3 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">Loading match updates…</p> : null}
@@ -63,8 +65,9 @@ export function GamesFeedPreview({ heading = "SKYBET match centre", showPredicti
                 <p className="mt-1 truncate text-[13px] font-extrabold text-[var(--sky-navy-950)] dark:text-white">{event.teams[0]}{event.score ? `  ${event.score.split(" – ")[0]}` : ""}</p>
                 <p className="mt-px truncate text-[13px] font-extrabold text-[var(--sky-navy-950)] dark:text-white">{event.teams[1]}{event.score ? `  ${event.score.split(" – ")[1] ?? ""}` : ""}</p>
                 <p className="mt-1 truncate text-[11px] text-[var(--sky-navy-600)] dark:text-slate-400">{event.competition} · {event.status}</p>
-                <span className="mt-1.5 block text-[11px] font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">match market odds</span>
+                <span className="mt-1.5 block text-[11px] font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">Available selections</span>
                 {showPredictions && "predictedOutcome" in event ? <p className="mt-1 text-[11px] font-semibold text-[var(--sky-navy-600)] dark:text-slate-400">Forecast: {event.predictedOutcome} · {event.predictionConfidence}% confidence</p> : null}
+                {showPredictions && !event.isLive && event.markets[0] ? <Button type="button" variant="outline" disabled={createShareCode.isPending} onClick={() => createShareCode.mutate({ source: "admin", selections: [{ eventId: event.id, label: event.markets[0].label, odds: event.markets[0].value }] })} className="mt-4 h-9 w-full rounded-lg border-[var(--sky-blue-200)] text-xs font-extrabold text-[var(--sky-blue-700)]"><Copy className="mr-1.5 size-3.5" />Create share code</Button> : null}
               </article>
             ))}
             {!scoreboard.isLoading && !scoreboard.isError && visibleEvents.length === 0 ? <p className="p-3 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">No match updates are available in this category yet.</p> : null}

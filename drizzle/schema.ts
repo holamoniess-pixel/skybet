@@ -252,11 +252,23 @@ export const paymentRequestEvents = pgTable("payment_request_events", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-/** Internally managed wager record; settlement remains an explicit administrative action. */
+/** Shareable selections snapshot used to reload the same picks and odds before staking. */
+export const sharedBetSlips = pgTable("shared_bet_slips", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 48 }).notNull().unique(),
+  creatorUserId: integer("creatorUserId").notNull(),
+  source: varchar("source", { length: 16 }).notNull(),
+  selectionsJson: text("selectionsJson").notNull(),
+  odds: numeric("odds", { precision: 12, scale: 4 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/** Wager record; settlement remains an explicit administrative action. */
 export const wagers = pgTable("wagers", {
   id: serial("id").primaryKey(),
   userId: integer("userId").notNull(),
   publicReference: varchar("publicReference", { length: 48 }).notNull().unique(),
+  shareCode: varchar("shareCode", { length: 48 }).notNull().unique(),
   idempotencyKey: varchar("idempotencyKey", { length: 128 }).notNull().unique(),
   currency: varchar("currency", { length: 3 }).notNull(),
   stake: numeric("stake", { precision: 12, scale: 2 }).notNull(),

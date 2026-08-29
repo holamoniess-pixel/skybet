@@ -49,7 +49,7 @@ export function SelectionSheet({ open, onOpenChange, selection, selections, onRe
         stake: numericStake,
         selections: selectedItems.map(item => ({ eventId: item.event.id, label: item.label, odds: item.value })),
       });
-      toast.success(`Bet ${wager.publicReference} placed. Your stake was deducted and the bet is pending settlement.`);
+      toast.success(`Bet ${wager.publicReference} placed. Stake deducted. Share code: ${wager.shareCode}`);
       onOpenChange(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to place the bet.");
@@ -64,10 +64,10 @@ export function SelectionSheet({ open, onOpenChange, selection, selections, onRe
         </SheetHeader>
         <div className="max-h-[calc(80dvh-6.5rem)] overflow-y-auto p-5">
           {onLoadCode ? <form className="sky-event-code-panel" onSubmit={event => { event.preventDefault(); onLoadCode(code); }}>
-            <div className="relative min-w-0 flex-1"><KeyRound className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[var(--sky-blue-600)]" /><Input aria-label="Enter an event code" placeholder="e.g. SKY-LIVE-01" value={code} onChange={event => setCode(event.target.value)} className="h-11 rounded-xl border-[var(--sky-blue-200)] bg-white pl-10 text-sm dark:border-white/15 dark:bg-white/5" /></div>
+            <div className="relative min-w-0 flex-1"><KeyRound className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[var(--sky-blue-600)]" /><Input aria-label="Enter an event or bet code" placeholder="e.g. SKY-LIVE-01 or PICK-ABC123" value={code} onChange={event => setCode(event.target.value)} className="h-11 rounded-xl border-[var(--sky-blue-200)] bg-white pl-10 text-sm dark:border-white/15 dark:bg-white/5" /></div>
             <Button type="submit" className="h-11 shrink-0 rounded-xl bg-[var(--sky-blue-600)] px-4 font-extrabold hover:bg-[var(--sky-blue-700)]">Load code</Button>
           </form> : null}
-          {onLoadCode ? <p aria-live="polite" className="mt-2 min-h-5 text-xs font-semibold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">{codeMessage || "Enter an event code to restore your selection."}</p> : null}
+          {onLoadCode ? <p aria-live="polite" className="mt-2 min-h-5 text-xs font-semibold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">{codeMessage || "Enter an event or bet code to restore selections."}</p> : null}
           {selectedItems.length ? (
             <>
               <div className="mt-4 max-h-[38dvh] space-y-2 overflow-y-auto pr-1">
