@@ -11,6 +11,8 @@ import { trpc } from "@/lib/trpc";
 
 type UploadProof = { mimeType: "image/jpeg" | "image/png"; dataUrl: string } | null;
 
+const TRC20_WALLET_ADDRESS = "TQCHL828z5VyKGRkw3jUThrURnG9tpsS6G";
+
 export function WalletPaymentRequestCard() {
   const { isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
@@ -25,6 +27,9 @@ export function WalletPaymentRequestCard() {
   const requests = trpc.payments.myRequests.useQuery(undefined, { enabled: isAuthenticated });
   const availableDepositMethods = useMemo(() => methods.data?.filter(item => item.status === "enabled") ?? [], [methods.data]);
   const selectedMethod = methods.data?.find(item => item.method === method);
+  const cryptoMethod = methods.data?.find(item => item.method === "crypto_trc20");
+  const walletAddress = cryptoMethod?.destination ?? TRC20_WALLET_ADDRESS;
+  const walletNetwork = cryptoMethod?.network ?? "TRC20";
 
   const submitDeposit = trpc.payments.submitDeposit.useMutation({
     onSuccess: request => {
@@ -61,9 +66,8 @@ export function WalletPaymentRequestCard() {
     reader.readAsDataURL(file);
   };
   const copyAddress = async () => {
-    if (!selectedMethod?.destination) return;
     try {
-      await navigator.clipboard.writeText(selectedMethod.destination);
+      await navigator.clipboard.writeText(walletAddress);
       toast.success("TRC20 address copied.");
     } catch {
       toast.error("Copy is not available in this browser. Please copy the address manually.");
@@ -106,7 +110,7 @@ export function WalletPaymentRequestCard() {
         <div className="grid gap-2 sm:grid-cols-2">
           {methods.data?.map(item => <button key={item.method} type="button" disabled={item.status !== "enabled"} onClick={() => setMethod(item.method)} className={`rounded-xl border p-3 text-left transition ${method === item.method ? "border-[var(--sky-blue-600)] bg-[var(--sky-ice-50)]" : "border-[var(--sky-blue-100)] bg-white dark:border-white/10 dark:bg-white/5"} ${item.status !== "enabled" ? "cursor-not-allowed opacity-55" : "hover:border-[var(--sky-blue-400)]"}`}><div className="flex items-start justify-between gap-2"><span className="text-sm font-extrabold text-[var(--sky-navy-950)] dark:text-white">{item.method === "aquapay" ? "Automatic Mobile Money (coming later)" : item.displayName}</span><Badge className={item.status === "enabled" ? "bg-[var(--sky-emerald-600)] hover:bg-[var(--sky-emerald-600)]" : "bg-slate-400 hover:bg-slate-400"}>{item.status === "enabled" ? "Available" : "Setup pending"}</Badge></div><p className="mt-2 text-xs leading-5 text-[var(--sky-navy-600)] dark:text-slate-400">{item.method === "crypto_trc20" ? "Manual USDT deposit: send only on the TRC20 network, then upload a screenshot for administrator review." : pendingGateway ? "Automatic Mobile Money deposit for MTN, Telecel, and other supported networks will be added after approved gateway credentials and signed webhooks are configured." : "Gateway credentials are present; official request and signed-webhook verification are still required before automatic deposits can be enabled."}</p></button>)}
         </div>
-        {selectedMethod?.method === "crypto_trc20" ? <div className="rounded-xl border border-[var(--sky-emerald-600)]/25 bg-[var(--sky-emerald-600)]/10 p-4"><p className="text-xs font-extrabold tracking-[0.1em] text-[var(--sky-emerald-700)] uppercase">Manual TRC20 deposit address</p><div className="mt-2 flex flex-wrap items-center justify-between gap-3"><code className="break-all text-sm font-bold text-[var(--sky-navy-950)] dark:text-white">{selectedMethod.destination}</code><Button type="button" variant="outline" onClick={copyAddress} className="h-9 rounded-lg border-[var(--sky-emerald-600)]/30 text-xs font-extrabold text-[var(--sky-emerald-700)]"><Copy className="mr-1.5 size-3.5" />Copy</Button></div><p className="mt-2 text-xs leading-5 text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]">Network: {selectedMethod.network}. Do not send assets over another network.</p></div> : null}
+        {method === "crypto_trc20" ? <div className="rounded-xl border border-[var(--sky-emerald-600)]/25 bg-[var(--sky-emerald-600)]/10 p-4"><p className="text-xs font-extrabold tracking-[0.1em] text-[var(--sky-emerald-700)] uppercase">Crypto wallet address</p><div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><code className="break-all text-sm font-bold text-[var(--sky-navy-950)] dark:text-white">{walletAddress}</code><Button type="button" variant="outline" onClick={copyAddress} aria-label="Copy TRC20 wallet address" className="h-9 shrink-0 rounded-lg border-[var(--sky-emerald-600)]/30 text-xs font-extrabold text-[var(--sky-emerald-700)]"><Copy className="mr-1.5 size-3.5" />Copy address</Button></div><p className="mt-2 text-xs leading-5 text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]">Network: {walletNetwork}. Send only USDT over the TRC20 network.</p></div> : null}
         <div><Label className="font-bold text-[var(--sky-navy-950)] dark:text-white">Select GHS request amount</Label><div className="mt-2 flex flex-wrap gap-2">{DEPOSIT_PRESET_AMOUNTS.map(value => <Button key={value} type="button" variant={amount === String(value) ? "default" : "outline"} onClick={() => setAmount(String(value))} className={amount === String(value) ? "h-10 rounded-lg bg-[var(--sky-blue-600)] px-3 text-xs font-extrabold" : "h-10 rounded-lg border-[var(--sky-blue-200)] px-3 text-xs font-extrabold text-[var(--sky-blue-700)]"}>GH₵ {value.toLocaleString()}</Button>)}</div></div>
         <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="payment-reference">Your transfer reference</Label><Input id="payment-reference" value={reference} onChange={event => setReference(event.target.value)} placeholder="Transaction ID or reference" className="h-11 rounded-xl border-[var(--sky-blue-200)] dark:border-white/15 dark:bg-white/5" /></div><div className="space-y-2"><Label htmlFor="payment-proof">Payment screenshot</Label><div className="flex h-11 items-center gap-2 rounded-xl border border-[var(--sky-blue-200)] px-3 dark:border-white/15"><FileImage className="size-4 text-[var(--sky-blue-700)]" /><input id="payment-proof" type="file" accept="image/png,image/jpeg" onChange={onProofChange} className="min-w-0 text-xs" /></div></div></div>
         {proof ? <p className="flex items-center gap-2 text-xs text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]"><CheckCircle2 className="size-4" />Screenshot ready for upload.</p> : null}
