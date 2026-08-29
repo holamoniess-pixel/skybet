@@ -12,8 +12,15 @@ export function useAuth(options?: UseAuthOptions) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/auth/me", { credentials: "include" });
-      const payload = (await response.json()) as { user?: AuthUser | null };
+      const response = await fetch("/api/auth/me", { credentials: "include", headers: { Accept: "application/json" } });
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) throw new Error("The authentication service returned an invalid session response.");
+      let payload: { user?: AuthUser | null };
+      try {
+        payload = (await response.json()) as { user?: AuthUser | null };
+      } catch {
+        throw new Error("The authentication service returned an invalid session response.");
+      }
       if (!response.ok) throw new Error("Unable to check the current session.");
       setUser(payload.user ?? null);
       setError(null);

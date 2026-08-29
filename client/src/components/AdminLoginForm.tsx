@@ -16,11 +16,23 @@ export function AdminLoginForm() {
     try {
       const response = await fetch("/api/admin/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });
-      const payload = await response.json() as { error?: string; redirectTo?: string };
+      const contentType = response.headers.get("content-type") || "";
+      let payload: { error?: string; redirectTo?: string } = {};
+      if (contentType.includes("application/json")) {
+        try {
+          payload = await response.json() as { error?: string; redirectTo?: string };
+        } catch {
+          setError("The administrator sign-in service returned an invalid response. Please try again.");
+          return;
+        }
+      } else {
+        setError("The administrator sign-in service is temporarily unavailable. Please try again shortly.");
+        return;
+      }
       if (!response.ok) {
         setError(payload.error || "Unable to sign in.");
         return;
