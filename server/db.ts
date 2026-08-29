@@ -147,7 +147,7 @@ export async function createCustomerWithCredentials(input: {
     if (normalizedReferralCode) {
       const referrer = await tx.select({ id: users.id }).from(users).where(eq(users.referralCode, normalizedReferralCode)).limit(1);
       if (referrer[0] && referrer[0].id !== userId) {
-        await tx.insert(referralAttributions).values({ referrerUserId: referrer[0].id, referredUserId: userId, referralCode: normalizedReferralCode });
+        await tx.insert(referralAttributions).values({ referrerUserId: referrer[0].id, referredUserId: userId, referralCode: normalizedReferralCode, status: "active", createdAt: new Date() });
       }
     }
     await tx.insert(customerCredentials).values({
@@ -598,7 +598,7 @@ export async function placeSimulationWager(input: { userId: number; idempotencyK
     const deposited = Number(balance.depositedBalance);
     if (!Number.isFinite(deposited) || deposited < input.stake) throw new Error("Your deposited balance is insufficient for this stake.");
     const nextDeposited = deposited - input.stake;
-    const inserted = await tx.insert(wagers).values({ userId: input.userId, publicReference: `BET-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`, idempotencyKey: input.idempotencyKey, currency: "GHS", stake: input.stake.toFixed(2), odds: combinedOdds.toFixed(4), potentialReturn: (input.stake * combinedOdds).toFixed(2), selectionsJson: JSON.stringify(normalizedSelections), status: "pending" }).returning({ id: wagers.id });
+    const inserted = await tx.insert(wagers).values({ userId: input.userId, publicReference: `BET-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`, idempotencyKey: input.idempotencyKey, currency: "GHS", stake: input.stake.toFixed(2), odds: combinedOdds.toFixed(4), potentialReturn: (input.stake * combinedOdds).toFixed(2), selectionsJson: JSON.stringify(normalizedSelections), status: "pending", createdAt: new Date() }).returning({ id: wagers.id });
     await tx.insert(accountBalanceSummaries).values({ userId: input.userId, currency: "GHS", depositedBalance: nextDeposited.toFixed(2), bonusBalance: balance.bonusBalance }).onConflictDoUpdate({ target: accountBalanceSummaries.userId, set: { depositedBalance: nextDeposited.toFixed(2), updatedAt: new Date() } });
     return (await tx.select().from(wagers).where(eq(wagers.id, inserted[0].id)).limit(1))[0];
   });
@@ -794,7 +794,7 @@ async function creditReferralRewardForDeposit(tx: any, referredUserId: number, p
   const balance = (await tx.select().from(accountBalanceSummaries).where(eq(accountBalanceSummaries.userId, attribution.referrerUserId)).limit(1))[0] ?? { depositedBalance: "0.00", bonusBalance: "0.00" };
   const nextBonus = Number(balance.bonusBalance) + Number(amount);
   await tx.insert(accountBalanceSummaries).values({ userId: attribution.referrerUserId, currency, depositedBalance: balance.depositedBalance, bonusBalance: nextBonus.toFixed(2) }).onConflictDoUpdate({ target: accountBalanceSummaries.userId, set: { bonusBalance: nextBonus.toFixed(2), updatedAt: new Date() } });
-  await tx.insert(referralRewardCredits).values({ attributionId: attribution.id, referrerUserId: attribution.referrerUserId, referredUserId, paymentRequestId, amount: Number(amount).toFixed(2), currency });
+  await tx.insert(referralRewardCredits).values({ attributionId: attribution.id, referrerUserId: attribution.referrerUserId, referredUserId, paymentRequestId, amount: Number(amount).toFixed(2), currency, createdAt: new Date() });
   return `referral_bonus_credited:${Number(amount).toFixed(2)}`;
 }
 
