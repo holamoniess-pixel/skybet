@@ -12,8 +12,9 @@ import {
   customerCredentials,
   customerSessions,
   InsertUser,
-  localAdminCredentials,
-  paymentMethodConfigs,
+    localAdminCredentials,
+    notifications,
+    paymentMethodConfigs,
   paymentRequestEvents,
   paymentRequests,
   proofRetentionRuns,
@@ -620,6 +621,26 @@ export async function getAccountBalanceSummary(userId: number) {
   const result = await db.select().from(accountBalanceSummaries).where(eq(accountBalanceSummaries.userId, userId)).limit(1);
   const summary = result[0];
   return summary ? { ...summary, source: "persisted" as const } : { userId, currency: "GHS", depositedBalance: "0.00", bonusBalance: "0.00", source: "unconfigured" as const };
+}
+
+export async function recordReferralSignupNotifications(input: { referredUserId: number; referredName?: string | null; referralCode: string }) {
+  const db = await getDb();
+  if (!db) return { referrerUserId: null, adminCount: 0 };
+  const attribution = (await db.select({ referrerUserId: referralAttributions.referrerUserId }).from(referralAttributions).where(eq(referralAttributions.referredUserId, input.referredUserId)).limit(1))[0];
+  if (!attribution) return { referrerUserId: null, adminCount: 0 };
+  const admins = await db.select({ id: users.id }).from(users).where(eq(users.role, "admin"));
+  const displayName = input.referredName?.trim() || "A new customer";
+  const recipients = new Set<number>([...(attribution ? [attribution.referrerUserId] : []), ...admins.map(admin => admin.id)]);
+  if (recipients.size) {
+    await db.insert(notifications).values([...recipients].map(recipientUserId => ({ recipientUserId, type: "referral_signup", title: "New referral signup", content: `${displayName} joined SKYBET using referral code ${input.referralCode}.`, createdAt: new Date() })));
+  }
+  return { referrerUserId: attribution?.referrerUserId ?? null, adminCount: admins.length };
+}
+
+export async function getNotifications(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(notifications).where(eq(notifications.recipientUserId, userId)).orderBy(desc(notifications.createdAt)).limit(25);
 }
 
 export async function getAccountProfile(userId: number) {

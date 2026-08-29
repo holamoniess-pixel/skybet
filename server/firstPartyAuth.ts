@@ -1,11 +1,12 @@
 import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import type { Request, Response } from "express";
-import { createCustomerSession, createCustomerWithCredentials, deleteCustomerSession, getCustomerCredentialByEmail, getCustomerCredentialByPhone, getCustomerSessionUser } from "./db";
+import { createCustomerSession, createCustomerWithCredentials, deleteCustomerSession, getCustomerCredentialByEmail, getCustomerCredentialByPhone, getCustomerSessionUser, recordReferralSignupNotifications } from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { COOKIE_NAME } from "../shared/const";
 import { ADMIN_SESSION_COOKIE, authenticateLocalAdminRequest } from "./localAdminSession";
 import { validateGhanaMobileMoneyNumber } from "../shared/payments";
+import { notifyOwner } from "./_core/notification";
 
 const scrypt = promisify(scryptCallback);
 export const CUSTOMER_SESSION_COOKIE = "skybet-session";
@@ -102,6 +103,16 @@ export function createFirstPartyAuthHandlers(deps: {
         const user = await createCustomer({ email, phone, passwordHash: await hashCustomerPassword(password), name, referralCode });
         if (!user) return res.status(503).json({ error: "Account creation is temporarily unavailable." });
         const sessionUser = await issueCustomerSession(user, req, res, createSession);
+        if (referralCode) {
+          try {
+            const notificationResult = await recordReferralSignupNotifications({ referredUserId: user.id, referredName: user.name, referralCode: referralCode.trim().toUpperCase() });
+            if (notificationResult.referrerUserId) {
+              void notifyOwner({ title: "New referral signup", content: `${user.name || "A new customer"} joined using a referral link. The referrer has been notified in SKYBET.` });
+            }
+          } catch (error) {
+            console.warn("[Referral] Signup notification dispatch failed:", error);
+          }
+        }
         return res.status(201).json({ ok: true, user: sessionUser });
       } catch {
         return res.status(409).json({ error: "An account with those details already exists." });

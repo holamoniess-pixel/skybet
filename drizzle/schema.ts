@@ -81,6 +81,18 @@ export const referralAttributions = pgTable("referral_attributions", {
 });
 
 /** Idempotent bonus credit created when a referred customer completes the qualifying deposit. */
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  recipientUserId: integer("recipientUserId").notNull(),
+  type: varchar("type", { length: 48 }).notNull(),
+  title: varchar("title", { length: 160 }).notNull(),
+  content: text("content").notNull(),
+  readAt: timestamp("readAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, table => [index("notifications_recipient_created_idx").on(table.recipientUserId, table.createdAt)]);
+
+export type Notification = typeof notifications.$inferSelect;
+
 export const referralRewardCredits = pgTable("referral_reward_credits", {
   id: serial("id").primaryKey(),
   attributionId: integer("attributionId").notNull().unique(),
