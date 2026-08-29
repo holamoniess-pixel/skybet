@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Activity, Copy, RefreshCw } from "lucide-react";
+import { Activity, Check, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,13 @@ type GamesFeedPreviewProps = {
   showPredictions?: boolean;
 };
 
+type AdminSelection = {
+  eventId: string;
+  label: string;
+  odds: string;
+  teams: string[];
+};
+
 function displayStartTime(value: string, isLive: boolean) {
   if (isLive) return value;
   const timestamp = Date.parse(value);
@@ -20,11 +27,21 @@ function displayStartTime(value: string, isLive: boolean) {
 
 export function GamesFeedPreview({ heading = "SKYBET match centre", showPredictions = false }: GamesFeedPreviewProps) {
   const [category, setCategory] = useState("All");
+  const [adminSelections, setAdminSelections] = useState<AdminSelection[]>([]);
   const scoreboard = trpc.games.matchFeed.useQuery(undefined, {
     refetchInterval: 30_000,
     refetchIntervalInBackground: false,
   });
-  const createShareCode = trpc.sharedBets.create.useMutation({ onSuccess: result => { if (result) { navigator.clipboard?.writeText(result.code).catch(() => undefined); toast.success(`Share code ${result.code} copied.`); } }, onError: error => toast.error(error.message) });
+  const createShareCode = trpc.sharedBets.create.useMutation({
+    onSuccess: result => {
+      if (result) {
+        navigator.clipboard?.writeText(result.code).catch(() => undefined);
+        toast.success(`Share code ${result.code} copied.`);
+        setAdminSelections([]);
+      }
+    },
+    onError: error => toast.error(error.message),
+  });
   const categories = ["All", "Live now", "Upcoming"];
   const visibleEvents = useMemo(() => {
     const events = scoreboard.data?.events ?? [];
@@ -32,6 +49,16 @@ export function GamesFeedPreview({ heading = "SKYBET match centre", showPredicti
     if (category === "Upcoming") return events.filter(event => !event.isLive);
     return events;
   }, [category, scoreboard.data?.events]);
+  const combinedOdds = adminSelections.reduce((total, selection) => total * Number(selection.odds), 1);
+
+  function selectAdminMarket(event: { id: string; teams: string[] }, market: { label: string; value: string }) {
+    setAdminSelections(current => {
+      const next = current.filter(selection => selection.eventId !== event.id);
+      const existing = current.find(selection => selection.eventId === event.id);
+      if (existing?.label === market.label) return next;
+      return [...next, { eventId: event.id, label: market.label, odds: market.value, teams: event.teams }];
+    });
+  }
 
   return (
     <section className="mt-5" aria-labelledby="games-feed-heading">
@@ -49,9 +76,11 @@ export function GamesFeedPreview({ heading = "SKYBET match centre", showPredicti
         {categories.map(item => <button key={item} type="button" aria-pressed={category === item} onClick={() => setCategory(item)} className={`min-h-11 shrink-0 rounded-xl border px-3 text-xs font-extrabold transition ${category === item ? "border-[var(--sky-blue-600)] bg-[var(--sky-blue-600)] text-white" : "border-[var(--sky-blue-100)] bg-white text-[var(--sky-navy-700)] hover:border-[var(--sky-blue-300)] hover:bg-[var(--sky-ice-50)] dark:border-white/10 dark:bg-[var(--card)] dark:text-slate-300 dark:hover:bg-white/5"}`}>{item}</button>)}
       </div>
 
+      {showPredictions && adminSelections.length ? <Card className="mb-3 border-[var(--sky-emerald-600)]/25 bg-[var(--sky-emerald-600)]/5 dark:border-[var(--sky-emerald-500)]/20 dark:bg-[var(--sky-emerald-500)]/5"><CardContent className="p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-extrabold tracking-[0.1em] text-[var(--sky-emerald-700)] uppercase">Admin betslip</p><p className="mt-1 text-sm font-extrabold text-[var(--sky-navy-950)] dark:text-white">{adminSelections.length} selection{adminSelections.length === 1 ? "" : "s"} · Combined odds {combinedOdds.toFixed(2)}</p></div><Button type="button" disabled={createShareCode.isPending} onClick={() => createShareCode.mutate({ source: "admin", selections: adminSelections.map(({ eventId, label, odds }) => ({ eventId, label, odds })) })} className="h-10 rounded-xl bg-[var(--sky-emerald-600)] px-4 text-xs font-extrabold text-white hover:bg-[var(--sky-emerald-700)]"><Copy className="mr-1.5 size-3.5" />Generate Code</Button></div><div className="mt-3 grid gap-2 sm:grid-cols-2">{adminSelections.map(selection => <div key={selection.eventId} className="rounded-lg bg-white/70 px-3 py-2 text-xs dark:bg-white/5"><p className="font-extrabold text-[var(--sky-navy-950)] dark:text-white">{selection.teams.join(" vs ")}</p><p className="mt-0.5 font-semibold text-[var(--sky-navy-600)] dark:text-slate-400">{selection.label} · {selection.odds}</p></div>)}</div></CardContent></Card> : null}
+
       <Card className="overflow-hidden border-[var(--sky-blue-100)] bg-white shadow-[0_10px_24px_rgba(10,63,158,0.05)] dark:border-white/10 dark:bg-[var(--card)]">
         <CardContent className="p-0">
-          {scoreboard.isError ? <p className="p-3 text-sm text-destructive">The match feed is unavailable. Please refresh.</p> : null}
+          {scoreboard.isError ? <p className="p-3 text-sm text-destructive">The matches are unavailable. Please refresh.</p> : null}
           <div className={showPredictions ? "grid gap-3 p-3" : "flex gap-2 overflow-x-auto p-2.5 pb-3 [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible"}>
             {scoreboard.isLoading ? <p className="p-3 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">Loading match updates…</p> : null}
             {visibleEvents.map(event => (
@@ -61,11 +90,11 @@ export function GamesFeedPreview({ heading = "SKYBET match centre", showPredicti
                 <p className="mt-px truncate text-[13px] font-extrabold text-[var(--sky-navy-950)] dark:text-white">{event.teams[1]}{event.score ? `  ${event.score.split(" – ")[1] ?? ""}` : ""}</p>
                 <p className="mt-1 truncate text-[11px] text-[var(--sky-navy-600)] dark:text-slate-400">{event.competition} · {event.status}</p>
                 <span className="mt-1.5 block text-[11px] font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">Available selections</span>
-                {showPredictions && "predictedOutcome" in event ? <p className="mt-1 text-[11px] font-semibold text-[var(--sky-navy-600)] dark:text-slate-400">Forecast: {event.predictedOutcome} · {event.predictionConfidence}% confidence</p> : null}
-                {showPredictions && !event.isLive && event.markets[0] ? <Button type="button" variant="outline" disabled={createShareCode.isPending} onClick={() => createShareCode.mutate({ source: "admin", selections: [{ eventId: event.id, label: event.markets[0].label, odds: event.markets[0].value }] })} className="mt-4 h-9 w-full rounded-lg border-[var(--sky-blue-200)] text-xs font-extrabold text-[var(--sky-blue-700)]"><Copy className="mr-1.5 size-3.5" />Create share code</Button> : null}
+                {showPredictions && "predictedOutcome" in event ? <p className="mt-1 text-[11px] font-semibold text-[var(--sky-navy-600)] dark:text-slate-400">Expected result: {event.predictedOutcome}</p> : null}
+                {showPredictions ? <div className="mt-3 grid gap-2 sm:grid-cols-3">{event.markets.slice(0, 3).map(market => { const selected = adminSelections.find(selection => selection.eventId === event.id)?.label === market.label; const winning = "predictedOutcome" in event && event.predictedOutcome === market.label; return <button key={market.label} type="button" aria-pressed={selected} onClick={() => selectAdminMarket(event, market)} className={`min-h-12 rounded-xl border px-2 py-2 text-left text-xs font-extrabold transition ${selected ? "ring-2 ring-[var(--sky-blue-600)] ring-offset-1" : ""} ${winning ? "border-[var(--sky-emerald-600)] bg-[var(--sky-emerald-600)] text-white hover:bg-[var(--sky-emerald-700)]" : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"}`}><span className="block truncate">{market.label}</span><span className="mt-1 block text-sm">{market.value}</span>{winning ? <Check className="mt-1 size-3.5" aria-label="Expected result" /> : null}</button>; })}</div> : null}
               </article>
             ))}
-            {!scoreboard.isLoading && !scoreboard.isError && visibleEvents.length === 0 ? <p className="p-3 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">No match updates are available in this category yet.</p> : null}
+            {!scoreboard.isLoading && !scoreboard.isError && visibleEvents.length === 0 ? <p className="p-3 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">No matches are available in this category yet.</p> : null}
           </div>
         </CardContent>
       </Card>
