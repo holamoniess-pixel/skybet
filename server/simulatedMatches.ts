@@ -100,3 +100,23 @@ export function getSimulatedMatchFeed(now = new Date()): SimulatedMatchFeed {
     message: "SKYBET-generated markets: pairings, schedules, forecasts, scores, and odds are managed by the SKYBET market engine.",
   };
 }
+
+export type MatchFeed = Omit<SimulatedMatchFeed, "source" | "attribution" | "events" | "message"> & {
+  source: "backend";
+  attribution: "Backend match data";
+  events: Array<Omit<SimulatedMatch, "simulation">>;
+  message: string;
+};
+
+export function getMatchFeed(now = new Date()): MatchFeed {
+  const feed = getSimulatedMatchFeed(now);
+  return {
+    source: "backend",
+    attribution: "Backend match data",
+    generatedAt: feed.generatedAt,
+    refreshAfterSeconds: feed.refreshAfterSeconds,
+    clubCount: feed.clubCount,
+    events: feed.events.map(({ simulation: _simulation, ...event }) => ({ ...event, competition: event.competition.replace(/^Simulation /, "SKYBET ") })),
+    message: "Match updates, fixtures, scores, forecasts, and odds are supplied by the backend.",
+  };
+}

@@ -10,7 +10,7 @@ import { ADMIN_SESSION_COOKIE } from "./localAdminSession";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { getSportsDataConnectionStatus } from "./sportsDataAdapter";
-import { getSimulatedMatchFeed } from "./simulatedMatches";
+import { getMatchFeed, getSimulatedMatchFeed } from "./simulatedMatches";
 import { espnPreviewClient } from "./espnPreview";
 import { commissionRouter, paymentReviewAdminRouter, paymentReviewRouter } from "./routers/paymentReview";
 import { adminManagementRouter } from "./routers/adminManagement";
@@ -32,7 +32,7 @@ export const appRouter = router({
   games: router({
     mockFeed: publicProcedure.query(() => getMockGamesFeed()),
     simulatedFeed: publicProcedure.query(() => getSimulatedMatchFeed()),
-    matchFeed: publicProcedure.query(() => getSimulatedMatchFeed()),
+    matchFeed: publicProcedure.query(() => getMatchFeed()),
   }),
   sportsData: router({
     status: publicProcedure.query(() => getSportsDataConnectionStatus()),
