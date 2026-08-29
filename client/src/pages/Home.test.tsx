@@ -12,6 +12,8 @@ const { scoreboardRefetch } = vi.hoisted(() => ({ scoreboardRefetch: vi.fn() }))
 
 vi.mock("@/lib/trpc", () => ({
   trpc: {
+    games: { simulatedFeed: { useQuery: () => ({ data: { events: [] }, isLoading: false, isError: false }) } },
+    wagers: { place: { useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }) } },
     sportsData: {
       status: { useQuery: () => ({ data: { state: "preview-configured", provider: "ESPN unofficial site API", refreshStrategy: "server-cache-on-demand", message: "Best-effort scores and fixtures preview sourced from ESPN. Not official betting odds, not an ESPN partnership, and not used for wagers or settlement." } }) },
       scoreboard: { useQuery: () => ({ data: { source: "espn-unofficial-preview", attribution: "Data sourced from ESPN", league: "eng.1", refreshedAt: "2026-08-25T12:00:00.000Z", refreshAfterSeconds: 120, stale: false, message: "Best-effort scores and fixtures preview. Not official betting odds and not an ESPN partnership.", events: [] }, isLoading: false, isError: false, isFetching: false, refetch: scoreboardRefetch }) },

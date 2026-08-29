@@ -21,7 +21,6 @@ import {
   filterSkybetEvents,
   findSkybetEventByPreviewCode,
   formatSelection,
-  SKYBET_EVENTS,
   SKYBET_SPORTS,
   type SkybetEvent,
   type SkybetMode,
@@ -38,6 +37,7 @@ import { PreviewSlipFab } from "@/components/skybet/PreviewSlipFab";
 import { SelectionSheet } from "@/components/skybet/SelectionSheet";
 import { SkybetBrandMark } from "@/components/skybet/SkybetBrandMark";
 import { SkybetEventCard } from "@/components/skybet/SkybetEventCard";
+import { trpc } from "@/lib/trpc";
 
 type Selection = {
   event: SkybetEvent;
@@ -78,6 +78,8 @@ export default function Home() {
   const [activeMobileNav, setActiveMobileNav] = useState("Home");
   const [eventCodeMessage, setEventCodeMessage] = useState("");
   const [heroSlide, setHeroSlide] = useState(0);
+  const simulationFeed = trpc.games.simulatedFeed.useQuery(undefined, { refetchInterval: 30_000, refetchIntervalInBackground: false });
+  const eventCatalogue = simulationFeed.data?.events ?? [];
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -90,8 +92,8 @@ export default function Home() {
   }, [selections]);
 
   const events = useMemo(
-    () => filterSkybetEvents(SKYBET_EVENTS, mode, sport),
-    [mode, sport]
+    () => filterSkybetEvents(eventCatalogue, mode, sport),
+    [eventCatalogue, mode, sport]
   );
 
   const chooseSelection = (event: SkybetEvent, label: string, value: string) => {
@@ -105,19 +107,19 @@ export default function Home() {
   const handleEventCodeLookup = (code: string) => {
     const normalizedCode = code.trim().toLowerCase();
     if (!normalizedCode) {
-      setEventCodeMessage("Enter an authored preview code, for example SKY-LIVE-01.");
+      setEventCodeMessage("Enter a SKYBET event code, for example SKY-LIVE-01.");
       return;
     }
 
-    const event = findSkybetEventByPreviewCode(SKYBET_EVENTS, normalizedCode);
+    const event = findSkybetEventByPreviewCode(eventCatalogue, normalizedCode);
     if (!event) {
-      setEventCodeMessage(`No preview event was found for “${code.trim()}”. Try SKY-LIVE-01.`);
+      setEventCodeMessage(`No SKYBET-generated event was found for “${code.trim()}”. Try SKY-LIVE-01.`);
       return;
     }
 
     const market = event.markets[0];
     chooseSelection(event, market.label, market.value);
-    setEventCodeMessage(`Loaded ${event.teams[0]} into your local Preview slip. No real-money action occurs.`);
+    setEventCodeMessage(`Loaded ${event.teams[0]} into your SKYBET betslip.`);
   };
 
   const handleMobileNavigation = (label: string) => {

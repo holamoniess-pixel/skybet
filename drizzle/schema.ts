@@ -26,6 +26,7 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: userRoleEnum("role").default("user").notNull(),
+  referralCode: varchar("referralCode", { length: 32 }).unique(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -69,6 +70,28 @@ export const customerSessions = pgTable("customer_sessions", {
 export type CustomerCredential = typeof customerCredentials.$inferSelect;
 export type CustomerSession = typeof customerSessions.$inferSelect;
 
+/** One-time referral attribution captured during customer registration. */
+export const referralAttributions = pgTable("referral_attributions", {
+  id: serial("id").primaryKey(),
+  referrerUserId: integer("referrerUserId").notNull(),
+  referredUserId: integer("referredUserId").notNull().unique(),
+  referralCode: varchar("referralCode", { length: 32 }).notNull(),
+  status: varchar("status", { length: 24 }).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/** Idempotent bonus credit created when a referred customer completes the qualifying deposit. */
+export const referralRewardCredits = pgTable("referral_reward_credits", {
+  id: serial("id").primaryKey(),
+  attributionId: integer("attributionId").notNull().unique(),
+  referrerUserId: integer("referrerUserId").notNull(),
+  referredUserId: integer("referredUserId").notNull(),
+  paymentRequestId: integer("paymentRequestId").notNull().unique(),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 /** Versioned, programme-wide referral reward configurations. */
 export const referralRewardRules = pgTable("referral_reward_rules", {
   id: serial("id").primaryKey(),
@@ -106,6 +129,8 @@ export const adminAuditEvents = pgTable("admin_audit_events", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export type ReferralAttribution = typeof referralAttributions.$inferSelect;
+export type ReferralRewardCredit = typeof referralRewardCredits.$inferSelect;
 export type ReferralRewardRule = typeof referralRewardRules.$inferSelect;
 export type ReferralRewardOverride = typeof referralRewardOverrides.$inferSelect;
 export type AdminAuditEvent = typeof adminAuditEvents.$inferSelect;
@@ -215,6 +240,21 @@ export const paymentRequestEvents = pgTable("payment_request_events", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+/** Internally managed wager record; settlement remains an explicit administrative action. */
+export const wagers = pgTable("wagers", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
+  publicReference: varchar("publicReference", { length: 48 }).notNull().unique(),
+  idempotencyKey: varchar("idempotencyKey", { length: 128 }).notNull().unique(),
+  currency: varchar("currency", { length: 3 }).notNull(),
+  stake: numeric("stake", { precision: 12, scale: 2 }).notNull(),
+  odds: numeric("odds", { precision: 12, scale: 4 }).notNull(),
+  potentialReturn: numeric("potentialReturn", { precision: 12, scale: 2 }).notNull(),
+  selectionsJson: text("selectionsJson").notNull(),
+  status: varchar("status", { length: 24 }).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 /** Account-level operational hold used to stop new payment requests pending a documented review. */
 export const accountPaymentControls = pgTable("account_payment_controls", {
   id: serial("id").primaryKey(),
@@ -248,6 +288,7 @@ export const referralCommissionOverrides = pgTable("referral_commission_override
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export type Wager = typeof wagers.$inferSelect;
 export type PaymentMethodConfig = typeof paymentMethodConfigs.$inferSelect;
 export type PaymentRequest = typeof paymentRequests.$inferSelect;
 export type PaymentRequestEvent = typeof paymentRequestEvents.$inferSelect;

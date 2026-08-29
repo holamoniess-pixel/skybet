@@ -14,6 +14,7 @@ export function CustomerAuthDialog({ open, onOpenChange, onAuthenticated }: Cust
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
+  const [referralCode, setReferralCode] = useState(() => typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("ref")?.trim().toUpperCase() ?? "");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -26,7 +27,7 @@ export function CustomerAuthDialog({ open, onOpenChange, onAuthenticated }: Cust
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(mode === "signup" ? { email, phone, password, confirmPassword, name } : { email, password }),
+        body: JSON.stringify(mode === "signup" ? { email, phone, password, confirmPassword, name, referralCode } : { email, password }),
       });
       const contentType = response.headers.get("content-type") || "";
       let payload: { error?: string } = {};
@@ -59,6 +60,7 @@ export function CustomerAuthDialog({ open, onOpenChange, onAuthenticated }: Cust
         </DialogHeader>
         <form className="space-y-4" onSubmit={submit}>
           {mode === "signup" && <div className="space-y-2"><Label htmlFor="customer-name">Name (optional)</Label><Input id="customer-name" value={name} onChange={event => setName(event.target.value)} autoComplete="name" /></div>}
+          {mode === "signup" && <div className="space-y-2"><Label htmlFor="customer-referral-code">Referral code (optional)</Label><Input id="customer-referral-code" value={referralCode} onChange={event => setReferralCode(event.target.value.toUpperCase())} autoComplete="off" placeholder="Enter a referral code" /></div>}
           <div className="space-y-2"><Label htmlFor="customer-email">Email</Label><Input id="customer-email" type="email" value={email} onChange={event => setEmail(event.target.value)} autoComplete="email" required /></div>
           {mode === "signup" && <div className="space-y-2"><Label htmlFor="customer-phone">Ghana phone number</Label><Input id="customer-phone" type="tel" inputMode="tel" placeholder="0241234567" value={phone} onChange={event => setPhone(event.target.value)} autoComplete="tel" required /></div>}
           <div className="space-y-2"><Label htmlFor="customer-password">Password</Label><Input id="customer-password" type="password" value={password} onChange={event => setPassword(event.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={8} required /></div>

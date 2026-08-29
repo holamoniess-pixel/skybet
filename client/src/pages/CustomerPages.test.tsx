@@ -8,6 +8,9 @@ import { ActivityPage, EventDetailPage } from "./CustomerPages";
 
 vi.mock("@/lib/trpc", () => ({
   trpc: {
+    games: { simulatedFeed: { useQuery: () => ({ data: { events: [] }, isLoading: false }) } },
+    wagers: { place: { useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }) } },
+    account: { referralProfile: { useQuery: () => ({ data: { referralCode: "SKYTEST", referralsCount: 0, rewardsCredited: "0.00", currency: "GHS" } }) } },
     auth: {
       me: { useQuery: () => ({ data: null, isLoading: false, error: null }) },
       logout: { useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }) },

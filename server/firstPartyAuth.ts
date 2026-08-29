@@ -12,7 +12,7 @@ export const CUSTOMER_SESSION_COOKIE = "skybet-session";
 const CUSTOMER_SESSION_MS = 12 * 60 * 60 * 1000;
 const MIN_PASSWORD_LENGTH = 8;
 
-type Credentials = { email?: unknown; phone?: unknown; password?: unknown; confirmPassword?: unknown; name?: unknown };
+type Credentials = { email?: unknown; phone?: unknown; password?: unknown; confirmPassword?: unknown; name?: unknown; referralCode?: unknown };
 
 export function normalizeCustomerEmail(value: string) { return value.trim().toLowerCase(); }
 
@@ -92,13 +92,14 @@ export function createFirstPartyAuthHandlers(deps: {
       const password = typeof body.password === "string" ? body.password : "";
       const confirmPassword = typeof body.confirmPassword === "string" ? body.confirmPassword : "";
       const name = typeof body.name === "string" ? body.name.trim().slice(0, 120) : undefined;
+      const referralCode = typeof body.referralCode === "string" ? body.referralCode.trim().slice(0, 32) : undefined;
       if (!email || !email.includes("@")) return res.status(400).json({ error: "Enter a valid email address." });
       if (!phone) return res.status(400).json({ error: "Enter a valid Ghana Mobile Money number." });
       if (password.length < MIN_PASSWORD_LENGTH) return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` });
       if (password !== confirmPassword) return res.status(400).json({ error: "Passwords do not match." });
       if (await findEmail(email) || await findPhone(phone)) return res.status(409).json({ error: "An account with those details already exists." });
       try {
-        const user = await createCustomer({ email, phone, passwordHash: await hashCustomerPassword(password), name });
+        const user = await createCustomer({ email, phone, passwordHash: await hashCustomerPassword(password), name, referralCode });
         if (!user) return res.status(503).json({ error: "Account creation is temporarily unavailable." });
         const sessionUser = await issueCustomerSession(user, req, res, createSession);
         return res.status(201).json({ ok: true, user: sessionUser });

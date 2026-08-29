@@ -10,6 +10,7 @@ import { ADMIN_SESSION_COOKIE } from "./localAdminSession";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { getSportsDataConnectionStatus } from "./sportsDataAdapter";
+import { getSimulatedMatchFeed } from "./simulatedMatches";
 import { espnPreviewClient } from "./espnPreview";
 import { commissionRouter, paymentReviewAdminRouter, paymentReviewRouter } from "./routers/paymentReview";
 import { adminManagementRouter } from "./routers/adminManagement";
@@ -30,6 +31,7 @@ export const appRouter = router({
   }),
   games: router({
     mockFeed: publicProcedure.query(() => getMockGamesFeed()),
+    simulatedFeed: publicProcedure.query(() => getSimulatedMatchFeed()),
   }),
   sportsData: router({
     status: publicProcedure.query(() => getSportsDataConnectionStatus()),
@@ -124,8 +126,20 @@ export const appRouter = router({
         }
       }),
   }),
+  wagers: router({
+    place: protectedProcedure
+      .input(z.object({ idempotencyKey: z.string().trim().min(16).max(128), stake: z.number().positive().max(100000), selections: z.array(z.object({ eventId: z.string().min(1), label: z.string().min(1).max(160), odds: z.string().regex(/^\d+(?:\.\d{1,4})?$/) })).min(1).max(20) }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await db.placeSimulationWager({ userId: ctx.user.id, idempotencyKey: input.idempotencyKey, stake: input.stake, selections: input.selections });
+        } catch (error) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Unable to place the bet." });
+        }
+      }),
+  }),
   account: router({
     balanceSummary: protectedProcedure.query(({ ctx }) => db.getAccountBalanceSummary(ctx.user.id)),
+    referralProfile: protectedProcedure.query(({ ctx }) => db.getReferralProfile(ctx.user.id)),
   }),
   payments: paymentReviewRouter,
   paymentReview: paymentReviewAdminRouter,

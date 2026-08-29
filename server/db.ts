@@ -17,13 +17,17 @@ import {
   paymentRequestEvents,
   paymentRequests,
   proofRetentionRuns,
+  referralAttributions,
   referralCommissionOverrides,
   referralCommissionRules,
+  referralRewardCredits,
   referralRewardOverrides,
   referralRewardRules,
   users,
+  wagers,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { getSimulatedMatchFeed } from './simulatedMatches';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _sql: ReturnType<typeof postgres> | null = null;
@@ -114,11 +118,16 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+function createReferralCode() {
+  return `SKY${randomUUID().replace(/-/g, "").slice(0, 10).toUpperCase()}`;
+}
+
 export async function createCustomerWithCredentials(input: {
   email: string;
   phone: string;
   passwordHash: string;
   name?: string;
+  referralCode?: string;
 }) {
   const db = await getDb();
   if (!db) return undefined;
@@ -130,9 +139,17 @@ export async function createCustomerWithCredentials(input: {
       email: input.email,
       loginMethod: "password",
       role: "user",
+      referralCode: createReferralCode(),
       lastSignedIn: new Date(),
     }).returning({ id: users.id });
     const userId = inserted[0].id;
+    const normalizedReferralCode = input.referralCode?.trim().toUpperCase();
+    if (normalizedReferralCode) {
+      const referrer = await tx.select({ id: users.id }).from(users).where(eq(users.referralCode, normalizedReferralCode)).limit(1);
+      if (referrer[0] && referrer[0].id !== userId) {
+        await tx.insert(referralAttributions).values({ referrerUserId: referrer[0].id, referredUserId: userId, referralCode: normalizedReferralCode });
+      }
+    }
     await tx.insert(customerCredentials).values({
       userId,
       email: input.email,
@@ -558,6 +575,45 @@ export async function saveBonusPolicyOverride(input: BonusPolicyOverrideInput) {
   });
 }
 
+type WagerSelectionInput = { eventId: string; label: string; odds: string };
+
+export async function placeSimulationWager(input: { userId: number; idempotencyKey: string; selections: WagerSelectionInput[]; stake: number }) {
+  if (!input.selections.length) throw new Error("Select at least one market before placing a bet.");
+  if (!Number.isFinite(input.stake) || input.stake <= 0 || input.stake > 100000) throw new Error("Enter a valid stake between GH₵ 0.01 and GH₵ 100,000.");
+  const db = await getDb();
+  if (!db) throw new Error("Wagering is not configured yet.");
+  return db.transaction(async tx => {
+    const existing = (await tx.select().from(wagers).where(eq(wagers.idempotencyKey, input.idempotencyKey)).limit(1))[0];
+    if (existing) return existing;
+    const feed = getSimulatedMatchFeed();
+    const normalizedSelections = input.selections.map(selection => {
+      const event = feed.events.find(candidate => candidate.id === selection.eventId);
+      if (!event || event.isLive || event.status === "Full time") throw new Error("One or more selected markets are no longer available.");
+      const market = event.markets.find(candidate => candidate.label === selection.label);
+      if (!market || market.value !== selection.odds) throw new Error("One or more odds changed. Review your betslip before placing the bet.");
+      return { eventId: event.id, teams: event.teams, label: market.label, odds: market.value };
+    });
+    const combinedOdds = normalizedSelections.reduce((total, selection) => total * Number(selection.odds), 1);
+    const balance = (await tx.select().from(accountBalanceSummaries).where(eq(accountBalanceSummaries.userId, input.userId)).limit(1))[0] ?? { depositedBalance: "0.00", bonusBalance: "0.00" };
+    const deposited = Number(balance.depositedBalance);
+    if (!Number.isFinite(deposited) || deposited < input.stake) throw new Error("Your deposited balance is insufficient for this stake.");
+    const nextDeposited = deposited - input.stake;
+    const inserted = await tx.insert(wagers).values({ userId: input.userId, publicReference: `BET-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`, idempotencyKey: input.idempotencyKey, currency: "GHS", stake: input.stake.toFixed(2), odds: combinedOdds.toFixed(4), potentialReturn: (input.stake * combinedOdds).toFixed(2), selectionsJson: JSON.stringify(normalizedSelections), status: "pending" }).returning({ id: wagers.id });
+    await tx.insert(accountBalanceSummaries).values({ userId: input.userId, currency: "GHS", depositedBalance: nextDeposited.toFixed(2), bonusBalance: balance.bonusBalance }).onConflictDoUpdate({ target: accountBalanceSummaries.userId, set: { depositedBalance: nextDeposited.toFixed(2), updatedAt: new Date() } });
+    return (await tx.select().from(wagers).where(eq(wagers.id, inserted[0].id)).limit(1))[0];
+  });
+}
+
+export async function getReferralProfile(userId: number) {
+  const db = await getDb();
+  if (!db) return { referralCode: null, referralsCount: 0, rewardsCredited: "0.00", currency: "GHS" };
+  const user = (await db.select({ referralCode: users.referralCode }).from(users).where(eq(users.id, userId)).limit(1))[0];
+  const referrals = await db.select({ id: referralAttributions.id }).from(referralAttributions).where(eq(referralAttributions.referrerUserId, userId));
+  const rewards = await db.select({ amount: referralRewardCredits.amount, currency: referralRewardCredits.currency }).from(referralRewardCredits).where(eq(referralRewardCredits.referrerUserId, userId));
+  const total = rewards.reduce((sum, reward) => sum + Number(reward.amount), 0);
+  return { referralCode: user?.referralCode ?? null, referralsCount: referrals.length, rewardsCredited: total.toFixed(2), currency: rewards[0]?.currency ?? "GHS" };
+}
+
 export async function getAccountBalanceSummary(userId: number) {
   const db = await getDb();
   if (!db) return { userId, currency: "GHS", depositedBalance: "0.00", bonusBalance: "0.00", source: "unconfigured" as const };
@@ -723,6 +779,25 @@ export async function getProofRetentionStatus(now = new Date()) {
   return { dueCount: Number(due[0]?.value ?? 0), nextExpiryAt: next[0]?.proofExpiresAt ?? null, lastRun: lastRun[0] ?? null };
 }
 
+async function creditReferralRewardForDeposit(tx: any, referredUserId: number, paymentRequestId: number) {
+  const attribution = (await tx.select().from(referralAttributions).where(and(eq(referralAttributions.referredUserId, referredUserId), eq(referralAttributions.status, "active"))).limit(1))[0];
+  if (!attribution) return null;
+  const alreadyCredited = (await tx.select({ id: referralRewardCredits.id }).from(referralRewardCredits).where(eq(referralRewardCredits.attributionId, attribution.id)).limit(1))[0];
+  if (alreadyCredited) return null;
+
+  const override = (await tx.select().from(referralRewardOverrides).where(and(eq(referralRewardOverrides.userId, referredUserId), eq(referralRewardOverrides.status, "active"))).orderBy(desc(referralRewardOverrides.effectiveAt), desc(referralRewardOverrides.id)).limit(1))[0];
+  const rule = (await tx.select().from(referralRewardRules).where(eq(referralRewardRules.status, "active")).orderBy(desc(referralRewardRules.effectiveAt), desc(referralRewardRules.id)).limit(1))[0];
+  const amount = override?.amount ?? rule?.amount;
+  const currency = override?.currency ?? rule?.currency ?? "GHS";
+  if (!amount || Number(amount) <= 0) return null;
+
+  const balance = (await tx.select().from(accountBalanceSummaries).where(eq(accountBalanceSummaries.userId, attribution.referrerUserId)).limit(1))[0] ?? { depositedBalance: "0.00", bonusBalance: "0.00" };
+  const nextBonus = Number(balance.bonusBalance) + Number(amount);
+  await tx.insert(accountBalanceSummaries).values({ userId: attribution.referrerUserId, currency, depositedBalance: balance.depositedBalance, bonusBalance: nextBonus.toFixed(2) }).onConflictDoUpdate({ target: accountBalanceSummaries.userId, set: { bonusBalance: nextBonus.toFixed(2), updatedAt: new Date() } });
+  await tx.insert(referralRewardCredits).values({ attributionId: attribution.id, referrerUserId: attribution.referrerUserId, referredUserId, paymentRequestId, amount: Number(amount).toFixed(2), currency });
+  return `referral_bonus_credited:${Number(amount).toFixed(2)}`;
+}
+
 export async function reviewPaymentRequest(input: { requestId: number; actorUserId: number; decision: "approved" | "rejected"; reason: string }) {
   const db = await getDb();
   if (!db) return undefined;
@@ -743,6 +818,10 @@ export async function reviewPaymentRequest(input: { requestId: number; actorUser
       if (request.requestType === "withdrawal" && nextDeposited < 0) throw new Error("Customer has insufficient deposited funds");
       await tx.insert(accountBalanceSummaries).values({ userId: request.userId, currency: request.currency, depositedBalance: nextDeposited.toFixed(2), bonusBalance: balance.bonusBalance }).onConflictDoUpdate({ target: accountBalanceSummaries.userId, set: { depositedBalance: nextDeposited.toFixed(2), updatedAt: new Date() } });
       ledgerEffect = request.requestType === "deposit" ? `credited:${amount.toFixed(2)}` : `debited:${amount.toFixed(2)}`;
+      if (request.requestType === "deposit") {
+        const referralEffect = await creditReferralRewardForDeposit(tx, request.userId, request.id);
+        if (referralEffect) ledgerEffect = `${ledgerEffect};${referralEffect}`;
+      }
     }
     await tx.update(paymentRequests).set({ status: input.decision, reviewReason: input.reason, reviewedBy: input.actorUserId, reviewedAt: new Date() }).where(eq(paymentRequests.id, request.id));
     await tx.insert(paymentRequestEvents).values({ paymentRequestId: request.id, actorUserId: input.actorUserId, actorRole: "admin", action: input.decision, detailsJson: JSON.stringify({ reason: input.reason, ledgerEffect }) });
