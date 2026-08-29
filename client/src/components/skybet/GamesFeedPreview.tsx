@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Activity, CircleAlert, Copy, RefreshCw } from "lucide-react";
+import { Activity, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,11 +51,6 @@ export function GamesFeedPreview({ heading = "SKYBET match centre", showPredicti
 
       <Card className="overflow-hidden border-[var(--sky-blue-100)] bg-white shadow-[0_10px_24px_rgba(10,63,158,0.05)] dark:border-white/10 dark:bg-[var(--card)]">
         <CardContent className="p-0">
-          <div className="flex items-center justify-between gap-3 border-b border-[var(--sky-blue-100)] bg-[var(--sky-ice-50)] px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5">
-            <span className="font-bold text-[var(--sky-navy-700)] dark:text-slate-300">Latest match updates</span>
-            <span className="font-semibold text-[var(--sky-navy-500)] dark:text-slate-400">Backend data</span>
-          </div>
-          <div role="status" className="flex items-start gap-2 border-b border-[var(--sky-blue-100)] px-3 py-2 text-xs leading-5 text-[var(--sky-navy-600)] dark:border-white/10 dark:text-slate-400"><CircleAlert className="mt-0.5 size-3.5 shrink-0 text-[var(--sky-blue-600)]" />Match updates and odds are supplied by the backend.</div>
           {scoreboard.isError ? <p className="p-3 text-sm text-destructive">The match feed is unavailable. Please refresh.</p> : null}
           <div className={showPredictions ? "grid gap-3 p-3" : "flex gap-2 overflow-x-auto p-2.5 pb-3 [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible"}>
             {scoreboard.isLoading ? <p className="p-3 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">Loading match updates…</p> : null}

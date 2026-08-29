@@ -36,7 +36,7 @@ describe("GamesFeedPreview", () => {
 
     expect(screen.getByText("Orbit FC")).toBeInTheDocument();
     expect(screen.getByText(/Amina Vale FC\s*1/)).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("Match updates and odds are supplied by the backend.");
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Add .* selection/ })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Live now" }));
     expect(screen.queryByText("Orbit FC")).not.toBeInTheDocument();

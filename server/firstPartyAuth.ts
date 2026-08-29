@@ -78,6 +78,8 @@ export function createFirstPartyAuthHandlers(deps: {
   createSession?: typeof createCustomerSession;
   authenticateCustomer?: typeof authenticateCustomerRequest;
   authenticateAdmin?: typeof authenticateLocalAdminRequest;
+  recordReferralNotifications?: typeof recordReferralSignupNotifications;
+  notifyOwner?: typeof notifyOwner;
 } = {}) {
   const findEmail = deps.findEmail ?? getCustomerCredentialByEmail;
   const findPhone = deps.findPhone ?? getCustomerCredentialByPhone;
@@ -85,6 +87,8 @@ export function createFirstPartyAuthHandlers(deps: {
   const createSession = deps.createSession ?? createCustomerSession;
   const authenticateCustomer = deps.authenticateCustomer ?? authenticateCustomerRequest;
   const authenticateAdmin = deps.authenticateAdmin ?? authenticateLocalAdminRequest;
+  const recordReferralNotifications = deps.recordReferralNotifications ?? recordReferralSignupNotifications;
+  const sendOwnerNotification = deps.notifyOwner ?? notifyOwner;
   return {
     signup: async (req: Request, res: Response) => {
       const body = (req.body ?? {}) as Credentials;
@@ -105,9 +109,9 @@ export function createFirstPartyAuthHandlers(deps: {
         const sessionUser = await issueCustomerSession(user, req, res, createSession);
         if (referralCode) {
           try {
-            const notificationResult = await recordReferralSignupNotifications({ referredUserId: user.id, referredName: user.name, referralCode: referralCode.trim().toUpperCase() });
+            const notificationResult = await recordReferralNotifications({ referredUserId: user.id, referredName: user.name, referralCode: referralCode.trim().toUpperCase() });
             if (notificationResult.referrerUserId) {
-              void notifyOwner({ title: "New referral signup", content: `${user.name || "A new customer"} joined using a referral link. The referrer has been notified in SKYBET.` });
+              void sendOwnerNotification({ title: "New referral signup", content: `${user.name || "A new customer"} joined using a referral link. The referrer has been notified in SKYBET.` });
             }
           } catch (error) {
             console.warn("[Referral] Signup notification dispatch failed:", error);
