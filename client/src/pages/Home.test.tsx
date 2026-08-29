@@ -81,8 +81,8 @@ describe("Skybet Home", () => {
 
     await user.click(screen.getByRole("button", { name: "Harbour City2.18" }));
 
-    expect(screen.getByText("Review your selection")).toBeInTheDocument();
-    expect(screen.getAllByText("Harbour City vs Northvale FC · Harbour City")).not.toHaveLength(0);
+    expect(screen.queryByText("Review your betslip")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open preview slip with 1 selection" })).toBeInTheDocument();
   });
 
   it("reveals additional preview markets and keeps the preview slip available after selection", async () => {
@@ -93,7 +93,7 @@ describe("Skybet Home", () => {
     await user.click(screen.getAllByRole("button", { name: "Show 3 more preview markets" }).at(0)!);
     await user.click(screen.getByRole("button", { name: "Over 2.5 goals1.96" }));
 
-    expect(document.querySelector('[aria-label="Open preview slip with one selection"]')).toBeTruthy();
+    expect(document.querySelector('[aria-label="Open preview slip with 1 selection"]')).toBeTruthy();
     expect(screen.getAllByText("Harbour City vs Northvale FC · Over 2.5 goals")).not.toHaveLength(0);
   });
 
@@ -157,7 +157,7 @@ describe("Skybet Home", () => {
 
     expect(screen.getByRole("button", { name: "Open preview slip" })).toHaveClass("sky-preview-slip-fab");
     await user.click(screen.getByRole("button", { name: "Open preview slip" }));
-    expect(screen.getByRole("textbox", { name: "Enter an authored preview code" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Enter an event code" })).toBeInTheDocument();
   });
 
   it("provides keyboard-accessible manual controls for the ten-frame hero rotation", async () => {
@@ -188,17 +188,17 @@ describe("Skybet Home", () => {
     const user = userEvent.setup();
     renderHome();
     await user.click(screen.getByRole("button", { name: "Open preview slip" }));
-    const eventCode = screen.getByRole("textbox", { name: "Enter an authored preview code" });
+    const eventCode = screen.getByRole("textbox", { name: "Enter an event code" });
 
     await user.type(eventCode, "SKY-LIVE-01");
     await user.click(screen.getByRole("button", { name: "Load code" }));
     expect(window.location.pathname).toBe("/");
-    expect(screen.getByText("Review your selection")).toBeInTheDocument();
-    expect(screen.getByText(/Loaded Harbour City into your local Preview slip/)).toBeInTheDocument();
+    expect(screen.getByText("Review your betslip")).toBeInTheDocument();
+    expect(screen.getByText(/Loaded Harbour City into your SKYBET betslip/)).toBeInTheDocument();
 
     await user.clear(eventCode);
     await user.type(eventCode, "not-a-preview-event");
     await user.click(screen.getByRole("button", { name: "Load code" }));
-    expect(screen.getByText(/No preview event was found for/)).toBeInTheDocument();
+    expect(screen.getByText(/No event was found for/)).toBeInTheDocument();
   }, 15000);
 });

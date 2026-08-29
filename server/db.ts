@@ -1,4 +1,4 @@
-import { and, count, desc, eq, isNotNull, isNull, like, lte, or } from "drizzle-orm";
+import { and, count, desc, eq, isNotNull, isNull, like, lte, or, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -620,6 +620,24 @@ export async function getAccountBalanceSummary(userId: number) {
   const result = await db.select().from(accountBalanceSummaries).where(eq(accountBalanceSummaries.userId, userId)).limit(1);
   const summary = result[0];
   return summary ? { ...summary, source: "persisted" as const } : { userId, currency: "GHS", depositedBalance: "0.00", bonusBalance: "0.00", source: "unconfigured" as const };
+}
+
+export async function getAccountProfile(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const row = (await db.select({ id: users.id, name: users.name, email: users.email, role: users.role, referralCode: users.referralCode, phone: customerCredentials.phone, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).leftJoin(customerCredentials, eq(customerCredentials.userId, users.id)).where(eq(users.id, userId)).limit(1))[0];
+  return row ?? null;
+}
+
+export async function getCustomerWagers(userId: number, status: "running" | "history" | "all" = "all") {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(wagers).where(status === "running" ? and(eq(wagers.userId, userId), eq(wagers.status, "pending")) : status === "history" ? and(eq(wagers.userId, userId), sql`${wagers.status} <> 'pending'`) : eq(wagers.userId, userId)).orderBy(desc(wagers.createdAt));
+  return rows.map(row => {
+    let selections: unknown[] = [];
+    try { selections = JSON.parse(row.selectionsJson) as unknown[]; } catch { selections = []; }
+    return { ...row, selections };
+  });
 }
 
 export async function searchSkybetUsers(input: { query: string; role: "all" | "user" | "admin" }) {

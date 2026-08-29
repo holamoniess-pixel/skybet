@@ -53,16 +53,16 @@ const discoveryItems = [
 ];
 
 const heroSlides = [
-  { src: "/manus-storage/skybet-live-match-hero_97d12259.png", position: "object-center" },
-  { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663566567757/a2XEPPgreLmSs8S3Uu5nPF/skybet-hero-rotation-01-fCqUHQP59xAaAspgYvGJHN.webp", position: "object-center" },
-  { src: "/manus-storage/skybet-live-match-hero_97d12259.png", position: "object-[62%_center]" },
-  { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663566567757/a2XEPPgreLmSs8S3Uu5nPF/skybet-hero-rotation-01-fCqUHQP59xAaAspgYvGJHN.webp", position: "object-[70%_center]" },
-  { src: "/manus-storage/skybet-live-match-hero_97d12259.png", position: "object-[42%_center]" },
-  { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663566567757/a2XEPPgreLmSs8S3Uu5nPF/skybet-hero-rotation-01-fCqUHQP59xAaAspgYvGJHN.webp", position: "object-[80%_center]" },
-  { src: "/manus-storage/skybet-live-match-hero_97d12259.png", position: "object-[78%_center]" },
-  { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663566567757/a2XEPPgreLmSs8S3Uu5nPF/skybet-hero-rotation-01-fCqUHQP59xAaAspgYvGJHN.webp", position: "object-[58%_center]" },
-  { src: "/manus-storage/skybet-live-match-hero_97d12259.png", position: "object-[55%_center]" },
-  { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663566567757/a2XEPPgreLmSs8S3Uu5nPF/skybet-hero-rotation-01-fCqUHQP59xAaAspgYvGJHN.webp", position: "object-[88%_center]" },
+  { src: "https://images.unsplash.com/photo-1579952363873-27f3bede9f55?auto=format&fit=crop&w=1600&q=85", position: "object-center" },
+  { src: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=85", position: "object-center" },
+  { src: "https://images.unsplash.com/photo-1553778263-73a83bab9e2b?auto=format&fit=crop&w=1600&q=85", position: "object-[62%_center]" },
+  { src: "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=1600&q=85", position: "object-[70%_center]" },
+  { src: "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=1600&q=85", position: "object-[42%_center]" },
+  { src: "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1600&q=85", position: "object-[80%_center]" },
+  { src: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=1600&q=85", position: "object-[78%_center]" },
+  { src: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=85", position: "object-[58%_center]" },
+  { src: "https://images.unsplash.com/photo-1579952363873-27f3bede9f55?auto=format&fit=crop&w=1600&q=85", position: "object-[55%_center]" },
+  { src: "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=1600&q=85", position: "object-[88%_center]" },
 ];
 
 export default function Home() {
@@ -98,7 +98,6 @@ export default function Home() {
 
   const chooseSelection = (event: SkybetEvent, label: string, value: string) => {
     setSelections(current => [...current.filter(item => item.event.id !== event.id), { event, label, value }]);
-    setSlipOpen(true);
   };
 
   const removeSelection = (eventId: string, label: string) => setSelections(current => current.filter(item => !(item.event.id === eventId && item.label === label)));
@@ -113,7 +112,7 @@ export default function Home() {
 
     const event = findSkybetEventByPreviewCode(eventCatalogue, normalizedCode);
     if (!event) {
-      setEventCodeMessage(`No SKYBET-generated event was found for “${code.trim()}”. Try SKY-LIVE-01.`);
+      setEventCodeMessage(`No event was found for “${code.trim()}”. Try SKY-LIVE-01.`);
       return;
     }
 

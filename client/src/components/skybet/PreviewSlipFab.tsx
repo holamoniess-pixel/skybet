@@ -18,11 +18,11 @@ export function PreviewSlipFab({ selection, selectionCount = selection ? 1 : 0, 
     <button
       type="button"
       onClick={onOpen}
-      aria-label={selection ? "Open preview slip with one selection" : "Open preview slip"}
+      aria-label={selectionCount > 0 ? `Open preview slip with ${selectionCount} selection${selectionCount === 1 ? "" : "s"}` : "Open preview slip"}
       className="sky-preview-slip-fab"
     >
       <Ticket className="size-6" />
-      <span className="sr-only">{selection ? "One selection in Preview slip" : "No selections in Preview slip"}</span>
+      <span className="sr-only">{selectionCount > 0 ? `${selectionCount} selection${selectionCount === 1 ? "" : "s"} in Preview slip` : "No selections in Preview slip"}</span>
       {selectionCount > 0 ? <span className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-[var(--sky-emerald-600)] text-[10px] font-extrabold text-white">{selectionCount}</span> : null}
     </button>
   );

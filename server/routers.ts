@@ -139,6 +139,8 @@ export const appRouter = router({
   }),
   account: router({
     balanceSummary: protectedProcedure.query(({ ctx }) => db.getAccountBalanceSummary(ctx.user.id)),
+    profile: protectedProcedure.query(({ ctx }) => db.getAccountProfile(ctx.user.id)),
+    wagers: protectedProcedure.input(z.object({ status: z.enum(["running", "history", "all"]).default("all") })).query(({ ctx, input }) => db.getCustomerWagers(ctx.user.id, input.status)),
     referralProfile: protectedProcedure.query(({ ctx }) => db.getReferralProfile(ctx.user.id)),
   }),
   payments: paymentReviewRouter,

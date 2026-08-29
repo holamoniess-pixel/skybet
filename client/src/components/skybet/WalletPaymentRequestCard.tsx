@@ -1,4 +1,4 @@
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { CheckCircle2, Copy, FileImage, Landmark, ShieldCheck, Smartphone, WalletCards } from "lucide-react";
 import { toast } from "sonner";
 import { DEPOSIT_PRESET_AMOUNTS } from "@shared/payments";
@@ -25,8 +25,6 @@ export function WalletPaymentRequestCard() {
   const methods = trpc.payments.methods.useQuery(undefined, { enabled: isAuthenticated });
   const gatewayStatus = trpc.payments.gatewayStatus.useQuery(undefined, { enabled: isAuthenticated });
   const requests = trpc.payments.myRequests.useQuery(undefined, { enabled: isAuthenticated });
-  const availableDepositMethods = useMemo(() => methods.data?.filter(item => item.status === "enabled") ?? [], [methods.data]);
-  const selectedMethod = methods.data?.find(item => item.method === method);
   const cryptoMethod = methods.data?.find(item => item.method === "crypto_trc20");
   const walletAddress = cryptoMethod?.destination ?? TRC20_WALLET_ADDRESS;
   const walletNetwork = cryptoMethod?.network ?? "TRC20";
@@ -84,7 +82,7 @@ export function WalletPaymentRequestCard() {
   };
 
   const pendingGateway = gatewayStatus.data?.status !== "awaiting_contract";
-  const submitDisabled = mode === "deposit" ? submitDeposit.isPending || availableDepositMethods.length === 0 : submitWithdrawal.isPending;
+  const submitDisabled = mode === "deposit" ? submitDeposit.isPending : submitWithdrawal.isPending;
 
   return (
     <div className="mt-5 space-y-5">
@@ -114,7 +112,7 @@ export function WalletPaymentRequestCard() {
         <div><Label className="font-bold text-[var(--sky-navy-950)] dark:text-white">Select GHS request amount</Label><div className="mt-2 flex flex-wrap gap-2">{DEPOSIT_PRESET_AMOUNTS.map(value => <Button key={value} type="button" variant={amount === String(value) ? "default" : "outline"} onClick={() => setAmount(String(value))} className={amount === String(value) ? "h-10 rounded-lg bg-[var(--sky-blue-600)] px-3 text-xs font-extrabold" : "h-10 rounded-lg border-[var(--sky-blue-200)] px-3 text-xs font-extrabold text-[var(--sky-blue-700)]"}>GH₵ {value.toLocaleString()}</Button>)}</div></div>
         <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="payment-reference">Your transfer reference</Label><Input id="payment-reference" value={reference} onChange={event => setReference(event.target.value)} placeholder="Transaction ID or reference" className="h-11 rounded-xl border-[var(--sky-blue-200)] dark:border-white/15 dark:bg-white/5" /></div><div className="space-y-2"><Label htmlFor="payment-proof">Payment screenshot</Label><div className="flex h-11 items-center gap-2 rounded-xl border border-[var(--sky-blue-200)] px-3 dark:border-white/15"><FileImage className="size-4 text-[var(--sky-blue-700)]" /><input id="payment-proof" type="file" accept="image/png,image/jpeg" onChange={onProofChange} className="min-w-0 text-xs" /></div></div></div>
         {proof ? <p className="flex items-center gap-2 text-xs text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]"><CheckCircle2 className="size-4" />Screenshot ready for upload.</p> : null}
-        <Button type="button" disabled={submitDisabled} onClick={submit} className="h-12 w-full rounded-xl bg-[var(--sky-blue-600)] font-extrabold hover:bg-[var(--sky-blue-700)]">{submitDeposit.isPending ? "Submitting…" : "Submit deposit request for review"}</Button>
+        <Button type="button" aria-busy={submitDeposit.isPending} disabled={submitDisabled} onClick={submit} className="h-12 w-full rounded-xl bg-[var(--sky-blue-600)] font-extrabold text-white shadow-[0_10px_22px_rgba(15,87,199,0.22)] transition hover:bg-[var(--sky-blue-700)] active:scale-[0.98]">{submitDeposit.isPending ? "Submitting…" : "Submit deposit request for review"}</Button>
       </div> : null}
 
       <div className="flex items-start gap-2 rounded-xl bg-[var(--sky-emerald-600)]/10 p-3 text-xs leading-5 text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]"><ShieldCheck className="mt-0.5 size-4 shrink-0" />Payment status and balance updates follow the review outcome.</div>

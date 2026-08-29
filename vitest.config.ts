@@ -23,5 +23,6 @@ export default defineConfig({
       "client/**/*.spec.tsx",
     ],
     environmentMatchGlobs: [["client/**/*.test.tsx", "jsdom"]],
+    setupFiles: ["./client/src/test/setup.ts"],
   },
 });

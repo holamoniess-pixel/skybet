@@ -17,7 +17,7 @@ function displayStartTime(value: string, isLive: boolean) {
   return new Intl.DateTimeFormat(undefined, { weekday: "short", hour: "2-digit", minute: "2-digit" }).format(timestamp);
 }
 
-export function GamesFeedPreview({ heading = "SKYBET match engine", showPredictions = false }: GamesFeedPreviewProps) {
+export function GamesFeedPreview({ heading = "SKYBET match centre", showPredictions = false }: GamesFeedPreviewProps) {
   const [category, setCategory] = useState("All");
   const scoreboard = trpc.games.simulatedFeed.useQuery(undefined, {
     refetchInterval: 30_000,
@@ -50,20 +50,20 @@ export function GamesFeedPreview({ heading = "SKYBET match engine", showPredicti
       <Card className="overflow-hidden border-[var(--sky-blue-100)] bg-white shadow-[0_10px_24px_rgba(10,63,158,0.05)] dark:border-white/10 dark:bg-[var(--card)]">
         <CardContent className="p-0">
           <div className="flex items-center justify-between gap-3 border-b border-[var(--sky-blue-100)] bg-[var(--sky-ice-50)] px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5">
-            <span className="font-bold text-[var(--sky-navy-700)] dark:text-slate-300">SKYBET-generated market data · internally managed fixtures and odds</span>
+            <span className="font-bold text-[var(--sky-navy-700)] dark:text-slate-300">match market data · current fixtures and odds</span>
             <span className="font-semibold text-[var(--sky-navy-500)] dark:text-slate-400">{scoreboard.data ? `Refreshes every ${scoreboard.data.refreshAfterSeconds}s` : "Loading market updates"}</span>
           </div>
           <div role="status" className="flex items-start gap-2 border-b border-[var(--sky-blue-100)] px-3 py-2 text-xs leading-5 text-[var(--sky-navy-600)] dark:border-white/10 dark:text-slate-400"><CircleAlert className="mt-0.5 size-3.5 shrink-0 text-[var(--sky-blue-600)]" />{scoreboard.data?.message}</div>
           {scoreboard.isError ? <p className="p-3 text-sm text-destructive">The match feed is unavailable. Please refresh.</p> : null}
-          <div className="flex gap-2 overflow-x-auto p-2.5 pb-3 [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible">
+          <div className={showPredictions ? "grid gap-3 p-3" : "flex gap-2 overflow-x-auto p-2.5 pb-3 [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible"}>
             {scoreboard.isLoading ? <p className="p-3 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">Loading match updates…</p> : null}
             {visibleEvents.map(event => (
-              <article key={event.id} className="min-w-[8.5rem] rounded-lg border border-[var(--sky-blue-100)] bg-[var(--sky-white-50)] p-2 text-left dark:border-white/10 dark:bg-white/5 sm:min-w-0">
+              <article key={event.id} className={showPredictions ? "rounded-2xl border border-[var(--sky-blue-100)] bg-[var(--sky-white-50)] p-5 text-left shadow-[0_10px_24px_rgba(10,63,158,0.06)] dark:border-white/10 dark:bg-white/5" : "min-w-[8.5rem] rounded-lg border border-[var(--sky-blue-100)] bg-[var(--sky-white-50)] p-2 text-left dark:border-white/10 dark:bg-white/5 sm:min-w-0"}>
                 <div className="flex items-center justify-between gap-2"><Badge variant="outline" className={`rounded-md border-0 px-0 text-[10px] font-extrabold uppercase ${event.isLive ? "text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]" : "text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]"}`}>{event.isLive ? "Live now" : "Upcoming"}</Badge><span className="text-xs font-extrabold tabular-nums text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">{displayStartTime(event.startsAt, event.isLive)}</span></div>
                 <p className="mt-1 truncate text-[13px] font-extrabold text-[var(--sky-navy-950)] dark:text-white">{event.teams[0]}{event.score ? `  ${event.score.split(" – ")[0]}` : ""}</p>
                 <p className="mt-px truncate text-[13px] font-extrabold text-[var(--sky-navy-950)] dark:text-white">{event.teams[1]}{event.score ? `  ${event.score.split(" – ")[1] ?? ""}` : ""}</p>
                 <p className="mt-1 truncate text-[11px] text-[var(--sky-navy-600)] dark:text-slate-400">{event.competition} · {event.status}</p>
-                <span className="mt-1.5 block text-[11px] font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">SKYBET-generated market odds</span>
+                <span className="mt-1.5 block text-[11px] font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">match market odds</span>
                 {showPredictions && "predictedOutcome" in event ? <p className="mt-1 text-[11px] font-semibold text-[var(--sky-navy-600)] dark:text-slate-400">Forecast: {event.predictedOutcome} · {event.predictionConfidence}% confidence</p> : null}
               </article>
             ))}
