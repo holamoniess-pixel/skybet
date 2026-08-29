@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useLocation } from "wouter";
-import { ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ export default function SignUp() {
   const [values, setValues] = useState<FormValues>({ name: "", email: "", phone: "", password: "", confirmPassword: "", referralCode: typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("ref")?.trim().toUpperCase() ?? "" });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [mode, setMode] = useState<"signup" | "login">("signup");
 
   const update = (field: keyof FormValues) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -63,11 +65,11 @@ export default function SignUp() {
             {isSignup ? <>
               {([ ["name", "Full name", "Your name", "text"], ["email", "Email address", "you@example.com", "email"], ["phone", "Ghana phone number", "024 000 0000", "tel"] ] as const).map(([field, label, placeholder, type]) => <div key={field} className="space-y-2"><Label htmlFor={field}>{label}</Label><Input id={field} required value={values[field]} onChange={update(field)} placeholder={placeholder} type={type} autoComplete={field === "email" ? "email" : field === "phone" ? "tel" : "name"} /></div>)}
               <div className="space-y-2"><Label htmlFor="referralCode">Referral code (optional)</Label><Input id="referralCode" value={values.referralCode} onChange={update("referralCode")} placeholder="Enter a referral code" autoComplete="off" /></div>
-              <div className="space-y-2"><Label htmlFor="password">Password</Label><Input id="password" required minLength={8} value={values.password} onChange={update("password")} type="password" autoComplete="new-password" /></div>
-              <div className="space-y-2"><Label htmlFor="confirmPassword">Confirm password</Label><Input id="confirmPassword" required value={values.confirmPassword} onChange={update("confirmPassword")} type="password" autoComplete="new-password" /></div>
+              <div className="space-y-2"><Label htmlFor="password">Password</Label><div className="relative"><Input id="password" required minLength={8} value={values.password} onChange={update("password")} type={showPassword ? "text" : "password"} autoComplete="new-password" className="pr-11" /><button type="button" className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-[var(--sky-navy-600)] transition-colors hover:text-[var(--sky-blue-700)]" onClick={() => setShowPassword(current => !current)} aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword}>{showPassword ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}</button></div></div>
+              <div className="space-y-2"><Label htmlFor="confirmPassword">Confirm password</Label><div className="relative"><Input id="confirmPassword" required value={values.confirmPassword} onChange={update("confirmPassword")} type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" className="pr-11" /><button type="button" className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-[var(--sky-navy-600)] transition-colors hover:text-[var(--sky-blue-700)]" onClick={() => setShowConfirmPassword(current => !current)} aria-label={showConfirmPassword ? "Hide confirmation password" : "Show confirmation password"} aria-pressed={showConfirmPassword}>{showConfirmPassword ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}</button></div></div>
             </> : <>
               <div className="space-y-2"><Label htmlFor="email">Email address</Label><Input id="email" required value={values.email} onChange={update("email")} type="email" autoComplete="email" /></div>
-              <div className="space-y-2"><Label htmlFor="password">Password</Label><Input id="password" required minLength={8} value={values.password} onChange={update("password")} type="password" autoComplete="current-password" /></div>
+              <div className="space-y-2"><Label htmlFor="password">Password</Label><div className="relative"><Input id="password" required minLength={8} value={values.password} onChange={update("password")} type={showPassword ? "text" : "password"} autoComplete="current-password" className="pr-11" /><button type="button" className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-[var(--sky-navy-600)] transition-colors hover:text-[var(--sky-blue-700)]" onClick={() => setShowPassword(current => !current)} aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword}>{showPassword ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}</button></div></div>
             </>}
             {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
             <Button type="submit" disabled={submitting} className="h-11 w-full bg-[var(--sky-blue-700)] font-extrabold text-white hover:bg-[var(--sky-blue-800)]">{submitting ? "Please wait..." : isSignup ? "Create account" : "Sign in"}<ArrowRight className="size-4" /></Button>

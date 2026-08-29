@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,8 @@ export function CustomerAuthDialog({ open, onOpenChange, onAuthenticated }: Cust
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [name, setName] = useState("");
   const [referralCode, setReferralCode] = useState(() => typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("ref")?.trim().toUpperCase() ?? "");
   const [error, setError] = useState("");
@@ -63,8 +66,8 @@ export function CustomerAuthDialog({ open, onOpenChange, onAuthenticated }: Cust
           {mode === "signup" && <div className="space-y-2"><Label htmlFor="customer-referral-code">Referral code (optional)</Label><Input id="customer-referral-code" value={referralCode} onChange={event => setReferralCode(event.target.value.toUpperCase())} autoComplete="off" placeholder="Enter a referral code" /></div>}
           <div className="space-y-2"><Label htmlFor="customer-email">Email</Label><Input id="customer-email" type="email" value={email} onChange={event => setEmail(event.target.value)} autoComplete="email" required /></div>
           {mode === "signup" && <div className="space-y-2"><Label htmlFor="customer-phone">Ghana phone number</Label><Input id="customer-phone" type="tel" inputMode="tel" placeholder="0241234567" value={phone} onChange={event => setPhone(event.target.value)} autoComplete="tel" required /></div>}
-          <div className="space-y-2"><Label htmlFor="customer-password">Password</Label><Input id="customer-password" type="password" value={password} onChange={event => setPassword(event.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={8} required /></div>
-          {mode === "signup" && <div className="space-y-2"><Label htmlFor="customer-confirm-password">Confirm password</Label><Input id="customer-confirm-password" type="password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} autoComplete="new-password" minLength={8} required /></div>}
+          <div className="space-y-2"><Label htmlFor="customer-password">Password</Label><div className="relative"><Input id="customer-password" type={showPassword ? "text" : "password"} value={password} onChange={event => setPassword(event.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} className="pr-11" minLength={8} required /><button type="button" className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted-foreground transition-colors hover:text-foreground" onClick={() => setShowPassword(current => !current)} aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword}>{showPassword ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}</button></div></div>
+          {mode === "signup" && <div className="space-y-2"><Label htmlFor="customer-confirm-password">Confirm password</Label><div className="relative"><Input id="customer-confirm-password" type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} autoComplete="new-password" className="pr-11" minLength={8} required /><button type="button" className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted-foreground transition-colors hover:text-foreground" onClick={() => setShowConfirmPassword(current => !current)} aria-label={showConfirmPassword ? "Hide confirmation password" : "Show confirmation password"} aria-pressed={showConfirmPassword}>{showConfirmPassword ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}</button></div></div>}
           {error && <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
           <Button className="h-11 w-full rounded-xl bg-[var(--sky-blue-600)] font-extrabold text-white hover:bg-[var(--sky-blue-700)]" disabled={pending}>{pending ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}</Button>
           <button type="button" className="w-full text-sm font-bold text-[var(--sky-blue-700)] hover:underline dark:text-[var(--sky-blue-300)]" onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(""); }}>{mode === "login" ? "Need an account? Sign up" : "Already have an account? Sign in"}</button>
