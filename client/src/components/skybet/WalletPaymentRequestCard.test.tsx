@@ -26,13 +26,13 @@ vi.mock("@/lib/trpc", () => ({
 afterEach(cleanup);
 
 describe("WalletPaymentRequestCard", () => {
-  it("shows the TRC20 method, approved fixed deposit amounts, and gateway setup state", () => {
+  it("shows the TRC20 method, approved fixed deposit amounts, and payment methods", () => {
     render(<WalletPaymentRequestCard />);
     expect(screen.getByText("Crypto wallet address")).toBeInTheDocument();
     expect(screen.getByText("TQCHL828z5VyKGRkw3jUThrURnG9tpsS6G")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copy TRC20 wallet address" })).toBeInTheDocument();
-    expect(screen.getByText("Automatic Mobile Money (coming later)")).toBeInTheDocument();
-    expect(screen.getByText("Setup pending")).toBeInTheDocument();
+    expect(screen.getByText("Automatic Mobile Money")).toBeInTheDocument();
+    expect(screen.getByText("Coming soon")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "GH₵ 2,000" })).toBeInTheDocument();
     expect(screen.getByLabelText("Payment screenshot")).toBeInTheDocument();
   });

@@ -54,7 +54,7 @@ export function GamesFeedPreview({ heading = "SKYBET match engine", showPredicti
             <span className="font-semibold text-[var(--sky-navy-500)] dark:text-slate-400">{scoreboard.data ? `Refreshes every ${scoreboard.data.refreshAfterSeconds}s` : "Loading market updates"}</span>
           </div>
           <div role="status" className="flex items-start gap-2 border-b border-[var(--sky-blue-100)] px-3 py-2 text-xs leading-5 text-[var(--sky-navy-600)] dark:border-white/10 dark:text-slate-400"><CircleAlert className="mt-0.5 size-3.5 shrink-0 text-[var(--sky-blue-600)]" />{scoreboard.data?.message}</div>
-          {scoreboard.isError ? <p className="p-3 text-sm text-destructive">The simulated match feed is unavailable. Please refresh.</p> : null}
+          {scoreboard.isError ? <p className="p-3 text-sm text-destructive">The match feed is unavailable. Please refresh.</p> : null}
           <div className="flex gap-2 overflow-x-auto p-2.5 pb-3 [scrollbar-width:none] sm:grid sm:grid-cols-3 sm:overflow-visible">
             {scoreboard.isLoading ? <p className="p-3 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">Loading match updates…</p> : null}
             {visibleEvents.map(event => (

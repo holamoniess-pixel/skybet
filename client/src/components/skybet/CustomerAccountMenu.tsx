@@ -58,7 +58,7 @@ export function CustomerAccountMenu({ compact = false }: CustomerAccountMenuProp
         <DropdownMenuSeparator className="bg-[var(--sky-blue-100)] dark:bg-white/10" />
         <DropdownMenuItem onSelect={() => goTo("/wallet#deposit")} className="min-h-10 rounded-xl font-extrabold text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]"><WalletCards className="size-4" />Deposit</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => goTo("/wallet#withdraw")} className="min-h-10 rounded-xl font-extrabold text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]"><Landmark className="size-4" />Withdraw</DropdownMenuItem>
-        <p className="px-2 py-2 text-[11px] leading-4 text-[var(--sky-navy-600)] dark:text-slate-400"><CreditCard className="mr-1 inline size-3.5" />Payment actions stay protected until the secure account service is connected.</p>
+        <p className="px-2 py-2 text-[11px] leading-4 text-[var(--sky-navy-600)] dark:text-slate-400"><CreditCard className="mr-1 inline size-3.5" />Manage your payment options from your account.</p>
         {user ? <>
           <DropdownMenuSeparator className="bg-[var(--sky-blue-100)] dark:bg-white/10" />
           <DropdownMenuItem onSelect={() => void logout()} variant="destructive" className="min-h-10 rounded-xl font-bold"><LogOut className="size-4" />Log out</DropdownMenuItem>

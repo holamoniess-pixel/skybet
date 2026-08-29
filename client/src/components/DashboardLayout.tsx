@@ -33,7 +33,7 @@ const menuItems = [
   { icon: WalletCards, label: "Withdrawals", path: "/admin/withdrawals" },
   { icon: Gift, label: "Bonuses & rewards", path: "/admin/bonuses" },
   { icon: Settings2, label: "Site configuration", path: "/admin/site" },
-  { icon: BadgeDollarSign, label: "Match preview", path: "/admin/matches" },
+  { icon: BadgeDollarSign, label: "Match engine", path: "/admin/matches" },
   { icon: ShieldCheck, label: "Administrators", path: "/admin/administrators" },
 ];
 
@@ -69,7 +69,7 @@ export default function DashboardLayout({
             <h1 className="text-2xl font-semibold tracking-tight text-center">
               Sign in as administrator
             </h1>
-            <p className="text-sm text-muted-foreground text-center max-w-sm">Use the separate SKYBET administrator email and password. Customer sessions cannot open this workspace.</p>
+            <p className="text-sm text-muted-foreground text-center max-w-sm">Sign in with your administrator account to continue.</p>
           </div>
           <AdminLoginForm />
         </div>

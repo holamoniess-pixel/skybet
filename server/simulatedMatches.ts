@@ -13,8 +13,8 @@ export type SimulatedMatch = SkybetEvent & {
 };
 
 export type SimulatedMatchFeed = {
-  source: "skybet-simulation";
-  attribution: "Simulation data — not real fixtures, live scores, odds, or results";
+  source: "skybet-generated";
+  attribution: "SKYBET-generated market data";
   generatedAt: string;
   refreshAfterSeconds: number;
   clubCount: number;
@@ -91,12 +91,12 @@ export function getSimulatedMatchFeed(now = new Date()): SimulatedMatchFeed {
   dayStart.setHours(0, 0, 0, 0);
   const events = Array.from({ length: SLOT_COUNT }, (_, index) => makeMatch(index, dayStart, now));
   return {
-    source: "skybet-simulation",
-    attribution: "Simulation data — not real fixtures, live scores, odds, or results",
+    source: "skybet-generated",
+    attribution: "SKYBET-generated market data",
     generatedAt: now.toISOString(),
     refreshAfterSeconds: REFRESH_AFTER_SECONDS,
     clubCount: SIMULATION_CLUBS.length,
     events,
-    message: "Demo match engine: pairings, schedules, predictions, scores, and odds are generated for simulation only.",
+    message: "SKYBET-generated markets: pairings, schedules, forecasts, scores, and odds are managed by the SKYBET market engine.",
   };
 }

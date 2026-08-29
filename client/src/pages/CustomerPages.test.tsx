@@ -8,7 +8,7 @@ import { ActivityPage, EventDetailPage } from "./CustomerPages";
 
 vi.mock("@/lib/trpc", () => ({
   trpc: {
-    games: { simulatedFeed: { useQuery: () => ({ data: { events: [] }, isLoading: false }) } },
+    games: { simulatedFeed: { useQuery: () => ({ data: { events: [{ id: "live-skyline", sport: "Football", competition: "SKYBET Premier", teams: ["Harbour City", "Northvale FC"], score: "1 – 0", startsAt: "72'", status: "Live", isLive: true, markets: [{ label: "Harbour City", value: "2.18" }, { label: "Draw", value: "3.20" }, { label: "Northvale FC", value: "3.10" }] }] }, isLoading: false }) } },
     wagers: { place: { useMutation: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }) } },
     account: { referralProfile: { useQuery: () => ({ data: { referralCode: "SKYTEST", referralsCount: 0, rewardsCredited: "0.00", currency: "GHS" } }) } },
     auth: {
@@ -62,12 +62,12 @@ describe("Skybet event detail", () => {
 
     await user.click(screen.getByRole("button", { name: "Harbour City2.18" }));
 
-    expect(screen.getByText("Review your selection")).toBeInTheDocument();
+    expect(screen.getByText("Review your betslip")).toBeInTheDocument();
     expect(screen.getAllByText("Harbour City vs Northvale FC · Harbour City")).not.toHaveLength(0);
   });
 });
 
-describe("SKYBET referral preview", () => {
+describe("SKYBET referral activity", () => {
   it("shows confirmation after copying the referral link", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);

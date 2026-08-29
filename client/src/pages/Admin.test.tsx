@@ -148,7 +148,7 @@ describe("Skybet Admin", () => {
     window.history.pushState({}, "", "/admin/matches");
     rerender(<Admin />);
     expect(screen.getByRole("heading", { name: "Generated fixtures with transparent forecasts." })).toBeInTheDocument();
-    expect(screen.getByText("Simulation scores, fixtures & forecasts")).toBeInTheDocument();
+    expect(screen.getByText("Scores, fixtures & forecasts")).toBeInTheDocument();
 
     window.history.pushState({}, "", "/admin/administrators");
     rerender(<Admin />);

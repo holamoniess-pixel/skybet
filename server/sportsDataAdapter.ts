@@ -6,8 +6,8 @@ export type SportsDataConnectionStatus = {
 };
 
 /**
- * SKYBET serves this best-effort ESPN preview only through its backend. It is
- * deliberately separate from odds, bet pricing, balances, and settlement.
+ * This legacy provider adapter is isolated from odds, bet pricing, balances,
+ * and settlement.
  */
 export function getSportsDataConnectionStatus(): SportsDataConnectionStatus {
   return {
