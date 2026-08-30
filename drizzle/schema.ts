@@ -319,3 +319,55 @@ export type PaymentRequestEvent = typeof paymentRequestEvents.$inferSelect;
 export type AccountPaymentControl = typeof accountPaymentControls.$inferSelect;
 export type ReferralCommissionRule = typeof referralCommissionRules.$inferSelect;
 export type ReferralCommissionOverride = typeof referralCommissionOverrides.$inferSelect;
+
+export const matchStatusEnum = pgEnum("match_status", ["scheduled", "live", "completed", "cancelled"]);
+export const balanceAdjustmentTypeEnum = pgEnum("balance_adjustment_type", ["deposited", "bonus"]);
+
+/** Persisted administrator-authored games and matches. */
+export const matches = pgTable("matches", {
+  id: serial("id").primaryKey(),
+  sport: varchar("sport", { length: 48 }).default("Football").notNull(),
+  competition: varchar("competition", { length: 160 }).notNull(),
+  homeTeam: varchar("homeTeam", { length: 120 }).notNull(),
+  awayTeam: varchar("awayTeam", { length: 120 }).notNull(),
+  kickoffAt: timestamp("kickoffAt").notNull(),
+  endAt: timestamp("endAt"),
+  status: matchStatusEnum("status").default("scheduled").notNull(),
+  marketsJson: text("marketsJson").notNull(),
+  homeScore: integer("homeScore"),
+  awayScore: integer("awayScore"),
+  createdBy: integer("createdBy").notNull(),
+  updatedBy: integer("updatedBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+}, table => [index("matches_status_kickoff_idx").on(table.status, table.kickoffAt)]);
+
+export const matchScoreUpdates = pgTable("match_score_updates", {
+  id: serial("id").primaryKey(),
+  matchId: integer("matchId").notNull(),
+  minute: integer("minute").notNull(),
+  homeScore: integer("homeScore").notNull(),
+  awayScore: integer("awayScore").notNull(),
+  note: varchar("note", { length: 255 }),
+  createdBy: integer("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, table => [index("match_score_updates_match_idx").on(table.matchId, table.createdAt)]);
+
+/** Immutable, idempotent admin credit/debit records for customer balances. */
+export const balanceAdjustments = pgTable("balance_adjustments", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(),
+  currency: varchar("currency", { length: 3 }).notNull(),
+  balanceType: balanceAdjustmentTypeEnum("balanceType").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  beforeBalance: numeric("beforeBalance", { precision: 12, scale: 2 }).notNull(),
+  afterBalance: numeric("afterBalance", { precision: 12, scale: 2 }).notNull(),
+  reason: text("reason").notNull(),
+  idempotencyKey: varchar("idempotencyKey", { length: 128 }).notNull().unique(),
+  actorUserId: integer("actorUserId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, table => [index("balance_adjustments_user_created_idx").on(table.userId, table.createdAt)]);
+
+export type Match = typeof matches.$inferSelect;
+export type MatchScoreUpdate = typeof matchScoreUpdates.$inferSelect;
+export type BalanceAdjustment = typeof balanceAdjustments.$inferSelect;

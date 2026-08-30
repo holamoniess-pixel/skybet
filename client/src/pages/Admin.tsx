@@ -4,6 +4,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
 import { AdminManagementCard } from "@/components/skybet/AdminManagementCard";
+import { AdminBalanceEditor } from "@/components/skybet/AdminBalanceEditor";
+import { AdminMatchCreator } from "@/components/skybet/AdminMatchCreator";
 import { BonusPolicyAdminCard } from "@/components/skybet/BonusPolicyAdminCard";
 import { CustomerAccountAdminCard } from "@/components/skybet/CustomerAccountAdminCard";
 import { GamesFeedPreview } from "@/components/skybet/GamesFeedPreview";
@@ -18,12 +20,12 @@ type AdminSection = "overview" | "customers" | "deposits" | "withdrawals" | "bon
 
 const sectionDetails: Record<AdminSection, { eyebrow: string; title: string; description: string }> = {
   overview: { eyebrow: "SKYBET control room", title: "Operations with guardrails.", description: "Choose a clear work area for customers, review requests, bonuses, or site setup." },
-  customers: { eyebrow: "Customer accounts", title: "Find a customer before you act.", description: "View deposited and bonus balances separately, payment state, and active policy exceptions." },
+  customers: { eyebrow: "Customer accounts", title: "Find a customer before you act.", description: "View deposited and bonus balances separately, payment state, and active policy exceptions. You can also save an audited balance adjustment." },
   deposits: { eyebrow: "Deposit review", title: "Review submitted deposits.", description: "Inspect proof, record a reasoned decision, and credit the deposited balance when approved." },
   withdrawals: { eyebrow: "Withdrawal review", title: "Review Mobile Money withdrawals.", description: "Review each withdrawal request, record the decision, and retain the audit trail." },
   bonuses: { eyebrow: "Bonuses & rewards", title: "Set policy, not customer funds.", description: "Manage site-wide and per-customer bonus and referral settings. All non-deposit values remain bonus balance only." },
   site: { eyebrow: "Site configuration", title: "Configure the operating boundary.", description: "Review payments, rewards, editorial content, and market settings." },
-  matches: { eyebrow: "Match updates", title: "Fixtures with transparent forecasts.", description: "Inspect current pairings, live-state updates, odds, and forecasts. Settlement remains an explicit administrative action." },
+  matches: { eyebrow: "Match updates", title: "Fixtures with transparent forecasts.", description: "Create administrator-authored games with validated markets. Upcoming result data remains private." },
   administrators: { eyebrow: "Owner controls", title: "Manage administrator access.", description: "Only the primary owner can create, revoke, or restore another local administrator." },
 };
 
@@ -57,7 +59,7 @@ function AdminWorkspace() {
   const candidate = location.split("/")[2] as AdminSection | undefined;
   const section: AdminSection = candidate && candidate in sectionDetails ? candidate : "overview";
   if (user?.role !== "admin") return <div className="mx-auto grid min-h-[60dvh] max-w-xl place-items-center"><Card className="w-full border-[var(--sky-blue-100)] bg-white shadow-[0_14px_32px_rgba(10,63,158,0.08)] dark:border-white/10 dark:bg-[var(--card)]"><CardContent className="p-7 text-center"><LockKeyhole className="mx-auto size-8 text-[var(--sky-blue-600)]" /><h1 className="mt-4 text-2xl font-extrabold tracking-[-0.05em] text-[var(--sky-navy-950)] dark:text-white">Administrator access required</h1><p className="mt-2 text-sm leading-6 text-[var(--sky-navy-600)] dark:text-slate-400">This workspace is reserved for a SKYBET administrator account.</p><Button asChild className="mt-5 h-11 rounded-xl bg-[var(--sky-blue-600)] font-extrabold hover:bg-[var(--sky-blue-700)]"><a href="/">Return to SKYBET</a></Button></CardContent></Card></div>;
-  return <div className="mx-auto max-w-7xl space-y-6 pb-10"><AdminHeader section={section} />{section === "overview" ? <AdminOverview /> : null}{section === "customers" ? <CustomerAccountAdminCard /> : null}{section === "deposits" ? <PaymentReviewAdminCard requestType="deposit" /> : null}{section === "withdrawals" ? <PaymentReviewAdminCard requestType="withdrawal" /> : null}{section === "bonuses" ? <div className="grid gap-5"><BonusPolicyAdminCard /><ReferralCommissionAdminCard /></div> : null}{section === "site" ? <SiteConfigurationPage /> : null}{section === "matches" ? <GamesFeedPreview heading="Scores, fixtures & forecasts" showPredictions /> : null}{section === "administrators" ? <AdminManagementCard /> : null}</div>;
+  return <div className="mx-auto max-w-7xl space-y-6 pb-10"><AdminHeader section={section} />{section === "overview" ? <AdminOverview /> : null}{section === "customers" ? <div className="grid gap-5"><CustomerAccountAdminCard /><AdminBalanceEditor /></div> : null}{section === "deposits" ? <PaymentReviewAdminCard requestType="deposit" /> : null}{section === "withdrawals" ? <PaymentReviewAdminCard requestType="withdrawal" /> : null}{section === "bonuses" ? <div className="grid gap-5"><BonusPolicyAdminCard /><ReferralCommissionAdminCard /></div> : null}{section === "site" ? <SiteConfigurationPage /> : null}{section === "matches" ? <div className="grid gap-5"><AdminMatchCreator /><GamesFeedPreview heading="Scores, fixtures & forecasts" showPredictions={false} /></div> : null}{section === "administrators" ? <AdminManagementCard /> : null}</div>;
 }
 
 export default function Admin() { return <DashboardLayout><AdminWorkspace /></DashboardLayout>; }

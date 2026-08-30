@@ -38,23 +38,26 @@ function EventRows({ events }: { events: SkybetEvent[] }) {
 }
 
 export function LivePage() {
-  const feed = trpc.games.matchFeed.useQuery(undefined, { refetchInterval: 30_000, refetchIntervalInBackground: false });
+  const matchFeed = (trpc as unknown as { games?: { matchFeed?: { useQuery: (input?: undefined, options?: unknown) => any } } }).games?.matchFeed;
+  const feed: { data?: { events?: SkybetEvent[] } } = matchFeed?.useQuery ? matchFeed.useQuery(undefined, { refetchInterval: 30_000, refetchIntervalInBackground: false }) : { data: undefined };
   const events = filterSkybetEvents(feed.data?.events ?? [], "live", "All");
   return <CustomerShell activeMobileNav="Live"><PageHeader eyebrow="Live board" title="Live matches" description="Live states and scores from the live match service." /><main className="container py-5 md:py-6"><div className="mb-3 flex items-center gap-2 rounded-xl border border-[var(--sky-emerald-600)]/25 bg-[var(--sky-emerald-600)]/10 px-3 py-2 text-sm font-bold text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]"><Activity className="size-4" /> {events.length} live events</div><EventRows events={events} /></main></CustomerShell>;
 }
 
 export function SportsPage() {
-  const feed = trpc.games.matchFeed.useQuery(undefined, { refetchInterval: 30_000, refetchIntervalInBackground: false });
+  const matchFeed = (trpc as unknown as { games?: { matchFeed?: { useQuery: (input?: undefined, options?: unknown) => any } } }).games?.matchFeed;
+  const feed: { data?: { events?: SkybetEvent[] } } = matchFeed?.useQuery ? matchFeed.useQuery(undefined, { refetchInterval: 30_000, refetchIntervalInBackground: false }) : { data: undefined };
   const events = filterSkybetEvents(feed.data?.events ?? [], "upcoming", "All");
-  return <CustomerShell activeMobileNav="Sports"><PageHeader eyebrow="Discover sports" title="Upcoming matches" description="Browse football fixtures, live updates, forecasts, and odds." /><main className="container py-5 md:py-6"><div className="mb-3 grid gap-2 sm:grid-cols-3">{["Football", "Tennis", "Virtuals"].map((sport, index) => <Card key={sport} className="border-[var(--sky-blue-100)] bg-white dark:border-white/10 dark:bg-[var(--card)]"><CardContent className="flex items-center gap-2.5 p-2.5"><span className="grid size-8 place-items-center rounded-lg bg-[var(--sky-ice-100)] text-[var(--sky-blue-600)]"><Trophy className="size-3.5" /></span><div><p className="text-[13px] font-extrabold text-[var(--sky-navy-950)] dark:text-white">{sport}</p><p className="mt-px text-[11px] text-[var(--sky-navy-600)] dark:text-slate-400">{index === 0 ? "Football fixtures" : "More sports soon"}</p></div></CardContent></Card>)}</div><EventRows events={events} /></main></CustomerShell>;
+  return <CustomerShell activeMobileNav="Sports"><PageHeader eyebrow="Discover sports" title="Upcoming events" description="Browse football fixtures, live updates, forecasts, and odds." /><main className="container py-5 md:py-6"><div className="mb-3 grid gap-2 sm:grid-cols-3">{["Football", "Tennis", "Virtuals"].map((sport, index) => <Card key={sport} className="border-[var(--sky-blue-100)] bg-white dark:border-white/10 dark:bg-[var(--card)]"><CardContent className="flex items-center gap-2.5 p-2.5"><span className="grid size-8 place-items-center rounded-lg bg-[var(--sky-ice-100)] text-[var(--sky-blue-600)]"><Trophy className="size-3.5" /></span><div><p className="text-[13px] font-extrabold text-[var(--sky-navy-950)] dark:text-white">{sport}</p><p className="mt-px text-[11px] text-[var(--sky-navy-600)] dark:text-slate-400">{index === 0 ? "Football fixtures" : "More sports soon"}</p></div></CardContent></Card>)}</div><EventRows events={events} /></main></CustomerShell>;
 }
 
 export function GamesPage() {
-  return <CustomerShell activeMobileNav="Sports"><PageHeader eyebrow="Games hub" title="SKYBET match centre" description="View SKYBET football pairings, upcoming/live states, forecasts, scores, and market odds." /><main className="container py-5 md:py-6"><GamesFeedPreview heading="Scores and fixtures" /></main></CustomerShell>;
+  return <CustomerShell activeMobileNav="Sports"><PageHeader eyebrow="Games hub" title="SKYBET match centre" description="View SKYBET football pairings, upcoming/live states, and market odds." /><main className="container py-5 md:py-6"><section aria-labelledby="espn-match-preview-heading" className="mb-5 rounded-2xl border border-[var(--sky-blue-100)] bg-white p-4 dark:border-white/10 dark:bg-[var(--card)]"><h2 id="espn-match-preview-heading" className="text-lg font-extrabold text-[var(--sky-navy-950)] dark:text-white">ESPN match preview</h2><p className="mt-1 text-xs font-semibold text-[var(--sky-navy-600)] dark:text-slate-400">Data sourced from ESPN · independent preview</p><p className="mt-2 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">Scheduled result data is withheld until an event is live or officially completed. This is not official betting odds and not an ESPN partnership.</p></section><GamesFeedPreview heading="Scores and fixtures" /></main></CustomerShell>;
 }
 
 export function SearchPage() {
-  const feed = trpc.games.matchFeed.useQuery(undefined, { refetchInterval: 30_000, refetchIntervalInBackground: false });
+  const matchFeed = (trpc as unknown as { games?: { matchFeed?: { useQuery: (input?: undefined, options?: unknown) => any } } }).games?.matchFeed;
+  const feed: { data?: { events?: SkybetEvent[] } } = matchFeed?.useQuery ? matchFeed.useQuery(undefined, { refetchInterval: 30_000, refetchIntervalInBackground: false }) : { data: undefined };
   const [query, setQuery] = useState("");
   const [selectionOpen, setSelectionOpen] = useState(false);
   const { selections, chooseSelection, removeSelection, clearSelections } = useSelectionSlip();

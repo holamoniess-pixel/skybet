@@ -2,7 +2,7 @@ import { ENV } from "./_core/env";
 
 export type AquaPayGatewayReadiness = {
   provider: "Aqùapay";
-  status: "unconfigured" | "awaiting_contract";
+  status: "disabled" | "unconfigured" | "awaiting_contract";
   configuredSecrets: {
     apiUrl: boolean;
     apiKey: boolean;
@@ -18,7 +18,7 @@ export function getAquaPayGatewayReadiness(): AquaPayGatewayReadiness {
   };
   return {
     provider: "Aqùapay",
-    status: configuredSecrets.apiUrl && configuredSecrets.apiKey && configuredSecrets.webhookSecret ? "awaiting_contract" : "unconfigured",
+    status: !ENV.aquaPayEnabled ? "disabled" : configuredSecrets.apiUrl && configuredSecrets.apiKey && configuredSecrets.webhookSecret ? "awaiting_contract" : "unconfigured",
     configuredSecrets,
   };
 }

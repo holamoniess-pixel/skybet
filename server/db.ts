@@ -5,6 +5,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { alias } from "drizzle-orm/pg-core";
 import {
   accountBalanceSummaries,
+  balanceAdjustments,
   accountPaymentControls,
   adminAuditEvents,
   bonusPolicyOverrides,
@@ -13,6 +14,8 @@ import {
   customerSessions,
   InsertUser,
     localAdminCredentials,
+  matches,
+  matchScoreUpdates,
     notifications,
     paymentMethodConfigs,
   paymentRequestEvents,
@@ -962,5 +965,87 @@ export async function saveReferralCommissionOverride(input: CommissionInput & { 
     const overrideId = inserted[0].id;
     await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "referral_commission_override", entityId: overrideId, action: "created", beforeJson: previous ? JSON.stringify(previous) : null, afterJson: JSON.stringify({ userId: input.userId, percentage: input.percentage, reason: input.reason }) });
     return (await tx.select().from(referralCommissionOverrides).where(eq(referralCommissionOverrides.id, overrideId)).limit(1))[0];
+  });
+}
+
+
+function parseMoneyCents(value: string | number) {
+  const raw = typeof value === "number" ? String(value) : value.trim();
+  if (!/^\d+(?:\.\d{1,2})?$/.test(raw)) throw new Error("Enter a valid amount with up to two decimal places.");
+  const [whole, fraction = ""] = raw.split(".");
+  const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
+  if (!Number.isSafeInteger(cents) || cents < 0 || cents > 100_000_000_00) throw new Error("Amount is outside the permitted range.");
+  return cents;
+}
+
+function centsToMoney(cents: number) {
+  return (cents / 100).toFixed(2);
+}
+
+export async function createAdminMatch(input: {
+  sport: string;
+  competition: string;
+  homeTeam: string;
+  awayTeam: string;
+  kickoffAt: Date;
+  endAt?: Date;
+  status: "scheduled" | "live" | "completed" | "cancelled";
+  markets: Array<{ marketType: string; options: Array<{ name: string; odd: number }> }>;
+  actorUserId: number;
+}) {
+  if (input.homeTeam.trim().toLowerCase() === input.awayTeam.trim().toLowerCase()) throw new Error("Home and away teams must be different.");
+  if (!input.markets.length || input.markets.some(market => !market.marketType.trim() || !market.options.length || market.options.some(option => !Number.isFinite(option.odd) || option.odd <= 1))) throw new Error("Each market needs at least one valid odd greater than 1.00.");
+  const db = await getDb();
+  if (!db) throw new Error("Match management is not configured yet.");
+  const inserted = await db.insert(matches).values({
+    sport: input.sport.trim(),
+    competition: input.competition.trim(),
+    homeTeam: input.homeTeam.trim(),
+    awayTeam: input.awayTeam.trim(),
+    kickoffAt: input.kickoffAt,
+    endAt: input.endAt,
+    status: input.status,
+    marketsJson: JSON.stringify(input.markets),
+    createdBy: input.actorUserId,
+    updatedBy: input.actorUserId,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }).returning({ id: matches.id });
+  await db.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "match", entityId: inserted[0].id, action: "created", beforeJson: null, afterJson: JSON.stringify({ ...input, actorUserId: undefined, kickoffAt: input.kickoffAt.toISOString(), endAt: input.endAt?.toISOString() }) });
+  return (await db.select().from(matches).where(eq(matches.id, inserted[0].id)).limit(1))[0];
+}
+
+export async function listAdminMatches() {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(matches).orderBy(desc(matches.kickoffAt)).limit(100);
+  return rows.map(row => ({ ...row, markets: JSON.parse(row.marketsJson) as Array<{ marketType: string; options: Array<{ name: string; odd: number }> }> }));
+}
+
+export async function adjustCustomerBalance(input: {
+  actorUserId: number;
+  userId: number;
+  currency: "GHS";
+  balanceType: "deposited" | "bonus";
+  newBalance: string;
+  reason: string;
+  idempotencyKey: string;
+}) {
+  if (!input.reason.trim() || input.reason.trim().length < 5) throw new Error("A reason of at least five characters is required.");
+  const targetCents = parseMoneyCents(input.newBalance);
+  const db = await getDb();
+  if (!db) throw new Error("Balance management is not configured yet.");
+  return db.transaction(async tx => {
+    const existing = (await tx.select().from(balanceAdjustments).where(eq(balanceAdjustments.idempotencyKey, input.idempotencyKey)).limit(1))[0];
+    if (existing) return existing;
+    const current = (await tx.select().from(accountBalanceSummaries).where(eq(accountBalanceSummaries.userId, input.userId)).limit(1))[0] ?? { userId: input.userId, currency: input.currency, depositedBalance: "0.00", bonusBalance: "0.00" };
+    const beforeCents = parseMoneyCents(input.balanceType === "deposited" ? String(current.depositedBalance) : String(current.bonusBalance));
+    const deltaCents = targetCents - beforeCents;
+    const nextDeposited = input.balanceType === "deposited" ? centsToMoney(targetCents) : String(current.depositedBalance);
+    const nextBonus = input.balanceType === "bonus" ? centsToMoney(targetCents) : String(current.bonusBalance);
+    await tx.insert(accountBalanceSummaries).values({ userId: input.userId, currency: input.currency, depositedBalance: nextDeposited, bonusBalance: nextBonus, updatedAt: new Date() }).onConflictDoUpdate({ target: accountBalanceSummaries.userId, set: { depositedBalance: nextDeposited, bonusBalance: nextBonus, updatedAt: new Date() } });
+    const adjustment = (await tx.insert(balanceAdjustments).values({ userId: input.userId, currency: input.currency, balanceType: input.balanceType, amount: centsToMoney(deltaCents), beforeBalance: centsToMoney(beforeCents), afterBalance: centsToMoney(targetCents), reason: input.reason.trim(), idempotencyKey: input.idempotencyKey, actorUserId: input.actorUserId, createdAt: new Date() }).returning({ id: balanceAdjustments.id }))[0];
+    await tx.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "balance", entityId: adjustment.id, action: "adjusted", beforeJson: JSON.stringify({ userId: input.userId, currency: input.currency, balanceType: input.balanceType, balance: centsToMoney(beforeCents) }), afterJson: JSON.stringify({ userId: input.userId, currency: input.currency, balanceType: input.balanceType, balance: centsToMoney(targetCents), reason: input.reason.trim() }) });
+    return (await tx.select().from(balanceAdjustments).where(eq(balanceAdjustments.id, adjustment.id)).limit(1))[0];
   });
 }

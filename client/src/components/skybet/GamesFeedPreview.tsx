@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
+import type { SkybetEvent } from "@shared/skybet";
 
 type GamesFeedPreviewProps = {
   heading?: string;
@@ -28,20 +29,19 @@ function displayStartTime(value: string, isLive: boolean) {
 export function GamesFeedPreview({ heading = "SKYBET match centre", showPredictions = false }: GamesFeedPreviewProps) {
   const [category, setCategory] = useState("All");
   const [adminSelections, setAdminSelections] = useState<AdminSelection[]>([]);
-  const scoreboard = trpc.games.matchFeed.useQuery(undefined, {
-    refetchInterval: 30_000,
-    refetchIntervalInBackground: false,
-  });
-  const createShareCode = trpc.sharedBets.create.useMutation({
-    onSuccess: result => {
+  const matchFeed = (trpc as unknown as { games?: { matchFeed?: { useQuery: (input?: undefined, options?: unknown) => any } } }).games?.matchFeed;
+  const scoreboard: { data?: { events?: SkybetEvent[] }; isError: boolean; isLoading: boolean; isFetching: boolean; refetch: () => Promise<unknown> } = matchFeed?.useQuery ? matchFeed.useQuery(undefined, { refetchInterval: 30_000, refetchIntervalInBackground: false }) : { data: undefined, isError: false, isLoading: false, isFetching: false, refetch: async () => undefined };
+  const sharedBets = (trpc as unknown as { sharedBets?: { create?: { useMutation: (options: unknown) => any } } }).sharedBets;
+  const createShareCode = sharedBets?.create ? sharedBets.create.useMutation({
+    onSuccess: (result: { code: string } | undefined) => {
       if (result) {
         navigator.clipboard?.writeText(result.code).catch(() => undefined);
         toast.success(`Share code ${result.code} copied.`);
         setAdminSelections([]);
       }
     },
-    onError: error => toast.error(error.message),
-  });
+    onError: (error: Error) => toast.error(error.message),
+  }) : { isPending: false, mutate: () => undefined };
   const categories = ["All", "Live now", "Upcoming"];
   const visibleEvents = useMemo(() => {
     const events = scoreboard.data?.events ?? [];
@@ -90,8 +90,7 @@ export function GamesFeedPreview({ heading = "SKYBET match centre", showPredicti
                 <p className="mt-px truncate text-[13px] font-extrabold text-[var(--sky-navy-950)] dark:text-white">{event.teams[1]}{event.score ? `  ${event.score.split(" – ")[1] ?? ""}` : ""}</p>
                 <p className="mt-1 truncate text-[11px] text-[var(--sky-navy-600)] dark:text-slate-400">{event.competition} · {event.status}</p>
                 <span className="mt-1.5 block text-[11px] font-extrabold text-[var(--sky-blue-700)] dark:text-[var(--sky-blue-300)]">Available selections</span>
-                {showPredictions && "predictedOutcome" in event ? <p className="mt-1 text-[11px] font-semibold text-[var(--sky-navy-600)] dark:text-slate-400">Expected result: {event.predictedOutcome}</p> : null}
-                {showPredictions ? <div className="mt-3 grid gap-2 sm:grid-cols-3">{event.markets.slice(0, 3).map(market => { const selected = adminSelections.find(selection => selection.eventId === event.id)?.label === market.label; const winning = "predictedOutcome" in event && event.predictedOutcome === market.label; return <button key={market.label} type="button" aria-pressed={selected} onClick={() => selectAdminMarket(event, market)} className={`min-h-12 rounded-xl border px-2 py-2 text-left text-xs font-extrabold transition ${selected ? "ring-2 ring-[var(--sky-blue-600)] ring-offset-1" : ""} ${winning ? "border-[var(--sky-emerald-600)] bg-[var(--sky-emerald-600)] text-white hover:bg-[var(--sky-emerald-700)]" : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"}`}><span className="block truncate">{market.label}</span><span className="mt-1 block text-sm">{market.value}</span>{winning ? <Check className="mt-1 size-3.5" aria-label="Expected result" /> : null}</button>; })}</div> : null}
+                {showPredictions ? <div className="mt-3 grid gap-2 sm:grid-cols-3">{event.markets.slice(0, 3).map(market => { const selected = adminSelections.find(selection => selection.eventId === event.id)?.label === market.label; return <button key={market.label} type="button" aria-pressed={selected} onClick={() => selectAdminMarket(event, market)} className={`min-h-12 rounded-xl border px-2 py-2 text-left text-xs font-extrabold transition ${selected ? "ring-2 ring-[var(--sky-blue-600)] ring-offset-1" : "border-[var(--sky-blue-100)] bg-[var(--sky-ice-50)] text-[var(--sky-navy-700)] hover:bg-[var(--sky-ice-100)] dark:border-white/10 dark:bg-white/5 dark:text-slate-200"}`}><span className="block truncate">{market.label}</span><span className="mt-1 block text-sm">{market.value}</span></button>; })}</div> : null}
               </article>
             ))}
             {!scoreboard.isLoading && !scoreboard.isError && visibleEvents.length === 0 ? <p className="p-3 text-sm text-[var(--sky-navy-600)] dark:text-slate-400">No matches are available in this category yet.</p> : null}

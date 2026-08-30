@@ -1,0 +1,26 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { trpc } from "@/lib/trpc";
+
+const initial = { sport: "Football", competition: "", homeTeam: "", awayTeam: "", kickoffAt: "", homeOdd: "", drawOdd: "", awayOdd: "", bttsYes: "", bttsNo: "" };
+
+export function AdminMatchCreator() {
+  const [form, setForm] = useState(initial);
+  const [message, setMessage] = useState("");
+  const adminMatches = (trpc as unknown as { adminMatches?: { create: { useMutation: (options: unknown) => any } } }).adminMatches;
+  if (!adminMatches) return <Card className="border-[var(--sky-blue-100)] bg-white dark:border-white/10 dark:bg-[var(--card)]"><CardContent className="p-5"><h2 className="text-lg font-extrabold text-[var(--sky-navy-950)] dark:text-white">Create a match</h2><p className="mt-2 text-sm text-muted-foreground">Match creation is available after the updated API is deployed.</p></CardContent></Card>;
+  const create = adminMatches.create.useMutation({ onSuccess: () => { setMessage("Match created successfully."); setForm(initial); }, onError: (error: Error) => setMessage(error.message) });
+  const set = (field: keyof typeof initial) => (event: React.ChangeEvent<HTMLInputElement>) => setForm(current => ({ ...current, [field]: event.target.value }));
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setMessage("");
+    const kickoffAt = new Date(form.kickoffAt);
+    const numbers = [form.homeOdd, form.drawOdd, form.awayOdd, form.bttsYes, form.bttsNo].map(Number);
+    if (Number.isNaN(kickoffAt.getTime()) || numbers.some(value => !Number.isFinite(value) || value <= 1)) { setMessage("Enter a valid kickoff time and odds greater than 1.00."); return; }
+    create.mutate({ sport: form.sport, competition: form.competition, homeTeam: form.homeTeam, awayTeam: form.awayTeam, kickoffAt: kickoffAt.toISOString(), status: "scheduled", markets: [{ marketType: "Match Result", options: [{ name: form.homeTeam, odd: numbers[0] }, { name: "Draw", odd: numbers[1] }, { name: form.awayTeam, odd: numbers[2] }] }, { marketType: "Both Teams To Score", options: [{ name: "Yes", odd: numbers[3] }, { name: "No", odd: numbers[4] }] }] });
+  };
+  return <Card className="border-[var(--sky-blue-100)] bg-white dark:border-white/10 dark:bg-[var(--card)]"><CardContent className="p-5"><h2 className="text-lg font-extrabold text-[var(--sky-navy-950)] dark:text-white">Create a match</h2><p className="mt-2 text-sm leading-6 text-[var(--sky-navy-600)] dark:text-slate-400">Create an administrator-authored game with server-validated markets. Upcoming result data remains private.</p><form onSubmit={submit} className="mt-5 space-y-4"><div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="match-sport">Sport</Label><Input id="match-sport" value={form.sport} onChange={set("sport")} /></div><div className="space-y-2"><Label htmlFor="match-competition">League or competition</Label><Input id="match-competition" required value={form.competition} onChange={set("competition")} placeholder="Ghana Premier League" /></div><div className="space-y-2"><Label htmlFor="match-home">Home team</Label><Input id="match-home" required value={form.homeTeam} onChange={set("homeTeam")} /></div><div className="space-y-2"><Label htmlFor="match-away">Away team</Label><Input id="match-away" required value={form.awayTeam} onChange={set("awayTeam")} /></div><div className="space-y-2 sm:col-span-2"><Label htmlFor="match-kickoff">Kickoff</Label><Input id="match-kickoff" required type="datetime-local" value={form.kickoffAt} onChange={set("kickoffAt")} /></div></div><div className="rounded-xl bg-[var(--sky-ice-50)] p-4 dark:bg-white/5"><p className="text-sm font-extrabold">Match result odds</p><div className="mt-3 grid gap-3 sm:grid-cols-3"><Input aria-label="Home win odds" required inputMode="decimal" value={form.homeOdd} onChange={set("homeOdd")} placeholder="Home" /><Input aria-label="Draw odds" required inputMode="decimal" value={form.drawOdd} onChange={set("drawOdd")} placeholder="Draw" /><Input aria-label="Away win odds" required inputMode="decimal" value={form.awayOdd} onChange={set("awayOdd")} placeholder="Away" /></div><p className="mt-4 text-sm font-extrabold">Both teams to score</p><div className="mt-3 grid gap-3 sm:grid-cols-2"><Input aria-label="Both teams yes odds" required inputMode="decimal" value={form.bttsYes} onChange={set("bttsYes")} placeholder="Yes" /><Input aria-label="Both teams no odds" required inputMode="decimal" value={form.bttsNo} onChange={set("bttsNo")} placeholder="No" /></div></div><Button type="submit" disabled={create.isPending} className="h-11 bg-[var(--sky-blue-700)] font-extrabold text-white hover:bg-[var(--sky-blue-800)]">{create.isPending ? "Creating…" : "Create match"}</Button>{message ? <p role="status" className="text-sm font-semibold text-[var(--sky-navy-700)] dark:text-slate-300">{message}</p> : null}</form></CardContent></Card>;
+}

@@ -104,9 +104,17 @@ export function getSimulatedMatchFeed(now = new Date()): SimulatedMatchFeed {
 export type MatchFeed = Omit<SimulatedMatchFeed, "source" | "attribution" | "events" | "message"> & {
   source: "backend";
   attribution: "Backend match data";
-  events: Array<Omit<SimulatedMatch, "simulation">>;
+  events: Array<Omit<SimulatedMatch, "simulation" | "predictedOutcome" | "predictionConfidence">>;
   message: string;
 };
+
+export function toPublicMatchEvent(event: SimulatedMatch): Omit<SimulatedMatch, "simulation" | "predictedOutcome" | "predictionConfidence"> {
+  const { simulation: _simulation, predictedOutcome: _predictedOutcome, predictionConfidence: _predictionConfidence, score, ...safeEvent } = event;
+  return {
+    ...safeEvent,
+    ...(event.isLive || event.status === "Full time" ? { score } : {}),
+  };
+}
 
 export function getMatchFeed(now = new Date()): MatchFeed {
   const feed = getSimulatedMatchFeed(now);
@@ -116,7 +124,10 @@ export function getMatchFeed(now = new Date()): MatchFeed {
     generatedAt: feed.generatedAt,
     refreshAfterSeconds: feed.refreshAfterSeconds,
     clubCount: feed.clubCount,
-    events: feed.events.map(({ simulation: _simulation, ...event }) => ({ ...event, competition: event.competition.replace(/^Simulation /, "SKYBET ") })),
+    events: feed.events.map(event => ({
+      ...toPublicMatchEvent(event),
+      competition: event.competition.replace(/^Simulation /, "SKYBET "),
+    })),
     message: "Match updates, fixtures, scores, forecasts, and odds are supplied by the backend.",
   };
 }

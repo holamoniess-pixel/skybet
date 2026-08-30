@@ -156,6 +156,34 @@ export const appRouter = router({
   paymentReview: paymentReviewAdminRouter,
   commissions: commissionRouter,
   adminManagement: adminManagementRouter,
+  adminMatches: router({
+    list: adminProcedure.query(() => db.listAdminMatches()),
+    create: adminProcedure.input(z.object({
+      sport: z.string().trim().min(2).max(48),
+      competition: z.string().trim().min(2).max(160),
+      homeTeam: z.string().trim().min(2).max(120),
+      awayTeam: z.string().trim().min(2).max(120),
+      kickoffAt: z.string().datetime(),
+      endAt: z.string().datetime().optional(),
+      status: z.enum(["scheduled", "live", "completed", "cancelled"]).default("scheduled"),
+      markets: z.array(z.object({ marketType: z.string().trim().min(2).max(80), options: z.array(z.object({ name: z.string().trim().min(1).max(80), odd: z.number().finite().gt(1).max(1000) })).min(1).max(50) })).min(1).max(20),
+    })).mutation(async ({ ctx, input }) => {
+      try {
+        return await db.createAdminMatch({ ...input, kickoffAt: new Date(input.kickoffAt), endAt: input.endAt ? new Date(input.endAt) : undefined, actorUserId: ctx.user.id });
+      } catch (error) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Unable to create match." });
+      }
+    }),
+  }),
+  adminBalances: router({
+    adjust: adminProcedure.input(z.object({ userId: z.number().int().positive(), currency: z.literal("GHS"), balanceType: z.enum(["deposited", "bonus"]), newBalance: z.string().regex(/^\\d+(?:\\.\\d{1,2})?$/), reason: z.string().trim().min(5).max(500), idempotencyKey: z.string().trim().min(16).max(128) })).mutation(async ({ ctx, input }) => {
+      try {
+        return await db.adjustCustomerBalance({ ...input, actorUserId: ctx.user.id });
+      } catch (error) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Unable to adjust balance." });
+      }
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

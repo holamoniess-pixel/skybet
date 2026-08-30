@@ -37,7 +37,8 @@ export function SelectionSheet({ open, onOpenChange, selection, selections, onRe
   const selectedItems = selections ?? (selection ? [selection] : []);
   const combinedOdds = selectedItems.reduce((total: number, item: Selection) => total * Number(item.value), 1);
   const numericStake = Number(stake);
-  const placeWager = trpc.wagers.place.useMutation();
+  const wagerRouter = (trpc as unknown as { wagers?: { place?: { useMutation: () => any } } }).wagers;
+  const placeWager = wagerRouter?.place ? wagerRouter.place.useMutation() : { mutateAsync: async () => { throw new Error("Bet placement is unavailable in this environment."); } };
   const handlePlaceBet = async () => {
     if (!Number.isFinite(numericStake) || numericStake <= 0) {
       toast.error("Enter a valid stake before placing the bet.");

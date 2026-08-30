@@ -22,6 +22,13 @@
       "when": 1787950000000,
       "tag": "0002_seed_payment_methods",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788036400000,
+      "tag": "0003_skybet_feature_updates",
+      "breakpoints": true
     }
   ]
 }
