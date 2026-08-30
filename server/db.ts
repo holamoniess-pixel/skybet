@@ -33,7 +33,7 @@ import {
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { getSimulatedMatchFeed } from './simulatedMatches';
-import { MINIMUM_ODDS } from "../shared/skybet";
+import { MAXIMUM_ODDS, MINIMUM_ODDS } from "../shared/skybet";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _sql: ReturnType<typeof postgres> | null = null;
@@ -591,7 +591,7 @@ function normalizeShareSelections(selections: WagerSelectionInput[]) {
     if (!event || event.isLive || event.status === "Full time") throw new Error("One or more selected markets are no longer available.");
     const market = event.markets.find(candidate => candidate.label === selection.label);
     if (!market || market.value !== selection.odds) throw new Error("One or more odds changed. Refresh and try again.");
-    if (Number(market.value) < MINIMUM_ODDS || Number(selection.odds) < MINIMUM_ODDS) throw new Error("Odds must be at least 1.02.");
+    if (Number(market.value) < MINIMUM_ODDS || Number(selection.odds) < MINIMUM_ODDS || Number(market.value) > MAXIMUM_ODDS || Number(selection.odds) > MAXIMUM_ODDS) throw new Error("Odds must be between 1.02 and 15.00.");
     return { eventId: event.id, teams: event.teams, label: market.label, odds: market.value };
   });
   const odds = normalized.reduce((total, selection) => total * Number(selection.odds), 1);
@@ -631,7 +631,7 @@ export async function placeSimulationWager(input: { userId: number; idempotencyK
       if (!event || event.isLive || event.status === "Full time") throw new Error("One or more selected markets are no longer available.");
       const market = event.markets.find(candidate => candidate.label === selection.label);
       if (!market || market.value !== selection.odds) throw new Error("One or more odds changed. Review your betslip before placing the bet.");
-      if (Number(market.value) < MINIMUM_ODDS || Number(selection.odds) < MINIMUM_ODDS) throw new Error("Odds must be at least 1.02.");
+      if (Number(market.value) < MINIMUM_ODDS || Number(selection.odds) < MINIMUM_ODDS || Number(market.value) > MAXIMUM_ODDS || Number(selection.odds) > MAXIMUM_ODDS) throw new Error("Odds must be between 1.02 and 15.00.");
       return { eventId: event.id, teams: event.teams, label: market.label, odds: market.value };
     });
     const combinedOdds = normalizedSelections.reduce((total, selection) => total * Number(selection.odds), 1);
@@ -997,7 +997,7 @@ export async function createAdminMatch(input: {
   actorUserId: number;
 }) {
   if (input.homeTeam.trim().toLowerCase() === input.awayTeam.trim().toLowerCase()) throw new Error("Home and away teams must be different.");
-  if (!input.markets.length || input.markets.some(market => !market.marketType.trim() || !market.options.length || market.options.some(option => !Number.isFinite(option.odd) || option.odd <= 1))) throw new Error("Each market needs at least one valid odd greater than 1.00.");
+  if (!input.markets.length || input.markets.some(market => !market.marketType.trim() || !market.options.length || market.options.some(option => !Number.isFinite(option.odd) || option.odd < MINIMUM_ODDS || option.odd > MAXIMUM_ODDS))) throw new Error("Each market needs odds between 1.02 and 15.00.");
   const db = await getDb();
   if (!db) throw new Error("Match management is not configured yet.");
   const inserted = await db.insert(matches).values({

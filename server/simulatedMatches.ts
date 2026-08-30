@@ -37,6 +37,21 @@ function randomBetween(seed: number, min: number, max: number) {
   return min + fraction * (max - min);
 }
 
+const POPULAR_TEAM_HINTS = [
+  "real madrid", "manchester", "liverpool", "arsenal", "chelsea", "barcelona", "bayern", "milan", "dortmund", "paris saint", "psg", "ajax", "juventus", "inter ", "porto", "benfica", "al ahly", "asante kotoko", "hearts of oak",
+];
+
+function popularityScore(team: string) {
+  const normalized = team.toLowerCase();
+  const hintIndex = POPULAR_TEAM_HINTS.findIndex(hint => normalized.includes(hint));
+  if (hintIndex >= 0) return 0.82 - hintIndex * 0.01;
+  return 0.35 + (hash(`popularity:${normalized}`) % 4_000) / 10_000;
+}
+
+function oddsFromProbability(probability: number) {
+  return Number(normalizeOdds(1 / (Math.max(0.01, Math.min(0.98, probability)) * 0.94)));
+}
+
 function formatLiveStatus(startedAt: Date, now: Date) {
   const elapsedMinutes = Math.max(1, Math.min(105, Math.floor((now.getTime() - startedAt.getTime()) / 60_000)));
   return elapsedMinutes >= 105 ? "Full time" : `${elapsedMinutes}’ · ${elapsedMinutes < 45 ? "First half" : elapsedMinutes === 45 ? "Half time" : "Second half"}`;
@@ -54,11 +69,17 @@ function makeMatch(index: number, dayStart: Date, now: Date): SimulatedMatch {
   const endAt = new Date(scheduledAt.getTime() + MATCH_DURATION_MS);
   const isLive = now >= scheduledAt && now < endAt;
   const isFinished = now >= endAt;
-  const homeOdds = Number(randomBetween(seed ^ 0x1234, 1.55, 3.75).toFixed(2));
-  const awayOdds = Number(randomBetween(seed ^ 0x5678, 1.65, 4.65).toFixed(2));
-  const drawOdds = Number(randomBetween(seed ^ 0x9abc, 2.75, 4.2).toFixed(2));
-  const prediction = homeOdds <= awayOdds ? homeTeam : awayTeam;
-  const confidence = Number(randomBetween(seed ^ 0xdef0, 51, 72).toFixed(1));
+  const homePopularity = popularityScore(homeTeam) + randomBetween(seed ^ 0x1234, -0.08, 0.08);
+  const awayPopularity = popularityScore(awayTeam) + randomBetween(seed ^ 0x5678, -0.08, 0.08);
+  const totalPopularity = Math.max(0.1, homePopularity + awayPopularity);
+  const drawProbability = randomBetween(seed ^ 0x9abc, 0.18, 0.28);
+  const homeProbability = (1 - drawProbability) * (homePopularity / totalPopularity);
+  const awayProbability = (1 - drawProbability) * (awayPopularity / totalPopularity);
+  const homeOdds = oddsFromProbability(homeProbability);
+  const awayOdds = oddsFromProbability(awayProbability);
+  const drawOdds = oddsFromProbability(drawProbability);
+  const prediction = homeProbability >= awayProbability ? homeTeam : awayTeam;
+  const confidence = Number((Math.max(homeProbability, awayProbability) * 100).toFixed(1));
   const scoreHome = isLive || isFinished ? String((seed + index) % 3) : null;
   const scoreAway = isLive || isFinished ? String((seed >>> 4) % 3) : null;
   const status = isLive ? formatLiveStatus(scheduledAt, now) : isFinished ? "Full time" : "Scheduled";
@@ -77,9 +98,9 @@ function makeMatch(index: number, dayStart: Date, now: Date): SimulatedMatch {
       { label: homeTeam, value: homeOdds.toFixed(2) },
       { label: "Draw", value: drawOdds.toFixed(2) },
       { label: awayTeam, value: awayOdds.toFixed(2) },
-      { label: "Over 2.5 goals", value: randomBetween(seed ^ 0x1111, 1.7, 2.25).toFixed(2) },
-      { label: "Under 2.5 goals", value: randomBetween(seed ^ 0x2222, 1.65, 2.15).toFixed(2) },
-      { label: "Both teams to score", value: randomBetween(seed ^ 0x3333, 1.55, 2.05).toFixed(2) },
+      { label: "Over 2.5 goals", value: normalizeOdds(randomBetween(seed ^ 0x1111, 1.7, 3.8)) },
+      { label: "Under 2.5 goals", value: normalizeOdds(randomBetween(seed ^ 0x2222, 1.65, 3.6)) },
+      { label: "Both teams to score", value: normalizeOdds(randomBetween(seed ^ 0x3333, 1.55, 3.25)) },
     ],
     simulation: true,
     predictedOutcome: prediction,

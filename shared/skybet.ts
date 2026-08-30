@@ -14,11 +14,12 @@ export type SkybetEvent = {
 };
 
 export const MINIMUM_ODDS = 1.02;
+export const MAXIMUM_ODDS = 15.00;
 
 export function normalizeOdds(value: string | number): string {
   const numeric = Number(value);
-  if (!Number.isFinite(numeric) || numeric < MINIMUM_ODDS) return MINIMUM_ODDS.toFixed(2);
-  return numeric.toFixed(2);
+  if (!Number.isFinite(numeric)) return MINIMUM_ODDS.toFixed(2);
+  return Math.min(MAXIMUM_ODDS, Math.max(MINIMUM_ODDS, numeric)).toFixed(2);
 }
 
 export const SKYBET_SPORTS = [
