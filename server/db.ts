@@ -33,6 +33,7 @@ import {
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { getSimulatedMatchFeed } from './simulatedMatches';
+import { MINIMUM_ODDS } from "../shared/skybet";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _sql: ReturnType<typeof postgres> | null = null;
@@ -590,6 +591,7 @@ function normalizeShareSelections(selections: WagerSelectionInput[]) {
     if (!event || event.isLive || event.status === "Full time") throw new Error("One or more selected markets are no longer available.");
     const market = event.markets.find(candidate => candidate.label === selection.label);
     if (!market || market.value !== selection.odds) throw new Error("One or more odds changed. Refresh and try again.");
+    if (Number(market.value) < MINIMUM_ODDS || Number(selection.odds) < MINIMUM_ODDS) throw new Error("Odds must be at least 1.02.");
     return { eventId: event.id, teams: event.teams, label: market.label, odds: market.value };
   });
   const odds = normalized.reduce((total, selection) => total * Number(selection.odds), 1);
@@ -629,6 +631,7 @@ export async function placeSimulationWager(input: { userId: number; idempotencyK
       if (!event || event.isLive || event.status === "Full time") throw new Error("One or more selected markets are no longer available.");
       const market = event.markets.find(candidate => candidate.label === selection.label);
       if (!market || market.value !== selection.odds) throw new Error("One or more odds changed. Review your betslip before placing the bet.");
+      if (Number(market.value) < MINIMUM_ODDS || Number(selection.odds) < MINIMUM_ODDS) throw new Error("Odds must be at least 1.02.");
       return { eventId: event.id, teams: event.teams, label: market.label, odds: market.value };
     });
     const combinedOdds = normalizedSelections.reduce((total, selection) => total * Number(selection.odds), 1);

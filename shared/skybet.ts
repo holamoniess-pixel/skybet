@@ -13,6 +13,14 @@ export type SkybetEvent = {
   markets: Array<{ label: string; value: string }>;
 };
 
+export const MINIMUM_ODDS = 1.02;
+
+export function normalizeOdds(value: string | number): string {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric < MINIMUM_ODDS) return MINIMUM_ODDS.toFixed(2);
+  return numeric.toFixed(2);
+}
+
 export const SKYBET_SPORTS = [
   "All",
   "Football",
@@ -121,7 +129,7 @@ export function filterSkybetEvents(
 ): SkybetEvent[] {
   return events.filter(
     event =>
-      (mode === "live" ? event.isLive : !event.isLive) &&
+      (mode === "live" ? event.isLive : !event.isLive && event.status !== "Full time" && event.status !== "Completed" && event.status !== "Cancelled") &&
       (sport === "All" || event.sport === sport)
   );
 }

@@ -1,4 +1,5 @@
 import { SIMULATION_CLUBS } from "../shared/simulationClubs";
+import { normalizeOdds } from "../shared/skybet";
 import type { SkybetEvent } from "../shared/skybet";
 
 const REFRESH_AFTER_SECONDS = 30;
@@ -108,12 +109,9 @@ export type MatchFeed = Omit<SimulatedMatchFeed, "source" | "attribution" | "eve
   message: string;
 };
 
-export function toPublicMatchEvent(event: SimulatedMatch): Omit<SimulatedMatch, "simulation" | "predictedOutcome" | "predictionConfidence"> {
-  const { simulation: _simulation, predictedOutcome: _predictedOutcome, predictionConfidence: _predictionConfidence, score, ...safeEvent } = event;
-  return {
-    ...safeEvent,
-    ...(event.isLive || event.status === "Full time" ? { score } : {}),
-  };
+export function toPublicMatchEvent(event: SimulatedMatch): Omit<SimulatedMatch, "simulation" | "predictedOutcome" | "predictionConfidence" | "score"> {
+  const { simulation: _simulation, predictedOutcome: _predictedOutcome, predictionConfidence: _predictionConfidence, score: _score, ...safeEvent } = event;
+  return safeEvent;
 }
 
 export function getMatchFeed(now = new Date()): MatchFeed {
@@ -124,10 +122,33 @@ export function getMatchFeed(now = new Date()): MatchFeed {
     generatedAt: feed.generatedAt,
     refreshAfterSeconds: feed.refreshAfterSeconds,
     clubCount: feed.clubCount,
+    events: feed.events
+      .filter(event => event.isLive || event.status === "Scheduled")
+      .map(event => ({
+        ...toPublicMatchEvent(event),
+        competition: event.competition.replace(/^Simulation /, "SKYBET "),
+        markets: event.markets.map(market => ({ ...market, value: normalizeOdds(market.value) })),
+      })),
+    message: "Match updates, fixtures, and odds are supplied by the backend. Results remain administrator-only.",
+  };
+}
+
+export type AdminMatchFeed = Omit<SimulatedMatchFeed, "source" | "attribution"> & {
+  source: "admin";
+  attribution: "Administrator match data";
+};
+
+export function getAdminMatchFeed(now = new Date()): AdminMatchFeed {
+  const feed = getSimulatedMatchFeed(now);
+  return {
+    ...feed,
+    source: "admin",
+    attribution: "Administrator match data",
     events: feed.events.map(event => ({
-      ...toPublicMatchEvent(event),
+      ...event,
       competition: event.competition.replace(/^Simulation /, "SKYBET "),
+      markets: event.markets.map(market => ({ ...market, value: normalizeOdds(market.value) })),
     })),
-    message: "Match updates, fixtures, scores, forecasts, and odds are supplied by the backend.",
+    message: "Administrator-only match data, including results and internal winner metadata.",
   };
 }

@@ -10,7 +10,7 @@ import { ADMIN_SESSION_COOKIE } from "./localAdminSession";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { getSportsDataConnectionStatus } from "./sportsDataAdapter";
-import { getMatchFeed, getSimulatedMatchFeed } from "./simulatedMatches";
+import { getAdminMatchFeed, getMatchFeed, getSimulatedMatchFeed } from "./simulatedMatches";
 import { espnPreviewClient } from "./espnPreview";
 import { commissionRouter, paymentReviewAdminRouter, paymentReviewRouter } from "./routers/paymentReview";
 import { adminManagementRouter } from "./routers/adminManagement";
@@ -129,7 +129,7 @@ export const appRouter = router({
   }),
   wagers: router({
     place: protectedProcedure
-      .input(z.object({ idempotencyKey: z.string().trim().min(16).max(128), stake: z.number().positive().max(100000), selections: z.array(z.object({ eventId: z.string().min(1), label: z.string().min(1).max(160), odds: z.string().regex(/^\d+(?:\.\d{1,4})?$/) })).min(1).max(20) }))
+      .input(z.object({ idempotencyKey: z.string().trim().min(16).max(128), stake: z.number().positive().max(100000), selections: z.array(z.object({ eventId: z.string().min(1), label: z.string().min(1).max(160), odds: z.string().regex(/^\d+(?:\.\d{1,4})?$/).refine(value => Number(value) >= 1.02, "Odds must be at least 1.02") })).min(1).max(20) }))
       .mutation(async ({ ctx, input }) => {
         try {
           return await db.placeSimulationWager({ userId: ctx.user.id, idempotencyKey: input.idempotencyKey, stake: input.stake, selections: input.selections });
@@ -140,7 +140,7 @@ export const appRouter = router({
   }),
   sharedBets: router({
     load: publicProcedure.input(z.object({ code: z.string().trim().min(6).max(48) })).query(({ input }) => db.getSharedBetSlip(input.code)),
-    create: protectedProcedure.input(z.object({ source: z.enum(["admin", "user"]), selections: z.array(z.object({ eventId: z.string().min(1), label: z.string().min(1), odds: z.string().min(1) })).min(1).max(20) })).mutation(async ({ ctx, input }) => {
+    create: protectedProcedure.input(z.object({ source: z.enum(["admin", "user"]), selections: z.array(z.object({ eventId: z.string().min(1), label: z.string().min(1), odds: z.string().regex(/^\d+(?:\.\d{1,4})?$/).refine(value => Number(value) >= 1.02, "Odds must be at least 1.02") })).min(1).max(20) })).mutation(async ({ ctx, input }) => {
       if (input.source === "admin" && ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Administrator access is required to create an admin share code." });
       try { return await db.createSharedBetSlip({ creatorUserId: ctx.user.id, source: input.source, selections: input.selections }); } catch (error) { throw new TRPCError({ code: "BAD_REQUEST", message: error instanceof Error ? error.message : "Unable to create share code." }); }
     }),
@@ -157,6 +157,7 @@ export const appRouter = router({
   commissions: commissionRouter,
   adminManagement: adminManagementRouter,
   adminMatches: router({
+    feed: adminProcedure.query(() => getAdminMatchFeed()),
     list: adminProcedure.query(() => db.listAdminMatches()),
     create: adminProcedure.input(z.object({
       sport: z.string().trim().min(2).max(48),
@@ -166,7 +167,7 @@ export const appRouter = router({
       kickoffAt: z.string().datetime(),
       endAt: z.string().datetime().optional(),
       status: z.enum(["scheduled", "live", "completed", "cancelled"]).default("scheduled"),
-      markets: z.array(z.object({ marketType: z.string().trim().min(2).max(80), options: z.array(z.object({ name: z.string().trim().min(1).max(80), odd: z.number().finite().gt(1).max(1000) })).min(1).max(50) })).min(1).max(20),
+      markets: z.array(z.object({ marketType: z.string().trim().min(2).max(80), options: z.array(z.object({ name: z.string().trim().min(1).max(80), odd: z.number().finite().min(1.02).max(1000) })).min(1).max(50) })).min(1).max(20),
     })).mutation(async ({ ctx, input }) => {
       try {
         return await db.createAdminMatch({ ...input, kickoffAt: new Date(input.kickoffAt), endAt: input.endAt ? new Date(input.endAt) : undefined, actorUserId: ctx.user.id });
