@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { validateDepositPresetAmount, validateGhanaMobileMoneyNumber, validateReferralCommissionPercentage, validateWithdrawalAmount } from "../../shared/payments";
-import { getAquaPayGatewayReadiness } from "../aquaPayGateway";
+import { getAquaPayGatewayReadiness, initiateAquaPayPayment } from "../aquaPayGateway";
 import * as db from "../db";
 import { paymentProofStorageGetSignedUrl, paymentProofStoragePut, storageGetSignedUrl } from "../storage";
 import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
@@ -30,15 +30,40 @@ export const paymentReviewRouter = router({
   gatewayStatus: protectedProcedure.query(() => getAquaPayGatewayReadiness()),
   myRequests: protectedProcedure.query(({ ctx }) => db.getCustomerPaymentRequests(ctx.user.id)),
   submitDeposit: protectedProcedure
-    .input(z.object({ method: paymentMethodSchema, amount: z.string(), customerPaymentReference: z.string().trim().min(3).max(128), proof: proofSchema }))
+    .input(z.object({ method: paymentMethodSchema, amount: z.string(), customerPaymentReference: z.string().trim().min(3).max(128), proof: proofSchema.optional() }))
     .mutation(async ({ ctx, input }) => {
       const validation = validateDepositPresetAmount(input.amount);
       if (!validation.ok) throw new TRPCError({ code: "BAD_REQUEST", message: validation.reason });
-      const upload = await uploadProof(ctx.user.id, input.proof);
+      let upload: { key: string } | undefined;
+      if (input.proof) {
+        try {
+          upload = await uploadProof(ctx.user.id, input.proof);
+        } catch (error) {
+          console.warn("[Payments] Screenshot was not stored; continuing without proof.", error instanceof Error ? error.message : error);
+        }
+      }
       try {
-        const request = await db.createDepositRequest({ userId: ctx.user.id, method: input.method, amount: validation.amount, publicReference: `DEP-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`, customerPaymentReference: input.customerPaymentReference, proofStorageKey: upload.key, proofMimeType: input.proof.mimeType });
+        const request = await db.createDepositRequest({ userId: ctx.user.id, method: input.method, amount: validation.amount, publicReference: `DEP-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`, customerPaymentReference: input.customerPaymentReference, proofStorageKey: upload?.key, proofMimeType: upload ? input.proof?.mimeType : undefined });
         if (!request) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Payment requests are temporarily unavailable." });
         return request;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({ code: "BAD_REQUEST", message: toPublicError(error) });
+      }
+    }),
+  startAquaPayDeposit: protectedProcedure
+    .input(z.object({ amount: z.string(), customerPaymentReference: z.string().trim().min(3).max(128), mobileMoneyNumber: z.string().trim().min(9).max(32) }))
+    .mutation(async ({ ctx, input }) => {
+      const validation = validateDepositPresetAmount(input.amount);
+      if (!validation.ok) throw new TRPCError({ code: "BAD_REQUEST", message: validation.reason });
+      const mobileMoney = validateGhanaMobileMoneyNumber(input.mobileMoneyNumber);
+      if (!mobileMoney.ok) throw new TRPCError({ code: "BAD_REQUEST", message: mobileMoney.reason });
+      const publicReference = `DEP-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
+      try {
+        const request = await db.createDepositRequest({ userId: ctx.user.id, method: "aquapay", amount: validation.amount, publicReference, customerPaymentReference: input.customerPaymentReference });
+        if (!request) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Payment requests are temporarily unavailable." });
+        const payment = await initiateAquaPayPayment({ amount: validation.amount, currency: "GHS", reference: publicReference, customerPhone: mobileMoney.number });
+        return { request, checkoutUrl: payment.checkoutUrl, providerReference: payment.providerReference };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "BAD_REQUEST", message: toPublicError(error) });

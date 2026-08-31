@@ -18,6 +18,7 @@ vi.mock("@/lib/trpc", () => ({
       gatewayStatus: { useQuery: () => ({ data: { provider: "Aqùapay", status: "unconfigured", configuredSecrets: { apiUrl: false, apiKey: false, webhookSecret: false } } }) },
       myRequests: { useQuery: () => ({ data: [] }) },
       submitDeposit: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+      startAquaPayDeposit: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
       submitWithdrawal: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
     },
   },

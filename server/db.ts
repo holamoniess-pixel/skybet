@@ -756,8 +756,8 @@ type DepositRequestInput = {
   amount: number;
   publicReference: string;
   customerPaymentReference: string;
-  proofStorageKey: string;
-  proofMimeType: string;
+  proofStorageKey?: string;
+  proofMimeType?: string;
 };
 
 export async function createDepositRequest(input: DepositRequestInput) {
@@ -911,7 +911,23 @@ export async function reviewPaymentRequest(input: { requestId: number; actorUser
     return (await tx.select().from(paymentRequests).where(eq(paymentRequests.id, request.id)).limit(1))[0];
   });
 }
-
+export async function settleAquaPayWebhook(input: { reference: string; amount: number; providerReference: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Payment database is unavailable.");
+  return db.transaction(async tx => {
+    const request = (await tx.select().from(paymentRequests).where(or(eq(paymentRequests.publicReference, input.reference), eq(paymentRequests.customerPaymentReference, input.reference))).limit(1))[0];
+    if (!request) throw new Error("Payment request not found");
+    if (request.requestType !== "deposit" || request.method !== "aquapay") throw new Error("Webhook does not match an AquaPay deposit");
+    if (Number(request.amount) !== Number(input.amount)) throw new Error("Webhook amount does not match the payment request");
+    if (request.status === "approved") return request;
+    if (request.status === "rejected" || request.status === "cancelled") throw new Error("Payment request is no longer payable");
+    const balance = (await tx.select().from(accountBalanceSummaries).where(eq(accountBalanceSummaries.userId, request.userId)).limit(1))[0] ?? { depositedBalance: "0.00", bonusBalance: "0.00" };
+    const nextDeposited = (Number(balance.depositedBalance) + Number(request.amount)).toFixed(2);
+    await tx.insert(accountBalanceSummaries).values({ userId: request.userId, currency: request.currency, depositedBalance: nextDeposited, bonusBalance: balance.bonusBalance, updatedAt: new Date() }).onConflictDoUpdate({ target: accountBalanceSummaries.userId, set: { depositedBalance: nextDeposited, updatedAt: new Date() } });
+    await tx.update(paymentRequests).set({ status: "approved", reviewReason: `AquaPay confirmed payment ${input.providerReference}`, reviewedAt: new Date(), updatedAt: new Date() }).where(eq(paymentRequests.id, request.id));
+    return (await tx.select().from(paymentRequests).where(eq(paymentRequests.id, request.id)).limit(1))[0];
+  });
+}
 export async function setAccountPaymentControl(input: { userId: number; status: "active" | "held"; reason: string; actorUserId: number }) {
   const db = await getDb();
   if (!db) return undefined;

@@ -1,8 +1,9 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { ENV } from "./_core/env";
 
 export type AquaPayGatewayReadiness = {
   provider: "Aqùapay";
-  status: "disabled" | "unconfigured" | "awaiting_contract";
+  status: "disabled" | "unconfigured" | "ready";
   configuredSecrets: {
     apiUrl: boolean;
     apiKey: boolean;
@@ -18,15 +19,48 @@ export function getAquaPayGatewayReadiness(): AquaPayGatewayReadiness {
   };
   return {
     provider: "Aqùapay",
-    status: !ENV.aquaPayEnabled ? "disabled" : configuredSecrets.apiUrl && configuredSecrets.apiKey && configuredSecrets.webhookSecret ? "awaiting_contract" : "unconfigured",
+    status: !ENV.aquaPayEnabled ? "disabled" : configuredSecrets.apiUrl && configuredSecrets.apiKey && configuredSecrets.webhookSecret ? "ready" : "unconfigured",
     configuredSecrets,
   };
 }
 
 export function assertAquaPayReadyForImplementation() {
   const readiness = getAquaPayGatewayReadiness();
+  if (readiness.status === "disabled") {
+    throw new Error("Aqùapay is disabled. Set AQUAPAY_ENABLED=true after configuring the server-only payment secrets.");
+  }
   if (readiness.status === "unconfigured") {
     throw new Error("Aqùapay is not configured. Add the API URL, API key, and webhook secret through server-only project secrets.");
   }
-  throw new Error("Aqùapay credentials are present, but an official API contract and signed-webhook specification must be verified before requests can be initiated.");
+  return readiness;
+}
+
+export type AquaPayPaymentInput = { amount: number; currency: "GHS"; reference: string; customerPhone: string; callbackUrl?: string };
+
+export async function initiateAquaPayPayment(input: AquaPayPaymentInput) {
+  assertAquaPayReadyForImplementation();
+  const base = ENV.aquaPayApiUrl.replace(/\/+$/, "");
+  const path = ENV.aquaPayPaymentPath.startsWith("/") ? ENV.aquaPayPaymentPath : `/${ENV.aquaPayPaymentPath}`;
+  const header = ENV.aquaPayApiKeyHeader || "Authorization";
+  const value = header.toLowerCase() === "authorization" ? `Bearer ${ENV.aquaPayApiKey}` : ENV.aquaPayApiKey;
+  const response = await fetch(`${base}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", [header]: value },
+    body: JSON.stringify({ amount: input.amount, currency: input.currency, reference: input.reference, customer_phone: input.customerPhone, callback_url: input.callbackUrl || ENV.aquaPayWebhookUrl || undefined }),
+  });
+  const raw = await response.text();
+  let data: Record<string, unknown> = {};
+  try { data = raw ? JSON.parse(raw) as Record<string, unknown> : {}; } catch { /* provider may return an empty body */ }
+  if (!response.ok) throw new Error(`Aqùapay payment initiation failed (${response.status}).`);
+  const checkoutUrl = [data.checkout_url, data.payment_url, data.redirect_url, data.url].find(value => typeof value === "string") as string | undefined;
+  return { providerReference: String(data.provider_reference ?? data.transaction_id ?? data.id ?? input.reference), checkoutUrl, raw: data };
+}
+
+export function verifyAquaPayWebhookSignature(rawBody: Buffer, signature: string | undefined) {
+  if (!ENV.aquaPayWebhookSecret || !signature) return false;
+  const expected = createHmac("sha256", ENV.aquaPayWebhookSecret).update(rawBody).digest("hex");
+  const provided = signature.replace(/^sha256=/i, "").trim();
+  const expectedBuffer = Buffer.from(expected, "utf8");
+  const providedBuffer = Buffer.from(provided, "utf8");
+  return expectedBuffer.length === providedBuffer.length && timingSafeEqual(expectedBuffer, providedBuffer);
 }

@@ -38,6 +38,16 @@ export function WalletPaymentRequestCard() {
     },
     onError: error => toast.error(error.message),
   });
+  const startAquaPayDeposit = trpc.payments.startAquaPayDeposit.useMutation({
+    onSuccess: result => {
+      toast.success(`Deposit request ${result.request.publicReference} submitted for payment.`);
+      if (result.checkoutUrl) window.location.assign(result.checkoutUrl);
+      setReference("");
+      setMobileMoneyNumber("");
+      utils.payments.myRequests.invalidate();
+    },
+    onError: error => toast.error(error.message),
+  });
   const submitWithdrawal = trpc.payments.submitWithdrawal.useMutation({
     onSuccess: request => {
       toast.success(`Mobile Money withdrawal request ${request.publicReference} submitted for review.`);
@@ -74,15 +84,15 @@ export function WalletPaymentRequestCard() {
   const submit = () => {
     if (!isAuthenticated) return toast.error("Sign in before creating a payment request.");
     if (mode === "deposit") {
-      if (!proof) return toast.error("Upload a payment screenshot before submitting a deposit request.");
-      submitDeposit.mutate({ method, amount, customerPaymentReference: reference, proof });
+      if (method === "aquapay") startAquaPayDeposit.mutate({ amount, customerPaymentReference: reference, mobileMoneyNumber });
+      else submitDeposit.mutate({ method, amount, customerPaymentReference: reference, proof: proof ?? undefined });
       return;
     }
     submitWithdrawal.mutate({ amount, mobileMoneyNumber });
   };
 
-  const pendingGateway = gatewayStatus.data?.status !== "awaiting_contract";
-  const submitDisabled = mode === "deposit" ? submitDeposit.isPending : submitWithdrawal.isPending;
+  const pendingGateway = gatewayStatus.data?.status !== "ready";
+  const submitDisabled = mode === "deposit" ? submitDeposit.isPending || startAquaPayDeposit.isPending : submitWithdrawal.isPending;
 
   return (
     <div className="mt-5 space-y-5">
@@ -110,6 +120,7 @@ export function WalletPaymentRequestCard() {
         </div>
         {method === "crypto_trc20" ? <div className="rounded-xl border border-[var(--sky-emerald-600)]/25 bg-[var(--sky-emerald-600)]/10 p-4"><p className="text-xs font-extrabold tracking-[0.1em] text-[var(--sky-emerald-700)] uppercase">Crypto wallet address</p><div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><code className="break-all text-sm font-bold text-[var(--sky-navy-950)] dark:text-white">{walletAddress}</code><Button type="button" variant="outline" onClick={copyAddress} aria-label="Copy TRC20 wallet address" className="h-9 shrink-0 rounded-lg border-[var(--sky-emerald-600)]/30 text-xs font-extrabold text-[var(--sky-emerald-700)]"><Copy className="mr-1.5 size-3.5" />Copy address</Button></div><p className="mt-2 text-xs leading-5 text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]">Network: {walletNetwork}. Send only USDT over the TRC20 network.</p></div> : null}
         <div><Label className="font-bold text-[var(--sky-navy-950)] dark:text-white">Select GHS request amount</Label><div className="mt-2 flex flex-wrap gap-2">{DEPOSIT_PRESET_AMOUNTS.map(value => <Button key={value} type="button" variant={amount === String(value) ? "default" : "outline"} onClick={() => setAmount(String(value))} className={amount === String(value) ? "h-10 rounded-lg bg-[var(--sky-blue-600)] px-3 text-xs font-extrabold" : "h-10 rounded-lg border-[var(--sky-blue-200)] px-3 text-xs font-extrabold text-[var(--sky-blue-700)]"}>GH₵ {value.toLocaleString()}</Button>)}</div></div>
+        {method === "aquapay" ? <div className="space-y-2"><Label htmlFor="deposit-mobile-money-number">Mobile Money number</Label><Input id="deposit-mobile-money-number" inputMode="tel" autoComplete="tel" value={mobileMoneyNumber} onChange={event => setMobileMoneyNumber(event.target.value)} placeholder="024 123 4567 or +233 24 123 4567" className="h-11 rounded-xl border-[var(--sky-blue-200)] dark:border-white/15 dark:bg-white/5" /><p className="text-xs leading-5 text-[var(--sky-navy-600)] dark:text-slate-400">AquaPay will send the payment prompt to this number.</p></div> : null}
         <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="payment-reference">Your transfer reference</Label><Input id="payment-reference" value={reference} onChange={event => setReference(event.target.value)} placeholder="Transaction ID or reference" className="h-11 rounded-xl border-[var(--sky-blue-200)] dark:border-white/15 dark:bg-white/5" /></div><div className="space-y-2"><Label htmlFor="payment-proof">Payment screenshot</Label><div className="flex h-11 items-center gap-2 rounded-xl border border-[var(--sky-blue-200)] px-3 dark:border-white/15"><FileImage className="size-4 text-[var(--sky-blue-700)]" /><input id="payment-proof" type="file" accept="image/png,image/jpeg" onChange={onProofChange} className="min-w-0 text-xs" /></div></div></div>
         {proof ? <p className="flex items-center gap-2 text-xs text-[var(--sky-emerald-700)] dark:text-[var(--sky-emerald-500)]"><CheckCircle2 className="size-4" />Screenshot ready for upload.</p> : null}
         <Button type="button" aria-busy={submitDeposit.isPending} disabled={submitDisabled} onClick={submit} className="h-12 w-full rounded-xl bg-[var(--sky-blue-600)] font-extrabold text-white shadow-[0_10px_22px_rgba(15,87,199,0.22)] transition hover:bg-[var(--sky-blue-700)] active:scale-[0.98]">{submitDeposit.isPending ? "Submitting…" : "Submit deposit request for review"}</Button>

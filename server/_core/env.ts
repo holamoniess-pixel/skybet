@@ -8,5 +8,8 @@ export const ENV = {
   aquaPayApiUrl: process.env.AQUAPAY_API_URL ?? "",
   aquaPayApiKey: process.env.AQUAPAY_API_KEY ?? "",
   aquaPayWebhookSecret: process.env.AQUAPAY_WEBHOOK_SECRET ?? "",
+  aquaPayPaymentPath: process.env.AQUAPAY_PAYMENT_PATH ?? "/payments",
+  aquaPayWebhookUrl: process.env.AQUAPAY_WEBHOOK_URL ?? "",
+  aquaPayApiKeyHeader: process.env.AQUAPAY_API_KEY_HEADER ?? "Authorization",
   aquaPayEnabled: process.env.AQUAPAY_ENABLED === "true",
 };

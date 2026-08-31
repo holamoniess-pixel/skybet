@@ -13,6 +13,7 @@ import { createRuntimeHealthPayload } from "../runtimeHealth";
 import { installSentryExpressErrorHandler } from "../sentry";
 import { createEspnPreviewRefreshHandler } from "../espnPreviewRefresh";
 import { createPaymentProofRetentionHandler } from "../paymentProofRetention";
+import { handleAquaPayWebhook } from "../aquaPayWebhook";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,7 +38,7 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
+  app.use(express.json({ limit: "50mb", verify: (req, _res, buffer) => { (req as express.Request & { rawBody?: Buffer }).rawBody = Buffer.from(buffer); } }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   app.get("/health", (_req, res) => {
     res.status(200).json(createRuntimeHealthPayload());
@@ -52,6 +53,7 @@ async function startServer() {
   app.post("/api/admin/login", createAdminLoginHandler());
   app.post("/api/scheduled/espn-preview-refresh", createEspnPreviewRefreshHandler());
   app.post("/api/scheduled/payment-proof-retention", createPaymentProofRetentionHandler());
+  app.post("/api/webhooks/aquapay", handleAquaPayWebhook);
   // tRPC API
   app.use(
     "/api/trpc",
