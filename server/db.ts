@@ -32,6 +32,7 @@ import {
   wagers,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { getAquaPayGatewayReadiness } from './aquaPayGateway';
 import { getSimulatedMatchFeed } from './simulatedMatches';
 import { MAXIMUM_ODDS, MINIMUM_ODDS } from "../shared/skybet";
 
@@ -730,7 +731,8 @@ export async function getPaymentMethods(includeDisabled = false) {
   const db = await getDb();
   if (!db) return [];
   const query = db.select().from(paymentMethodConfigs).orderBy(paymentMethodConfigs.id);
-  return includeDisabled ? query : query.where(eq(paymentMethodConfigs.status, "enabled"));
+  const rows = includeDisabled ? await query : await query.where(eq(paymentMethodConfigs.status, "enabled"));
+  return rows.map(row => row.method === "aquapay" && getAquaPayGatewayReadiness().status === "ready" ? { ...row, status: "enabled" as const } : row);
 }
 
 export async function getAccountPaymentControl(userId: number) {
@@ -746,6 +748,7 @@ async function assertAccountCanSubmitPayment(tx: any, userId: number) {
 }
 
 async function assertMethodEnabled(tx: any, method: "crypto_trc20" | "aquapay") {
+  if (method === "aquapay" && getAquaPayGatewayReadiness().status === "ready") return;
   const configured = await tx.select().from(paymentMethodConfigs).where(eq(paymentMethodConfigs.method, method)).limit(1);
   if (!configured[0] || configured[0].status !== "enabled") throw new Error("The selected payment method is not available.");
 }
