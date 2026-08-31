@@ -53,6 +53,7 @@ export async function initiateAquaPayPayment(input: AquaPayPaymentInput) {
   try { data = raw ? JSON.parse(raw) as Record<string, unknown> : {}; } catch { /* provider may return an empty body */ }
   if (!response.ok) throw new Error(`Aqùapay payment initiation failed (${response.status}).`);
   const checkoutUrl = [data.checkout_url, data.payment_url, data.redirect_url, data.url].find(value => typeof value === "string") as string | undefined;
+  if (!checkoutUrl) throw new Error("Aqùapay did not return a hosted checkout URL.");
   return { providerReference: String(data.provider_reference ?? data.transaction_id ?? data.id ?? input.reference), checkoutUrl, raw: data };
 }
 
