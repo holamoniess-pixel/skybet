@@ -54,6 +54,7 @@ async function startServer() {
   app.post("/api/scheduled/espn-preview-refresh", createEspnPreviewRefreshHandler());
   app.post("/api/scheduled/payment-proof-retention", createPaymentProofRetentionHandler());
   app.post("/api/webhooks/aquapay", handleAquaPayWebhook);
+  app.post("/api/payments/akwapay/webhook", handleAquaPayWebhook);
   // tRPC API
   app.use(
     "/api/trpc",

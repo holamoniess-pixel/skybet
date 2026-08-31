@@ -35,7 +35,7 @@ export function assertAquaPayReadyForImplementation() {
   return readiness;
 }
 
-export type AquaPayPaymentInput = { amount: number; currency: "GHS"; reference: string; customerPhone: string; callbackUrl?: string };
+export type AquaPayPaymentInput = { amount: number; currency: "GHS"; reference: string; customerPhone: string; network: "MTN" | "VODAFONE" | "AIRTELTIGO"; callbackUrl?: string };
 
 export async function initiateAquaPayPayment(input: AquaPayPaymentInput) {
   assertAquaPayReadyForImplementation();
@@ -45,8 +45,8 @@ export async function initiateAquaPayPayment(input: AquaPayPaymentInput) {
   const value = header.toLowerCase() === "authorization" ? `Bearer ${ENV.aquaPayApiKey}` : ENV.aquaPayApiKey;
   const response = await fetch(`${base}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", [header]: value },
-    body: JSON.stringify({ amount: input.amount, currency: input.currency, reference: input.reference, customer_phone: input.customerPhone, callback_url: input.callbackUrl || ENV.aquaPayWebhookUrl || undefined }),
+    headers: { "Content-Type": "application/json", "Idempotency-Key": input.reference, [header]: value },
+    body: JSON.stringify({ amount: Math.round(input.amount * 100), currency: input.currency, method: "mobile_money", network: input.network, customer: { phone: input.customerPhone }, reference: input.reference, callback_url: input.callbackUrl || ENV.aquaPayWebhookUrl || undefined }),
   });
   const raw = await response.text();
   let data: Record<string, unknown> = {};

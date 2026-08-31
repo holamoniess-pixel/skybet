@@ -52,7 +52,7 @@ export const paymentReviewRouter = router({
       }
     }),
   startAquaPayDeposit: protectedProcedure
-    .input(z.object({ amount: z.string(), customerPaymentReference: z.string().trim().min(3).max(128), mobileMoneyNumber: z.string().trim().min(9).max(32) }))
+    .input(z.object({ amount: z.string(), customerPaymentReference: z.string().trim().min(3).max(128), mobileMoneyNumber: z.string().trim().min(9).max(32), network: z.enum(["MTN", "VODAFONE", "AIRTELTIGO"]) }))
     .mutation(async ({ ctx, input }) => {
       const validation = validateDepositPresetAmount(input.amount);
       if (!validation.ok) throw new TRPCError({ code: "BAD_REQUEST", message: validation.reason });
@@ -62,7 +62,7 @@ export const paymentReviewRouter = router({
       try {
         const request = await db.createDepositRequest({ userId: ctx.user.id, method: "aquapay", amount: validation.amount, publicReference, customerPaymentReference: input.customerPaymentReference });
         if (!request) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Payment requests are temporarily unavailable." });
-        const payment = await initiateAquaPayPayment({ amount: validation.amount, currency: "GHS", reference: publicReference, customerPhone: mobileMoney.number });
+        const payment = await initiateAquaPayPayment({ amount: validation.amount, currency: "GHS", reference: publicReference, customerPhone: mobileMoney.number, network: input.network });
         return { request, checkoutUrl: payment.checkoutUrl, providerReference: payment.providerReference };
       } catch (error) {
         if (error instanceof TRPCError) throw error;

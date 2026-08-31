@@ -7,7 +7,7 @@ function firstString(...values: unknown[]) {
 }
 
 export async function handleAquaPayWebhook(req: Request, res: Response) {
-  const signature = req.header("x-aquapay-signature") ?? req.header("x-webhook-signature") ?? req.header("x-signature");
+  const signature = req.header("x-akwapay-signature") ?? req.header("x-aquapay-signature") ?? req.header("x-webhook-signature") ?? req.header("x-signature");
   const rawBody = (req as Request & { rawBody?: Buffer }).rawBody ?? Buffer.from(JSON.stringify(req.body ?? {}));
   if (!verifyAquaPayWebhookSignature(rawBody, signature)) return res.status(401).json({ ok: false, error: "Invalid webhook signature" });
 
@@ -18,7 +18,8 @@ export async function handleAquaPayWebhook(req: Request, res: Response) {
   const reference = firstString(body.reference, body.merchant_reference, body.external_reference, nested.reference, nested.merchant_reference);
   const providerReference = firstString(body.provider_reference, body.transaction_id, body.transactionId, body.id, nested.provider_reference, nested.transaction_id) ?? reference;
   const amountValue = body.amount ?? nested.amount;
-  const amount = typeof amountValue === "number" ? amountValue : Number(amountValue);
+  const amountInPesewas = typeof amountValue === "number" ? amountValue : Number(amountValue);
+  const amount = amountInPesewas / 100;
   if (!reference || !providerReference || !Number.isFinite(amount) || amount <= 0) return res.status(400).json({ ok: false, error: "Incomplete webhook payload" });
   try {
     await settleAquaPayWebhook({ reference, amount, providerReference });
