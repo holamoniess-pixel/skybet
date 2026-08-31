@@ -53,18 +53,18 @@ const discoveryItems = [
 ];
 
 const heroSlides = [
-  { src: "https://images.unsplash.com/photo-1579952363873-27f3bede9f55?auto=format&fit=crop&w=1600&q=85", position: "object-center" },
-  { src: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=85", position: "object-center" },
-  { src: "https://images.unsplash.com/photo-1553778263-73a83bab9e2b?auto=format&fit=crop&w=1600&q=85", position: "object-[62%_center]" },
-  { src: "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=1600&q=85", position: "object-[70%_center]" },
-  { src: "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=1600&q=85", position: "object-[42%_center]" },
-  { src: "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1600&q=85", position: "object-[80%_center]" },
-  { src: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=1600&q=85", position: "object-[78%_center]" },
-  { src: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=85", position: "object-[58%_center]" },
-  { src: "https://images.unsplash.com/photo-1579952363873-27f3bede9f55?auto=format&fit=crop&w=1600&q=85", position: "object-[55%_center]" },
-  { src: "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=1600&q=85", position: "object-[88%_center]" },
+  { src: "/hero/hero-1.jpg", position: "object-center" },
+  { src: "/hero/hero-2.jpg", position: "object-center" },
+  { src: "/hero/hero-3.jpg", position: "object-[62%_center]" },
+  { src: "/hero/hero-4.jpg", position: "object-[70%_center]" },
+  { src: "/hero/hero-5.jpg", position: "object-[42%_center]" },
+  { src: "/hero/hero-6.jpg", position: "object-[80%_center]" },
+  { src: "/hero/hero-7.jpg", position: "object-[78%_center]" },
+  { src: "/hero/hero-8.jpg", position: "object-[58%_center]" },
+  { src: "/hero/hero-9.jpg", position: "object-[55%_center]" },
+  { src: "/hero/hero-10.jpg", position: "object-[88%_center]" },
 ];
-const heroFallback = "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=1600&q=85";
+const heroFallback = "/hero/hero-1.jpg";
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
