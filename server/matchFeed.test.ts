@@ -22,7 +22,10 @@ describe("backend match feed", () => {
       expect(event.status).not.toBe("Full time");
       expect(event).not.toHaveProperty("predictedOutcome");
       expect(event).not.toHaveProperty("predictionConfidence");
-      for (const market of event.markets) expect(Number(market.value)).toBeGreaterThanOrEqual(1.02);
+      for (const market of event.markets) {
+        expect(Number(market.value)).toBeGreaterThanOrEqual(1.02);
+        expect(Number(market.value)).toBeLessThanOrEqual(4);
+      }
     }
   });
 

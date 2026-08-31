@@ -49,7 +49,7 @@ function popularityScore(team: string) {
 }
 
 function oddsFromProbability(probability: number) {
-  return Number(normalizeOdds(1 / (Math.max(0.01, Math.min(0.98, probability)) * 0.94)));
+  return Number(normalizeOdds(Math.min(4, 1 / (Math.max(0.01, Math.min(0.98, probability)) * 0.94))));
 }
 
 function formatLiveStatus(startedAt: Date, now: Date) {

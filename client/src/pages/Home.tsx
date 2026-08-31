@@ -64,6 +64,7 @@ const heroSlides = [
   { src: "https://images.unsplash.com/photo-1579952363873-27f3bede9f55?auto=format&fit=crop&w=1600&q=85", position: "object-[55%_center]" },
   { src: "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=1600&q=85", position: "object-[88%_center]" },
 ];
+const heroFallback = "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=1600&q=85";
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
@@ -217,9 +218,9 @@ export default function Home() {
       <MobileMatchRail onSelect={handleMobileDiscovery} />
 
       <main className="container py-5 md:py-8">
-        <section className="sky-hero relative min-h-[16.75rem] overflow-hidden rounded-[1.5rem] border border-[var(--sky-blue-100)] bg-[var(--sky-navy-950)] px-4 py-4 shadow-[0_16px_50px_rgba(10,63,158,0.14)] dark:border-white/10 sm:min-h-[22rem] sm:rounded-[2rem] sm:px-8 sm:py-9">
+        <section className="sky-hero relative min-h-[16.75rem] overflow-hidden rounded-[1.5rem] border border-[var(--sky-blue-100)] bg-[var(--sky-navy-950)] bg-cover bg-center px-4 py-4 shadow-[0_16px_50px_rgba(10,63,158,0.14)] dark:border-white/10 sm:min-h-[22rem] sm:rounded-[2rem] sm:px-8 sm:py-9" style={{ backgroundImage: `url(${heroFallback})` }}>
           <div className="absolute inset-0" aria-hidden="true">
-            {heroSlides.map((slide, index) => <img key={`${slide.src}-${index}`} src={slide.src} alt="" className={`absolute inset-0 size-full object-cover ${slide.position} sky-hero-slide ${index === heroSlide ? "sky-hero-slide-active" : ""}`} />)}
+            {heroSlides.map((slide, index) => <img key={`${slide.src}-${index}`} src={slide.src} alt="" loading={index === 0 ? "eager" : "lazy"} decoding="async" onError={event => { event.currentTarget.onerror = null; event.currentTarget.src = heroFallback; }} className={`absolute inset-0 size-full object-cover ${slide.position} sky-hero-slide ${index === heroSlide ? "sky-hero-slide-active" : ""}`} />)}
           </div>
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,19,51,0.98)_0%,rgba(3,19,51,0.87)_45%,rgba(3,19,51,0.18)_100%)]" aria-hidden="true" />
           <div className="absolute top-3 right-3 z-10 flex items-center gap-1 rounded-full border border-white/15 bg-[rgba(3,19,51,0.58)] p-1 backdrop-blur-sm sm:top-5 sm:right-5">
