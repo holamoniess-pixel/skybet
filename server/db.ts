@@ -732,7 +732,10 @@ export async function getPaymentMethods(includeDisabled = false) {
   if (!db) return [];
   const query = db.select().from(paymentMethodConfigs).orderBy(paymentMethodConfigs.id);
   const rows = includeDisabled ? await query : await query.where(eq(paymentMethodConfigs.status, "enabled"));
-  return rows.map(row => row.method === "aquapay" && getAquaPayGatewayReadiness().status === "ready" ? { ...row, status: "enabled" as const } : row);
+  const gatewayReady = getAquaPayGatewayReadiness().status === "ready";
+  const withGatewayStatus = rows.map(row => row.method === "aquapay" && gatewayReady ? { ...row, status: "enabled" as const } : row);
+  if (gatewayReady && !withGatewayStatus.some(row => row.method === "aquapay")) withGatewayStatus.push({ id: -1, method: "aquapay", displayName: "AquaPay Mobile Money", network: "GHS", destination: null, status: "enabled", updatedBy: null, updatedAt: new Date() });
+  return withGatewayStatus;
 }
 
 export async function getAccountPaymentControl(userId: number) {
