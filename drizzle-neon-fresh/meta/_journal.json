@@ -25,9 +25,16 @@
     },
     {
       "idx": 3,
-      "version": "7",
+      "version": 7,
       "when": 1788036400000,
       "tag": "0003_skybet_feature_updates",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": 7,
+      "when": 1788040000000,
+      "tag": "0004_enable_aquapay_mobile_money",
       "breakpoints": true
     }
   ]
