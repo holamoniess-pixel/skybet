@@ -32,7 +32,7 @@ describe("WalletPaymentRequestCard", () => {
     expect(screen.getByText("Crypto wallet address")).toBeInTheDocument();
     expect(screen.getByText("TQCHL828z5VyKGRkw3jUThrURnG9tpsS6G")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copy TRC20 wallet address" })).toBeInTheDocument();
-    expect(screen.getByText("Automatic Mobile Money")).toBeInTheDocument();
+    expect(screen.getByText("Mobile Money")).toBeInTheDocument();
     expect(screen.getByText("Coming soon")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "GH₵ 2,000" })).toBeInTheDocument();
     expect(screen.getByLabelText("Payment screenshot")).toBeInTheDocument();
