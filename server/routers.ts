@@ -177,7 +177,7 @@ export const appRouter = router({
     }),
   }),
   adminBalances: router({
-    adjust: adminProcedure.input(z.object({ userId: z.number().int().positive(), currency: z.literal("GHS"), balanceType: z.enum(["deposited", "bonus"]), newBalance: z.string().regex(/^\\d+(?:\\.\\d{1,2})?$/), reason: z.string().trim().min(5).max(500), idempotencyKey: z.string().trim().min(16).max(128) })).mutation(async ({ ctx, input }) => {
+    adjust: adminProcedure.input(z.object({ userId: z.number().int().positive(), currency: z.literal("GHS"), balanceType: z.enum(["deposited", "bonus"]), newBalance: z.string().regex(/^\d+(?:\.\d{1,2})?$/), reason: z.string().trim().min(5).max(500), idempotencyKey: z.string().trim().min(16).max(128) })).mutation(async ({ ctx, input }) => {
       try {
         return await db.adjustCustomerBalance({ ...input, actorUserId: ctx.user.id });
       } catch (error) {

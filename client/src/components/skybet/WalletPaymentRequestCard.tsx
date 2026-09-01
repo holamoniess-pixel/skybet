@@ -16,7 +16,7 @@ const TRC20_WALLET_ADDRESS = "TQCHL828z5VyKGRkw3jUThrURnG9tpsS6G";
 export function WalletPaymentRequestCard() {
   const { isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
-  const [mode, setMode] = useState<"deposit" | "withdrawal">("deposit");
+  const [mode, setMode] = useState<"deposit" | "withdrawal">(() => window.location.hash === "#withdraw" ? "withdrawal" : "deposit");
   const [method, setMethod] = useState<"crypto_trc20" | "aquapay">("crypto_trc20");
   const [amount, setAmount] = useState("200");
   const [reference, setReference] = useState("");
