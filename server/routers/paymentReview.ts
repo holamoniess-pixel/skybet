@@ -59,7 +59,8 @@ export const paymentReviewRouter = router({
       const mobileMoney = validateGhanaMobileMoneyNumber(input.mobileMoneyNumber);
       if (!mobileMoney.ok) throw new TRPCError({ code: "BAD_REQUEST", message: mobileMoney.reason });
       const publicReference = `DEP-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
-      const customerPaymentReference = input.customerPaymentReference.trim() || `AQP-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
+      const suppliedCustomerReference = input.customerPaymentReference.trim();
+      const customerPaymentReference = suppliedCustomerReference.length >= 3 ? suppliedCustomerReference : `AQP-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
       try {
         const request = await db.createDepositRequest({ userId: ctx.user.id, method: "aquapay", amount: validation.amount, publicReference, customerPaymentReference });
         if (!request) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Payment requests are temporarily unavailable." });
