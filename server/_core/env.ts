@@ -9,7 +9,7 @@ export const ENV = {
   aquaPayApiKey: process.env.AQUAPAY_API_KEY ?? "",
   aquaPayWebhookSecret: process.env.AQUAPAY_WEBHOOK_SECRET ?? "",
   aquaPayPaymentPath: process.env.AQUAPAY_PAYMENT_PATH ?? "/payment_intents",
-  aquaPayWebhookUrl: process.env.AQUAPAY_WEBHOOK_URL ?? "https://skybet.space/api/payments/akwapay/webhook",
+  aquaPayWebhookUrl: process.env.AQUAPAY_WEBHOOK_URL ?? "https://skybet-production.up.railway.app/api/payments/akwapay/webhook",
   aquaPayApiKeyHeader: process.env.AQUAPAY_API_KEY_HEADER ?? "Authorization",
   aquaPayEnabled: process.env.AQUAPAY_ENABLED === "true",
 };
