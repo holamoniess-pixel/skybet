@@ -52,15 +52,16 @@ export const paymentReviewRouter = router({
       }
     }),
   startAquaPayDeposit: protectedProcedure
-    .input(z.object({ amount: z.string(), customerPaymentReference: z.string().trim().min(3).max(128), mobileMoneyNumber: z.string().trim().min(9).max(32), network: z.enum(["MTN", "VODAFONE", "AIRTELTIGO"]) }))
+    .input(z.object({ amount: z.string(), customerPaymentReference: z.string().trim().max(128).optional().default(""), mobileMoneyNumber: z.string().trim().min(9).max(32), network: z.enum(["MTN", "VODAFONE", "AIRTELTIGO"]) }))
     .mutation(async ({ ctx, input }) => {
       const validation = validateDepositPresetAmount(input.amount);
       if (!validation.ok) throw new TRPCError({ code: "BAD_REQUEST", message: validation.reason });
       const mobileMoney = validateGhanaMobileMoneyNumber(input.mobileMoneyNumber);
       if (!mobileMoney.ok) throw new TRPCError({ code: "BAD_REQUEST", message: mobileMoney.reason });
       const publicReference = `DEP-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
+      const customerPaymentReference = input.customerPaymentReference.trim() || `AQP-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
       try {
-        const request = await db.createDepositRequest({ userId: ctx.user.id, method: "aquapay", amount: validation.amount, publicReference, customerPaymentReference: input.customerPaymentReference });
+        const request = await db.createDepositRequest({ userId: ctx.user.id, method: "aquapay", amount: validation.amount, publicReference, customerPaymentReference });
         if (!request) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Payment requests are temporarily unavailable." });
         const payment = await initiateAquaPayPayment({ amount: validation.amount, currency: "GHS", reference: publicReference, customerPhone: mobileMoney.number, network: input.network });
         return { request, checkoutUrl: payment.checkoutUrl, providerReference: payment.providerReference };
