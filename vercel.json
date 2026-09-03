@@ -5,10 +5,10 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://skybet.space/api/:path*"
+      "destination": "https://skybet-production.up.railway.app/api/:path*"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
