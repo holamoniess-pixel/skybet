@@ -36,6 +36,13 @@
       "when": 1788040000000,
       "tag": "0004_enable_aquapay_mobile_money",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": 7,
+      "when": 1788522600000,
+      "tag": "0005_shared_bet_slips_and_wager_codes",
+      "breakpoints": true
     }
   ]
 }

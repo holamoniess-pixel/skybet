@@ -3,6 +3,24 @@
  * This is simulation input only; it is not a live provider feed.
  */
 export const SIMULATION_CLUBS = [
+  // Ghana Premier League additions verified against ESPN's Ghana team directory.
+  'Aduana Stars',
+  'Basake Holy Stars',
+  'Bechem United',
+  'Berekum Chelsea',
+  'Bibiani Gold Stars',
+  'Dreams F.C.',
+  'Eleven Wonders',
+  'Heart of Lions',
+  'Hearts of Oak',
+  'Hohoe United',
+  'Karela',
+  'Medeama',
+  'Nations',
+  'Samartex',
+  'Swedru All Blacks',
+  'Vision FC',
+  'Young Apostles',
   '07 Vestur',
   '1. CfR Pforzheim',
   '1. FC Düren',
