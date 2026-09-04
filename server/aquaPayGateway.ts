@@ -46,7 +46,7 @@ export async function initiateAquaPayPayment(input: AquaPayPaymentInput) {
   const response = await fetch(`${base}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Idempotency-Key": input.reference, [header]: value },
-    body: JSON.stringify({ amount: Math.round(input.amount * 100), currency: input.currency, method: "mobile_money", network: input.network, customer: { phone: input.customerPhone }, reference: input.reference, callback_url: input.callbackUrl || ENV.aquaPayWebhookUrl || undefined }),
+    body: JSON.stringify({ amount: Math.round(input.amount * 100), currency: input.currency, method: "mobile_money", network: input.network, customer: { phone: input.customerPhone }, reference: input.reference }),
   });
   const raw = await response.text();
   let data: Record<string, unknown> = {};
