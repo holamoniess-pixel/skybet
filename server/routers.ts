@@ -33,8 +33,13 @@ export const appRouter = router({
     mockFeed: publicProcedure.query(() => getMockGamesFeed()),
     simulatedFeed: publicProcedure.query(() => getSimulatedMatchFeed()),
     matchFeed: publicProcedure.query(async () => {
-      const persisted = await db.getPersistedCustomerMatchFeed();
-      return persisted && persisted.events.length > 0 ? persisted : getMatchFeed();
+      try {
+        const persisted = await db.getPersistedCustomerMatchFeed();
+        return persisted && persisted.events.length > 0 ? persisted : getMatchFeed();
+      } catch (error) {
+        console.warn("[MatchFeed] Persisted feed unavailable; using rolling generated feed.", error instanceof Error ? error.message : error);
+        return getMatchFeed();
+      }
     }),
   }),
   sportsData: router({
