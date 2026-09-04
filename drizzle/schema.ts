@@ -336,6 +336,8 @@ export const matches = pgTable("matches", {
   marketsJson: text("marketsJson").notNull(),
   homeScore: integer("homeScore"),
   awayScore: integer("awayScore"),
+  targetHomeScore: integer("targetHomeScore"),
+  targetAwayScore: integer("targetAwayScore"),
   createdBy: integer("createdBy").notNull(),
   updatedBy: integer("updatedBy").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

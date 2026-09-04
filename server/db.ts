@@ -1018,10 +1018,14 @@ export async function createAdminMatch(input: {
   status: "scheduled" | "live" | "completed" | "cancelled";
   homeScore?: number;
   awayScore?: number;
+  targetHomeScore?: number;
+  targetAwayScore?: number;
   markets: Array<{ marketType: string; options: Array<{ name: string; odd: number }> }>;
   actorUserId: number;
 }) {
   if (input.homeTeam.trim().toLowerCase() === input.awayTeam.trim().toLowerCase()) throw new Error("Home and away teams must be different.");
+  if (input.endAt && input.endAt <= input.kickoffAt) throw new Error("End time must be after the start time.");
+  if ((input.targetHomeScore === undefined) !== (input.targetAwayScore === undefined)) throw new Error("Set both target scores or leave both blank.");
   if (!input.markets.length || input.markets.some(market => !market.marketType.trim() || !market.options.length || market.options.some(option => !Number.isFinite(option.odd) || option.odd < MINIMUM_ODDS || option.odd > MAXIMUM_ODDS))) throw new Error("Each market needs odds between 1.02 and 15.00.");
   const db = await getDb();
   if (!db) throw new Error("Match management is not configured yet.");
@@ -1036,6 +1040,8 @@ export async function createAdminMatch(input: {
     marketsJson: JSON.stringify(input.markets),
     homeScore: input.homeScore,
     awayScore: input.awayScore,
+    targetHomeScore: input.targetHomeScore,
+    targetAwayScore: input.targetAwayScore,
     createdBy: input.actorUserId,
     updatedBy: input.actorUserId,
     createdAt: new Date(),
@@ -1082,9 +1088,13 @@ export async function getPersistedCustomerMatchFeed(now = new Date()) {
     }
     if (isLive) {
       const markets = JSON.parse(row.marketsJson) as Array<{ marketType: string; options: Array<{ name: string; odd: number }> }>;
-      const elapsed = Math.max(1, Math.min(105, Math.floor((now.getTime() - kickoff.getTime()) / 60_000)));
-      const score = row.homeScore !== null && row.awayScore !== null ? `${row.homeScore} – ${row.awayScore}` : undefined;
-      const event: SkybetEvent = { id: `match-${row.id}`, sport: row.sport, competition: row.competition, teams: [row.homeTeam, row.awayTeam], startsAt: `${elapsed}’`, status: elapsed < 45 ? "First half" : elapsed === 45 ? "Half time" : "Second half", isLive: true, score, markets: projectMarkets(markets, true, elapsed, row.homeScore, row.awayScore).flat() };
+      const durationMinutes = Math.max(1, Math.round((end.getTime() - kickoff.getTime()) / 60_000));
+      const elapsed = Math.max(1, Math.min(durationMinutes, Math.floor((now.getTime() - kickoff.getTime()) / 60_000)));
+      const progress = Math.min(1, Math.max(0, (now.getTime() - kickoff.getTime()) / Math.max(1, end.getTime() - kickoff.getTime())));
+      const projectedHome = row.targetHomeScore === null ? row.homeScore : Math.max(row.homeScore ?? 0, Math.round(row.targetHomeScore * progress));
+      const projectedAway = row.targetAwayScore === null ? row.awayScore : Math.max(row.awayScore ?? 0, Math.round(row.targetAwayScore * progress));
+      const score = projectedHome !== null && projectedAway !== null ? `${projectedHome} – ${projectedAway}` : undefined;
+      const event: SkybetEvent = { id: `match-${row.id}`, sport: row.sport, competition: row.competition, teams: [row.homeTeam, row.awayTeam], startsAt: `${elapsed}’`, status: elapsed < 45 ? "First half" : elapsed === 45 ? "Half time" : "Second half", isLive: true, score, markets: projectMarkets(markets, true, elapsed, projectedHome, projectedAway).flat() };
       liveEvents.push(event);
     }
   }

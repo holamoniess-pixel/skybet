@@ -172,6 +172,8 @@ export const appRouter = router({
       status: z.enum(["scheduled", "live", "completed", "cancelled"]).default("scheduled"),
       homeScore: z.number().int().min(0).max(99).optional(),
       awayScore: z.number().int().min(0).max(99).optional(),
+      targetHomeScore: z.number().int().min(0).max(99).optional(),
+      targetAwayScore: z.number().int().min(0).max(99).optional(),
       markets: z.array(z.object({ marketType: z.string().trim().min(2).max(80), options: z.array(z.object({ name: z.string().trim().min(1).max(80), odd: z.number().finite().min(1.02).max(15) })).min(1).max(50) })).min(1).max(20),
     })).mutation(async ({ ctx, input }) => {
       try {

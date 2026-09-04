@@ -43,6 +43,13 @@
       "when": 1788522600000,
       "tag": "0005_shared_bet_slips_and_wager_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": 7,
+      "when": 1788523200000,
+      "tag": "0006_match_target_scores",
+      "breakpoints": true
     }
   ]
 }
