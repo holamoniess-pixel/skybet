@@ -1016,6 +1016,8 @@ export async function createAdminMatch(input: {
   kickoffAt: Date;
   endAt?: Date;
   status: "scheduled" | "live" | "completed" | "cancelled";
+  homeScore?: number;
+  awayScore?: number;
   markets: Array<{ marketType: string; options: Array<{ name: string; odd: number }> }>;
   actorUserId: number;
 }) {
@@ -1032,6 +1034,8 @@ export async function createAdminMatch(input: {
     endAt: input.endAt,
     status: input.status,
     marketsJson: JSON.stringify(input.markets),
+    homeScore: input.homeScore,
+    awayScore: input.awayScore,
     createdBy: input.actorUserId,
     updatedBy: input.actorUserId,
     createdAt: new Date(),
