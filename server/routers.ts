@@ -32,7 +32,7 @@ export const appRouter = router({
   games: router({
     mockFeed: publicProcedure.query(() => getMockGamesFeed()),
     simulatedFeed: publicProcedure.query(() => getSimulatedMatchFeed()),
-    matchFeed: publicProcedure.query(() => getMatchFeed()),
+    matchFeed: publicProcedure.query(async () => (await db.getPersistedCustomerMatchFeed()) ?? getMatchFeed()),
   }),
   sportsData: router({
     status: publicProcedure.query(() => getSportsDataConnectionStatus()),

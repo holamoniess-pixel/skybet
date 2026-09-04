@@ -34,7 +34,8 @@ import {
 import { ENV } from './_core/env';
 import { getAquaPayGatewayReadiness } from './aquaPayGateway';
 import { getSimulatedMatchFeed } from './simulatedMatches';
-import { MAXIMUM_ODDS, MINIMUM_ODDS } from "../shared/skybet";
+import { MAXIMUM_ODDS, MINIMUM_ODDS, normalizeOdds } from "../shared/skybet";
+import type { SkybetEvent } from "../shared/skybet";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _sql: ReturnType<typeof postgres> | null = null;
@@ -1038,6 +1039,53 @@ export async function createAdminMatch(input: {
   }).returning({ id: matches.id });
   await db.insert(adminAuditEvents).values({ actorUserId: input.actorUserId, entityType: "match", entityId: inserted[0].id, action: "created", beforeJson: null, afterJson: JSON.stringify({ ...input, actorUserId: undefined, kickoffAt: input.kickoffAt.toISOString(), endAt: input.endAt?.toISOString() }) });
   return (await db.select().from(matches).where(eq(matches.id, inserted[0].id)).limit(1))[0];
+}
+
+export async function getPersistedCustomerMatchFeed(now = new Date()) {
+  const db = await getDb();
+  if (!db) return null;
+  const projectMarkets = (markets: Array<{ marketType: string; options: Array<{ name: string; odd: number }> }>, live: boolean, elapsed: number, homeScore: number | null, awayScore: number | null) => markets.map(market => {
+    const options = market.options.map(option => ({ label: option.name, value: Number(normalizeOdds(option.odd)) }));
+    const isResultMarket = market.marketType.toLowerCase().includes("result") && options.length >= 3;
+    if (live && isResultMarket && homeScore !== null && awayScore !== null && homeScore !== awayScore) {
+      const lateFactor = Math.min(1, Math.max(0, elapsed / 105));
+      const trailingIndex = homeScore < awayScore ? 0 : 2;
+      const leadingIndex = trailingIndex === 0 ? 2 : 0;
+      options[trailingIndex].value = Math.min(MAXIMUM_ODDS, options[trailingIndex].value * (1 + 0.35 * lateFactor));
+      options[leadingIndex].value = Math.max(MINIMUM_ODDS, options[leadingIndex].value * (1 - 0.12 * lateFactor));
+    }
+    const seen = new Set<number>();
+    return options.map(option => {
+      let value = Number(normalizeOdds(option.value));
+      while (seen.has(value) && value < MAXIMUM_ODDS) value = Number(normalizeOdds(value + 0.01));
+      seen.add(value);
+      return { label: option.label, value: value.toFixed(2) };
+    });
+  });
+  const rows = await db.select().from(matches).orderBy(desc(matches.kickoffAt)).limit(100);
+  const liveEvents: SkybetEvent[] = [];
+  const scheduledEvents: SkybetEvent[] = [];
+  for (const row of rows) {
+    if (row.status === "cancelled" || row.status === "completed") continue;
+    const kickoff = row.kickoffAt;
+    const end = row.endAt ?? new Date(kickoff.getTime() + 105 * 60_000);
+    const isLive = row.status === "live" || (row.status === "scheduled" && now >= kickoff && now < end);
+    if (!isLive && now < kickoff) {
+      const markets = JSON.parse(row.marketsJson) as Array<{ marketType: string; options: Array<{ name: string; odd: number }> }>;
+      const event: SkybetEvent = { id: `match-${row.id}`, sport: row.sport, competition: row.competition, teams: [row.homeTeam, row.awayTeam], startsAt: kickoff.toISOString(), status: "Scheduled", isLive: false, markets: projectMarkets(markets, false, 0, row.homeScore, row.awayScore).flat() };
+      scheduledEvents.push(event);
+      continue;
+    }
+    if (isLive) {
+      const markets = JSON.parse(row.marketsJson) as Array<{ marketType: string; options: Array<{ name: string; odd: number }> }>;
+      const elapsed = Math.max(1, Math.min(105, Math.floor((now.getTime() - kickoff.getTime()) / 60_000)));
+      const score = row.homeScore !== null && row.awayScore !== null ? `${row.homeScore} – ${row.awayScore}` : undefined;
+      const event: SkybetEvent = { id: `match-${row.id}`, sport: row.sport, competition: row.competition, teams: [row.homeTeam, row.awayTeam], startsAt: `${elapsed}’`, status: elapsed < 45 ? "First half" : elapsed === 45 ? "Half time" : "Second half", isLive: true, score, markets: projectMarkets(markets, true, elapsed, row.homeScore, row.awayScore).flat() };
+      liveEvents.push(event);
+    }
+  }
+  const events = [...liveEvents.slice(0, 5), ...scheduledEvents];
+  return { source: "backend" as const, attribution: "Administrator match data", generatedAt: now.toISOString(), refreshAfterSeconds: 30, clubCount: events.length * 2, events, message: "Administrator-created matches are published from the SKYBET match engine." };
 }
 
 export async function listAdminMatches() {
