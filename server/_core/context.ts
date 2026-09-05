@@ -15,13 +15,13 @@ export async function createContext(
   let user: User | null = null;
 
   try {
-    user = await authenticateCustomerRequest(opts.req);
+    user = await authenticateLocalAdminRequest(opts.req);
   } catch {
     user = null;
   }
   if (!user) {
     try {
-      user = await authenticateLocalAdminRequest(opts.req);
+      user = await authenticateCustomerRequest(opts.req);
     } catch {
       // Authentication is optional for public procedures.
       user = null;
