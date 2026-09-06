@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AVIATOR — CRASH GAME</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="logo">✈ AVIATOR</div>
+    <div class="topbar-right">
+      <button class="btn-fairness" id="btnFairness">⚖ FAIRNESS</button>
+      <div class="balance-wrap">
+        <span class="balance-label">BALANCE</span>
+        <span class="balance-val" id="balanceDisplay" data-cb-money>$1,000.00</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="game-layout">
+
+    <section class="game-center">
+      <canvas id="gameCanvas"></canvas>
+
+      <div class="multiplier-wrap" id="multiplierWrap">
+        <div class="multiplier-val" id="multiplierDisplay">1.00x</div>
+        <div class="game-phase" id="gamePhase">WAITING…</div>
+      </div>
+
+      <div class="countdown-wrap" id="countdownWrap">
+        <div class="countdown-label">NEXT ROUND IN</div>
+        <div class="countdown-val" id="countdownVal">5</div>
+      </div>
+
+      <!-- crash overlay anchored to bottom-center of canvas -->
+      <div class="crash-overlay" id="crashOverlay">
+        <div class="crash-text">CRASHED!</div>
+        <div class="crash-mult" id="crashMult"></div>
+      </div>
+
+      <div class="cashout-ticker" id="cashoutTicker"></div>
+
+      <!-- Auth gate — shown when no token -->
+      <div class="auth-gate hidden" id="authGate">
+        <div class="auth-gate-inner glass-panel">
+          <div class="auth-gate-icon">✈</div>
+          <p class="auth-gate-msg" id="authGateMsg">Sign in to play for real.</p>
+          <div class="auth-form">
+            <input class="auth-input" id="authEmail"    type="email"    placeholder="Email"    autocomplete="email" />
+            <input class="auth-input" id="authPassword" type="password" placeholder="Password" autocomplete="current-password" />
+            <button class="btn-auth" id="btnLogin">SIGN IN</button>
+            <div class="auth-error" id="authError"></div>
+            <div class="auth-demo-row">
+              <span class="auth-demo-label">No account?</span>
+              <button class="btn-demo" id="btnDemoUser">Demo Play</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="bet-panel glass-panel">
+
+      <div class="bet-block">
+        <h3 class="panel-title">BET 1</h3>
+        <div class="bet-input-row">
+          <button class="btn-adj" data-bet="1" data-action="half">½</button>
+          <input class="bet-input" id="betAmt1" type="number" value="10" min="1" max="10000" />
+          <button class="btn-adj" data-bet="1" data-action="double">2×</button>
+        </div>
+        <div class="quick-bets">
+          <button class="btn-quick" data-bet="1" data-val="5" data-cb-money>$5</button>
+          <button class="btn-quick" data-bet="1" data-val="10" data-cb-money>$10</button>
+          <button class="btn-quick" data-bet="1" data-val="25" data-cb-money>$25</button>
+          <button class="btn-quick" data-bet="1" data-val="50" data-cb-money>$50</button>
+        </div>
+        <div class="auto-row">
+          <label><input type="checkbox" id="autoCashout1" /> Auto at</label>
+          <input class="auto-val-input" id="autoCashoutVal1" type="number" value="2.00" step="0.1" min="1.01" />
+          <span class="auto-x">x</span>
+        </div>
+        <button class="btn-bet" id="betBtn1">BET</button>
+        <div class="bet-status" id="betStatus1"></div>
+      </div>
+
+      <div class="bet-divider"></div>
+
+      <div class="bet-block">
+        <h3 class="panel-title">BET 2</h3>
+        <div class="bet-input-row">
+          <button class="btn-adj" data-bet="2" data-action="half">½</button>
+          <input class="bet-input" id="betAmt2" type="number" value="10" min="1" max="10000" />
+          <button class="btn-adj" data-bet="2" data-action="double">2×</button>
+        </div>
+        <div class="quick-bets">
+          <button class="btn-quick" data-bet="2" data-val="5" data-cb-money>$5</button>
+          <button class="btn-quick" data-bet="2" data-val="10" data-cb-money>$10</button>
+          <button class="btn-quick" data-bet="2" data-val="25" data-cb-money>$25</button>
+          <button class="btn-quick" data-bet="2" data-val="50" data-cb-money>$50</button>
+        </div>
+        <div class="auto-row">
+          <label><input type="checkbox" id="autoCashout2" /> Auto at</label>
+          <input class="auto-val-input" id="autoCashoutVal2" type="number" value="2.00" step="0.1" min="1.01" />
+          <span class="auto-x">x</span>
+        </div>
+        <button class="btn-bet" id="betBtn2">BET</button>
+        <div class="bet-status" id="betStatus2"></div>
+      </div>
+
+    </aside>
+  </main>
+
+  <!-- FAIRNESS MODAL -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal glass-panel">
+      <div class="modal-header">
+        <span class="modal-title">PROVABLY FAIR</span>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="fair-row"><span class="fair-label">SERVER SEED</span><span class="fair-val monospace" id="serverSeedDisplay">---</span></div>
+        <div class="fair-row"><span class="fair-label">CLIENT SEED</span><span class="fair-val monospace" id="clientSeedDisplay">---</span></div>
+        <div class="fair-row"><span class="fair-label">NONCE</span><span class="fair-val monospace" id="nonceDisplay">---</span></div>
+        <div class="fair-row"><span class="fair-label">HASH</span><span class="fair-val monospace hash-val" id="hashDisplay">---</span></div>
+        <div class="fair-row"><span class="fair-label">CRASH POINT</span><span class="fair-val accent" id="crashPointDisplay">Revealed after round</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

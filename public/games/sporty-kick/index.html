@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sporty Kick — Crash Game</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="../_speedbet-theme.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- Header -->
+    <header id="header">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">⚽</span>
+          <span class="logo-text">Sporty<em>Kick</em></span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="balance-pill">
+          <span class="balance-label">Balance</span>
+          <span class="balance-value" id="balance-display" data-cb-money>$1,000.00</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- History Bar -->
+    <div id="history-bar">
+      <span class="history-label">HISTORY</span>
+      <div id="hist-list"></div>
+    </div>
+
+    <!-- Main Game Area -->
+    <main id="main">
+
+      <!-- Canvas -->
+      <section id="canvas-wrap">
+        <canvas id="game-canvas"></canvas>
+
+        <!-- Multiplier Overlay -->
+        <div id="mult-overlay">
+          <div id="mult-value" class="state-waiting">1.00×</div>
+          <div id="status-label">Waiting for round…</div>
+        </div>
+
+        <!-- Live Feed -->
+        <div id="live-feed"></div>
+
+        <!-- Crash Flash -->
+        <div id="crash-flash"></div>
+
+        <!-- Fairness Hash -->
+        <div id="fair-hash">
+          <span class="fair-label">HASH</span>
+          <span id="fair-val">—</span>
+        </div>
+      </section>
+
+      <!-- Bet Panel -->
+      <aside id="bet-panel">
+
+        <!-- Bet Slot 1 -->
+        <div class="bet-slot" id="slot-0">
+          <div class="slot-header">
+            <span class="slot-title">Bet 1</span>
+            <span class="slot-profit" id="profit-0"></span>
+          </div>
+          <div class="input-group">
+            <span class="currency">$</span>
+            <input class="bet-input" type="number" id="bet-0" value="10" min="1" max="10000" />
+          </div>
+          <div class="quick-row">
+            <button class="qbtn" onclick="setQuick(0, 0.5)">½</button>
+            <button class="qbtn" onclick="setQuick(0, 2)">2×</button>
+            <button class="qbtn" onclick="setQuick(0, 5)">5×</button>
+            <button class="qbtn" onclick="setQuick(0, 'max')">MAX</button>
+          </div>
+          <div class="auto-row">
+            <label class="auto-label">Auto Cashout at</label>
+            <input class="auto-input" type="number" id="auto-0" placeholder="off" step="0.1" min="1.01" />
+            <span class="auto-x">×</span>
+          </div>
+          <button class="action-btn bet-btn" id="btn-0" onclick="toggleBet(0)">BET</button>
+        </div>
+
+        <!-- Divider -->
+        <div class="slot-divider"></div>
+
+        <!-- Bet Slot 2 -->
+        <div class="bet-slot" id="slot-1">
+          <div class="slot-header">
+            <span class="slot-title">Bet 2</span>
+            <span class="slot-profit" id="profit-1"></span>
+          </div>
+          <div class="input-group">
+            <span class="currency">$</span>
+            <input class="bet-input" type="number" id="bet-1" value="5" min="1" max="10000" />
+          </div>
+          <div class="quick-row">
+            <button class="qbtn" onclick="setQuick(1, 0.5)">½</button>
+            <button class="qbtn" onclick="setQuick(1, 2)">2×</button>
+            <button class="qbtn" onclick="setQuick(1, 5)">5×</button>
+            <button class="qbtn" onclick="setQuick(1, 'max')">MAX</button>
+          </div>
+          <div class="auto-row">
+            <label class="auto-label">Auto Cashout at</label>
+            <input class="auto-input" type="number" id="auto-1" placeholder="off" step="0.1" min="1.01" />
+            <span class="auto-x">×</span>
+          </div>
+          <button class="action-btn bet-btn" id="btn-1" onclick="toggleBet(1)">BET</button>
+        </div>
+
+      </aside>
+    </main>
+
+    <!-- Leaderboard -->
+    <section id="leaderboard">
+      <div class="lb-header">
+        <span class="lb-title">🏆 Live Players</span>
+      </div>
+      <div id="lb-list"></div>
+    </section>
+
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

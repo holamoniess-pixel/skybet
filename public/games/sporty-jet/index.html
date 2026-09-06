@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sporty Jet — Crash Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="root">
+
+  <!-- ═══ HEADER ═══ -->
+  <header id="header">
+    <div class="logo">
+      <span class="logo-icon">✈</span>
+      <span class="logo-text">SPORTY<em>JET</em></span>
+    </div>
+    <div class="balance-wrap">
+      <span class="bal-label">BALANCE</span>
+      <span class="bal-amount" id="balance-display">₵ 1,000.00</span>
+    </div>
+  </header>
+
+  <!-- ═══ HISTORY BAR ═══ -->
+  <div id="history-bar-wrap">
+    <span class="hist-label">RECENT</span>
+    <div id="history-bar"></div>
+  </div>
+
+  <!-- ═══ SKY CANVAS ═══ -->
+  <div id="canvas-wrap">
+    <canvas id="sky-canvas"></canvas>
+    <div id="flash-overlay"></div>
+
+    <!-- Multiplier overlay (centred in canvas) -->
+    <div id="mult-overlay">
+      <div id="status-text">WAITING FOR NEXT ROUND</div>
+      <div id="mult-display" class="mult-waiting">1.00x</div>
+      <div id="cashout-hint"></div>
+      <div id="countdown-txt"></div>
+    </div>
+
+    <!-- Fake players ticker -->
+    <div id="fake-ticker"></div>
+
+    <!-- ═══ AUTH GATE OVERLAY ═══ -->
+    <div id="authGate" class="auth-gate hidden">
+      <div class="auth-gate-inner">
+        <div class="auth-gate-icon">✈</div>
+        <h2 class="auth-gate-title">SPORTY<span>JET</span></h2>
+        <p id="authGateMsg" class="auth-gate-msg">Sign in to play.</p>
+
+        <div class="auth-fields">
+          <input type="email"    id="authEmail"    class="auth-input" placeholder="Email address" autocomplete="email" />
+          <input type="password" id="authPassword" class="auth-input" placeholder="Password" autocomplete="current-password" />
+          <p id="authError" class="auth-error"></p>
+          <button id="btnLogin" class="auth-btn auth-btn-primary">SIGN IN</button>
+          <div class="auth-divider"><span>or</span></div>
+          <button id="btnDemoUser" class="auth-btn auth-btn-demo">▶ PLAY DEMO</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /canvas-wrap -->
+
+  <!-- ═══ CONTROLS ═══ -->
+  <div id="controls">
+
+    <!-- Bet panel -->
+    <div class="panel bet-panel">
+      <div class="panel-title">BET AMOUNT (₵)</div>
+      <div class="bet-row">
+        <input type="number" id="bet-input" class="bet-input" value="10" min="1" max="100000" />
+        <div class="presets">
+          <button class="preset" onclick="setBet(5)">₵5</button>
+          <button class="preset" onclick="setBet(10)">₵10</button>
+          <button class="preset" onclick="setBet(25)">₵25</button>
+          <button class="preset" onclick="setBet(50)">₵50</button>
+          <button class="preset" onclick="setBet(100)">₵100</button>
+          <button class="preset half-btn" onclick="halfBet()">½</button>
+          <button class="preset dbl-btn"  onclick="doubleBet()">2×</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main action button -->
+    <button id="main-btn" class="main-btn btn-bet" onclick="handleMainBtn()">BET</button>
+
+    <!-- Fairness panel -->
+    <div class="panel fairness-panel">
+      <div class="panel-title">⚙ PROVABLY FAIR</div>
+      <div class="f-row">Server seed: <span class="f-val" id="f-server">—</span></div>
+      <div class="f-row">Client seed: <span class="f-val" id="f-client">—</span></div>
+      <div class="f-row">Hash: <span class="f-val" id="f-hash">—</span></div>
+    </div>
+
+  </div>
+
+</div><!-- /root -->
+
+<!-- Rain drop container -->
+<div id="rain-layer"></div>
+
+<!-- STOMP + SockJS (optional — WSBus degrades gracefully if absent) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+<script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPACEMAN — CRASH GAME</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../_speedbet-theme.css" />
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="logo">🧑‍🚀 SPACEMAN</div>
+    <div class="balance-wrap">
+      <span class="balance-label">BALANCE</span>
+      <span class="balance-val" id="balanceDisplay" data-cb-money>$1,000.00</span>
+    </div>
+    <div class="fairness-btn-wrap">
+      <button class="btn-fairness" id="btnFairness">🔒 Provably Fair</button>
+    </div>
+  </header>
+
+  <main class="game-layout">
+
+    <!-- LEFT: BET PANEL -->
+    <aside class="bet-panel glass-panel">
+      <h3 class="panel-title">PLACE BETS</h3>
+
+      <!-- BET 1 -->
+      <div class="bet-block" id="betBlock1">
+        <div class="bet-label">BET 1</div>
+        <div class="bet-input-row">
+          <button class="btn-adj" data-bet="1" data-action="half">½</button>
+          <input class="bet-input" id="betAmt1" type="number" value="10" min="1" max="1000" />
+          <button class="btn-adj" data-bet="1" data-action="double">2×</button>
+        </div>
+        <div class="quick-bets">
+          <button class="btn-quick" data-bet="1" data-val="5" data-cb-money>$5</button>
+          <button class="btn-quick" data-bet="1" data-val="10" data-cb-money>$10</button>
+          <button class="btn-quick" data-bet="1" data-val="25" data-cb-money>$25</button>
+          <button class="btn-quick" data-bet="1" data-val="50" data-cb-money>$50</button>
+        </div>
+        <div class="auto-row">
+          <label><input type="checkbox" id="autoCashout1" /> Auto Cashout</label>
+          <input class="auto-val-input" id="autoCashoutVal1" type="number" value="2.00" step="0.1" min="1.01" />x
+        </div>
+        <button class="btn-bet" id="betBtn1" data-bet="1">BET</button>
+        <div class="bet-status" id="betStatus1"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- BET 2 -->
+      <div class="bet-block" id="betBlock2">
+        <div class="bet-label">BET 2</div>
+        <div class="bet-input-row">
+          <button class="btn-adj" data-bet="2" data-action="half">½</button>
+          <input class="bet-input" id="betAmt2" type="number" value="5" min="1" max="1000" />
+          <button class="btn-adj" data-bet="2" data-action="double">2×</button>
+        </div>
+        <div class="quick-bets">
+          <button class="btn-quick" data-bet="2" data-val="5" data-cb-money>$5</button>
+          <button class="btn-quick" data-bet="2" data-val="10" data-cb-money>$10</button>
+          <button class="btn-quick" data-bet="2" data-val="25" data-cb-money>$25</button>
+          <button class="btn-quick" data-bet="2" data-val="50" data-cb-money>$50</button>
+        </div>
+        <div class="auto-row">
+          <label><input type="checkbox" id="autoCashout2" /> Auto Cashout</label>
+          <input class="auto-val-input" id="autoCashoutVal2" type="number" value="3.00" step="0.1" min="1.01" />x
+        </div>
+        <button class="btn-bet" id="betBtn2" data-bet="2">BET</button>
+        <div class="bet-status" id="betStatus2"></div>
+      </div>
+    </aside>
+
+    <!-- CENTER: GAME CANVAS -->
+    <section class="game-center">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- Multiplier overlay -->
+      <div class="multiplier-wrap" id="multiplierWrap">
+        <div class="multiplier-val" id="multiplierDisplay">1.00x</div>
+        <div class="game-phase" id="gamePhase">WAITING…</div>
+      </div>
+
+      <!-- Countdown -->
+      <div class="countdown-wrap" id="countdownWrap">
+        <div class="countdown-label">NEXT ROUND IN</div>
+        <div class="countdown-val" id="countdownVal">5</div>
+      </div>
+
+      <!-- Crash overlay -->
+      <div class="crash-overlay" id="crashOverlay">
+        <div class="crash-text">CRASHED!</div>
+        <div class="crash-mult" id="crashMult"></div>
+      </div>
+
+      <!-- Live cashouts ticker -->
+      <div class="cashout-ticker" id="cashoutTicker"></div>
+    </section>
+
+    <!-- RIGHT: HISTORY + LEADERBOARD -->
+    <aside class="right-panel">
+      <div class="glass-panel history-panel">
+        <h3 class="panel-title">ROUND HISTORY</h3>
+        <div class="history-list" id="historyList"></div>
+      </div>
+
+      <div class="glass-panel leaderboard-panel">
+        <h3 class="panel-title">LIVE PLAYERS</h3>
+        <div class="leaderboard-list" id="leaderboardList"></div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- FAIRNESS MODAL -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal glass-panel">
+      <button class="modal-close" id="modalClose">✕</button>
+      <h2 class="modal-title">🔒 Provably Fair</h2>
+      <div class="fairness-row">
+        <span class="fairness-lbl">Server Seed (Hashed)</span>
+        <code class="fairness-code" id="serverSeedDisplay"></code>
+      </div>
+      <div class="fairness-row">
+        <span class="fairness-lbl">Client Seed</span>
+        <code class="fairness-code" id="clientSeedDisplay"></code>
+      </div>
+      <div class="fairness-row">
+        <span class="fairness-lbl">Nonce</span>
+        <code class="fairness-code" id="nonceDisplay"></code>
+      </div>
+      <div class="fairness-row">
+        <span class="fairness-lbl">HMAC-SHA256 Hash</span>
+        <code class="fairness-code" id="hashDisplay"></code>
+      </div>
+      <div class="fairness-row">
+        <span class="fairness-lbl">Crash Point</span>
+        <code class="fairness-code" id="crashPointDisplay">—</code>
+      </div>
+      <p class="fairness-note">The crash point is generated before each round using HMAC-SHA256.</p>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

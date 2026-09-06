@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FRUIT FRENZY — SLOT MACHINE</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../_speedbet-theme.css" />
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="logo">🍉 FRUIT FRENZY</div>
+    <div class="balance-wrap">
+      <span class="balance-label">BALANCE</span>
+      <span class="balance-val" id="balanceDisplay" data-cb-money>$1,000.00</span>
+    </div>
+  </header>
+
+  <main class="slot-container">
+    <!-- Slot Machine -->
+    <div class="machine glass-panel">
+      <div class="machine-header">
+        <h2 class="machine-title">🍉 FRUIT FRENZY</h2>
+        <div class="win-display" id="winDisplay">
+          <span class="win-label">WIN</span>
+          <span class="win-amount" id="winAmount" data-cb-money>$0.00</span>
+        </div>
+      </div>
+
+      <!-- Reels -->
+      <div class="reels-container">
+        <div class="reel" id="reel1">
+          <div class="reel-strip" id="strip1"></div>
+        </div>
+        <div class="reel" id="reel2">
+          <div class="reel-strip" id="strip2"></div>
+        </div>
+        <div class="reel" id="reel3">
+          <div class="reel-strip" id="strip3"></div>
+        </div>
+      </div>
+
+      <!-- Win Lines Display -->
+      <div class="win-lines-display" id="winLinesDisplay"></div>
+
+      <!-- Win Animation -->
+      <div class="win-overlay" id="winOverlay">
+        <div class="win-text" id="winText">FRUIT FRENZY!</div>
+        <div class="win-multiplier" id="winMultiplier">10×</div>
+      </div>
+
+      <!-- Floating fruits animation -->
+      <canvas id="fruitCanvas"></canvas>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-panel glass-panel">
+      <div class="bet-section">
+        <label class="field-label">BET AMOUNT</label>
+        <div class="bet-input-row">
+          <button class="btn-adj" onclick="adjBet(0.5)">½</button>
+          <input class="bet-input" id="betAmt" type="number" value="2" min="0.50" max="100" step="0.50" />
+          <button class="btn-adj" onclick="adjBet(2)">2×</button>
+        </div>
+        <div class="quick-bets">
+          <button class="btn-quick" onclick="setBet(0.50)" data-cb-money>$0.50</button>
+          <button class="btn-quick" onclick="setBet(1)" data-cb-money>$1</button>
+          <button class="btn-quick" onclick="setBet(2)" data-cb-money>$2</button>
+          <button class="btn-quick" onclick="setBet(5)" data-cb-money>$5</button>
+        </div>
+      </div>
+
+      <div class="balance-display">
+        <span class="bal-label">TOTAL BET</span>
+        <span class="bal-amount" id="totalBet" data-cb-money>$2.00</span>
+      </div>
+
+      <button class="spin-btn" id="spinBtn" onclick="spin()">
+        <span class="spin-btn-text">SPIN</span>
+        <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 2v16M2 10h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+
+      <div class="auto-spin">
+        <label><input type="checkbox" id="autoSpinCheck" onchange="toggleAutoSpin()"> Auto Spin</label>
+        <input type="number" id="autoSpinCount" value="10" min="1" max="100" class="auto-count" />
+      </div>
+
+      <button class="clear-btn" onclick="clearBet()">CLEAR BET</button>
+
+      <div class="msg" id="msg"></div>
+    </div>
+  </main>
+
+  <!-- Particle container -->
+  <div id="particles" class="particles"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>

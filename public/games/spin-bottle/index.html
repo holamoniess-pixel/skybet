@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spin da Bottle — Casino Edition</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="../_speedbet-theme.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       BACKGROUND AMBIENCE
+  ═══════════════════════════════════════════ -->
+  <div class="bg-grid"></div>
+  <div class="bg-vignette"></div>
+
+  <!-- ═══════════════════════════════════════════
+       MAIN WRAPPER
+  ═══════════════════════════════════════════ -->
+  <div class="game-wrapper">
+
+    <!-- HEADER -->
+    <header class="game-header">
+      <div class="header-ornament">✦</div>
+      <h1 class="game-title">Spin da Bottle</h1>
+      <p class="game-subtitle">Casino Edition</p>
+      <div class="header-ornament">✦</div>
+    </header>
+
+    <!-- BALANCE BAR -->
+    <div class="balance-bar">
+      <div class="balance-item">
+        <span class="balance-label">Balance</span>
+        <span class="balance-value gold" id="balance-val" data-cb-money>$1,000</span>
+      </div>
+      <div class="balance-divider"></div>
+      <div class="balance-item">
+        <span class="balance-label">Total Wins</span>
+        <span class="balance-value green" id="wins-val">0</span>
+      </div>
+      <div class="balance-divider"></div>
+      <div class="balance-item">
+        <span class="balance-label">Streak</span>
+        <span class="balance-value streak" id="streak-val">—</span>
+      </div>
+    </div>
+
+    <!-- TABLE + BOTTLE -->
+    <div class="table-container">
+      <!-- Winning zone glow rings (shown on result) -->
+      <div class="zone-glow up-glow" id="up-zone-glow"></div>
+      <div class="zone-glow down-glow" id="down-zone-glow"></div>
+
+      <canvas id="game-canvas" width="320" height="320"></canvas>
+
+      <!-- Flash overlay for win/lose -->
+      <div class="flash-overlay" id="flash-overlay"></div>
+    </div>
+
+    <!-- RESULT DISPLAY -->
+    <div class="result-display" id="result-display">
+      <span id="result-text"></span>
+    </div>
+
+    <!-- BET CONTROLS -->
+    <div class="controls-panel">
+
+      <!-- Bet input row -->
+      <div class="bet-row">
+        <label class="control-label" for="bet-input">BET AMOUNT</label>
+        <div class="bet-input-wrap">
+          <span class="bet-currency">$</span>
+          <input class="bet-input" id="bet-input" type="number" value="50" min="1" max="99999" />
+        </div>
+      </div>
+
+      <!-- Quick bet buttons -->
+      <div class="quick-bets">
+        <button class="qb-btn" data-amount="10" data-cb-money>$10</button>
+        <button class="qb-btn" data-amount="25" data-cb-money>$25</button>
+        <button class="qb-btn" data-amount="50" data-cb-money>$50</button>
+        <button class="qb-btn" data-amount="100" data-cb-money>$100</button>
+        <button class="qb-btn" data-amount="250" data-cb-money>$250</button>
+        <button class="qb-btn" data-amount="half">½ BAL</button>
+        <button class="qb-btn" data-amount="max">MAX</button>
+      </div>
+
+      <!-- Choice buttons -->
+      <div class="choice-row">
+        <button class="choice-btn up-btn" id="btn-up" data-choice="UP">
+          <span class="choice-arrow">▲</span>
+          <span class="choice-label">UP</span>
+          <span class="choice-payout">pays 2×</span>
+        </button>
+        <button class="choice-btn down-btn" id="btn-down" data-choice="DOWN">
+          <span class="choice-arrow">▼</span>
+          <span class="choice-label">DOWN</span>
+          <span class="choice-payout">pays 2×</span>
+        </button>
+      </div>
+
+      <!-- Spin button -->
+      <button class="spin-btn" id="spin-btn" disabled>
+        <span class="spin-btn-text" id="spin-btn-text">SELECT UP OR DOWN</span>
+        <span class="spin-btn-shine"></span>
+      </button>
+
+    </div>
+
+    <!-- HISTORY PANEL -->
+    <div class="history-panel">
+      <h3 class="history-title">RESULT HISTORY</h3>
+      <div class="history-pills" id="history-pills">
+        <span class="history-empty">No spins yet</span>
+      </div>
+    </div>
+
+    <!-- FOOTER RTP NOTE -->
+    <div class="rtp-footer">
+      RTP ~97% &nbsp;·&nbsp; Middle zone = house wins &nbsp;·&nbsp; Play responsibly
+    </div>
+
+  </div><!-- /game-wrapper -->
+
+  <script src="game.js"></script>
+</body>
+</html>

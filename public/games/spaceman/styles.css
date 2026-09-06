@@ -1,0 +1,487 @@
+/* =========================================
+   SPACEMAN CRASH GAME — styles.css
+   Dark space theme with neon accents
+   ========================================= */
+
+/* ── RESET & BASE ──────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #0A0A0A;
+  color: #FFFFFF;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ── TOP BAR ───────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: #111111;
+  border-bottom: 1px solid #2A2A2A;
+  height: 56px;
+  position: relative;
+  z-index: 10;
+}
+
+.logo {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: 1.3rem;
+  color: #00D4FF;
+  letter-spacing: 0.05em;
+}
+
+.balance-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.balance-label { font-size: 0.65rem; color: #888888; text-transform: uppercase; letter-spacing: 0.08em; }
+.balance-val { font-family: 'Roboto Mono', monospace; font-size: 1.1rem; font-weight: 600; color: #00E676; }
+
+.btn-fairness {
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  color: #00D4FF;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-fairness:hover { background: rgba(0, 212, 255, 0.2); }
+
+/* ── GAME LAYOUT ──────────────────────── */
+.game-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr 280px;
+  height: calc(100vh - 56px);
+  gap: 0;
+}
+
+/* ── BET PANEL (LEFT) ─────────────────── */
+.bet-panel {
+  padding: 1.2rem;
+  border-right: 1px solid #2A2A2A;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.glass-panel {
+  background: rgba(17, 17, 17, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+.panel-title {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.8rem;
+}
+
+.bet-block { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.bet-label {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #00D4FF;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.bet-input-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.btn-adj {
+  background: #1C1C1C;
+  border: 1px solid #2A2A2A;
+  color: #888888;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+.btn-adj:hover { border-color: #00D4FF; color: #00D4FF; }
+
+.bet-input {
+  flex: 1;
+  background: #1C1C1C;
+  border: 1px solid #2A2A2A;
+  color: #FFFFFF;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.9rem;
+  text-align: center;
+}
+.bet-input:focus { outline: none; border-color: #00D4FF; }
+
+.quick-bets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.3rem; }
+
+.btn-quick {
+  background: #1C1C1C;
+  border: 1px solid #2A2A2A;
+  color: #888888;
+  padding: 0.35rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-quick:hover { border-color: #00D4FF; color: #00D4FF; background: rgba(0, 212, 255, 0.1); }
+
+.auto-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #888888;
+}
+
+.auto-row input[type="checkbox"] { accent-color: #00D4FF; }
+
+.auto-val-input {
+  width: 60px;
+  background: #1C1C1C;
+  border: 1px solid #2A2A2A;
+  color: #FFFFFF;
+  padding: 0.25rem;
+  border-radius: 4px;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.divider { height: 1px; background: #2A2A2A; margin: 0.5rem 0; }
+
+.btn-bet {
+  background: linear-gradient(135deg, #00D4FF, #0099CC);
+  color: #0A0A0A;
+  border: none;
+  padding: 0.7rem;
+  border-radius: 8px;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.35);
+}
+.btn-bet:hover { box-shadow: 0 0 30px rgba(0, 212, 255, 0.55); }
+.btn-bet:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-bet.cashout-mode {
+  background: linear-gradient(135deg, #00E676, #00B25A);
+  box-shadow: 0 0 20px rgba(0, 230, 118, 0.4);
+}
+
+.bet-status {
+  font-size: 0.75rem;
+  text-align: center;
+  min-height: 20px;
+}
+
+/* ── GAME CENTER ──────────────────────── */
+.game-center {
+  position: relative;
+  background: #0A0A0A;
+  overflow: hidden;
+}
+
+#gameCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── MULTIPLIER ───────────────────────── */
+.multiplier-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.multiplier-val {
+  font-family: 'Orbitron', monospace;
+  font-size: 5rem;
+  font-weight: 900;
+  color: #00D4FF;
+  text-shadow: 0 0 40px rgba(0, 212, 255, 0.6);
+  line-height: 1;
+}
+
+.multiplier-val.crashed {
+  color: #E8003D;
+  text-shadow: 0 0 50px rgba(232, 0, 61, 0.7);
+}
+
+.game-phase {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: 0.9rem;
+  color: #888888;
+  margin-top: 0.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── COUNTDOWN ────────────────────────── */
+.countdown-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 6;
+  background: rgba(17, 17, 17, 0.95);
+  padding: 2rem 3rem;
+  border-radius: 16px;
+  border: 1px solid #2A2A2A;
+  display: none;
+}
+
+.countdown-wrap.visible { display: block; }
+
+.countdown-label {
+  font-size: 0.75rem;
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.countdown-val {
+  font-family: 'Orbitron', monospace;
+  font-size: 4rem;
+  font-weight: 900;
+  color: #00D4FF;
+  text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+}
+
+/* ── CRASH OVERLAY ────────────────────── */
+.crash-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 7;
+  display: none;
+}
+
+.crash-overlay.visible { display: block; }
+
+.crash-text {
+  font-family: 'Orbitron', monospace;
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #E8003D;
+  text-shadow: 0 0 60px rgba(232, 0, 61, 0.8);
+  animation: crashPulse 0.5s ease;
+}
+
+@keyframes crashPulse {
+  0% { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.crash-mult {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 1.5rem;
+  color: #FF1744;
+  margin-top: 0.5rem;
+}
+
+/* ── CASHOUT TICKER ───────────────────── */
+.cashout-ticker {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.ticker-item {
+  background: rgba(0, 230, 118, 0.15);
+  border: 1px solid rgba(0, 230, 118, 0.35);
+  color: #00E676;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-family: 'Roboto Mono', monospace;
+  animation: tickerIn 0.3s ease, tickerOut 0.3s ease 3s forwards;
+  white-space: nowrap;
+}
+
+@keyframes tickerIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes tickerOut {
+  from { opacity: 1; }
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+/* ── RIGHT PANEL ──────────────────────── */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-left: 1px solid #2A2A2A;
+  overflow-y: auto;
+}
+
+.history-panel, .leaderboard-panel {
+  padding: 1rem;
+  border-bottom: 1px solid #2A2A2A;
+}
+
+.history-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.history-badge {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.badge-low {
+  background: rgba(255, 23, 68, 0.15);
+  color: #FF1744;
+  border-color: rgba(255, 23, 68, 0.35);
+}
+
+.badge-mid {
+  background: rgba(255, 179, 0, 0.15);
+  color: #FFB300;
+  border-color: rgba(255, 179, 0, 0.35);
+}
+
+.badge-high {
+  background: rgba(0, 230, 118, 0.15);
+  color: #00E676;
+  border-color: rgba(0, 230, 118, 0.35);
+}
+
+.leaderboard-list { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.lb-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.lb-name {
+  font-family: 'Roboto Mono', monospace;
+  color: #888888;
+}
+
+.lb-cashout { font-family: 'Roboto Mono', monospace; color: #00E676; }
+.lb-cashout.lost { color: #FF1744; }
+
+/* ── MODAL ────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-backdrop.visible { display: flex; }
+
+.modal {
+  background: #111111;
+  border: 1px solid #2A2A2A;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #888888;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.modal-title {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 1.5rem;
+}
+
+.fairness-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+}
+
+.fairness-lbl {
+  font-size: 0.7rem;
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.fairness-code {
+  background: #1C1C1C;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.7rem;
+  color: #00D4FF;
+  word-break: break-all;
+}
+
+.fairness-note {
+  font-size: 0.7rem;
+  color: #555555;
+  margin-top: 1rem;
+  line-height: 1.4;
+}
+
+/* ── SCROLLBAR ───────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #00D4FF; }

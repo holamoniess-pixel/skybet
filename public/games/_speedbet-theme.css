@@ -1,0 +1,326 @@
+/* ═══════════════════════════════════════════════════════
+   SPEEDBET — UNIFIED GAME THEME OVERRIDE
+   Applied on top of each game's original CSS to enforce:
+   • One font system: Inter + Poppins + Roboto Mono
+   • One color palette: black / crimson / electric / emerald / amber
+   ═══════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap');
+
+:root,
+html, body {
+  /* Override any game's font vars */
+  --font-display: 'Poppins', system-ui, sans-serif !important;
+  --font-hud: 'Poppins', system-ui, sans-serif !important;
+  --font-body: 'Inter', system-ui, sans-serif !important;
+  --font-ui: 'Inter', system-ui, sans-serif !important;
+  --font-mono: 'Roboto Mono', Consolas, monospace !important;
+
+  /* Unified color palette — overrides any game's custom theme */
+  --bg:         #0A0A0A !important;
+  --bg-deep:    #0A0A0A !important;
+  --bg2:        #111111 !important;
+  --bg-dark:    #111111 !important;
+  --bg-mid:     #111111 !important;
+  --bg3:        #1C1C1C !important;
+  --bg-card:    #1C1C1C !important;
+  --bg-input:   #1C1C1C !important;
+  --navy:       #0A0A0A !important;
+  --panel:      rgba(28, 28, 28, 0.92) !important;
+  --glass:      rgba(232, 0, 61, 0.05) !important;
+  --glass-border: rgba(232, 0, 61, 0.18) !important;
+
+  --border:     #2A2A2A !important;
+  --border-glow: #2A2A2A !important;
+  --border2:    #2A2A2A !important;
+  --border-mid: rgba(232, 0, 61, 0.3) !important;
+
+  /* Primary brand */
+  --accent:     #E8003D !important;
+  --accent2:    #FF1F5C !important;
+  --crimson:    #E8003D !important;
+  --gold:       #E8003D !important;
+  --gold-light: #FF1F5C !important;
+  --gold-dim:   rgba(232, 0, 61, 0.25) !important;
+  --bomb-red:   #E8003D !important;
+
+  /* Secondary */
+  --cyan:       #00D4FF !important;
+  --blue:       #00D4FF !important;
+  --diamond:    #00D4FF !important;
+  --diamond-bright: #00D4FF !important;
+  --purple:     #B388FF !important;
+
+  /* Win / status */
+  --green:      #00E676 !important;
+  --green-dim:  rgba(0, 230, 118, 0.25) !important;
+  --green-glow: rgba(0, 230, 118, 0.35) !important;
+
+  --red:        #FF1744 !important;
+  --red-dim:    rgba(255, 23, 68, 0.18) !important;
+
+  --orange:     #FFB300 !important;
+  --orange-dim: rgba(255, 179, 0, 0.25) !important;
+  --amber:      #FFB300 !important;
+  --yellow:     #FFB300 !important;
+
+  /* Text */
+  --text:           #FFFFFF !important;
+  --text-primary:   #FFFFFF !important;
+  --text-secondary: #888888 !important;
+  --text-muted:     #555555 !important;
+  --text-dim:       #888888 !important;
+
+  --muted:      #888888 !important;
+
+  color-scheme: dark;
+}
+
+/* ── Force fonts everywhere ── */
+html, body, button, input, select, textarea, span, div, p, a, label,
+.logo, .logo-text, .balance-val, .balance-value, .balance-amount, .balance-label,
+.bal-amount, .bal-label, .panel-title, .game-title, .modal-title,
+.fairness-lbl, .fairness-code, .stat-val, .stat-label, .field-label,
+.bet-label, .bet-input, .bet-currency,
+.btn-bet, .btn-quick, .btn-adj, .qb-btn, .qb, .preset, .qbtn, .stake-chip,
+.action-btn, .spin-btn, .choice-btn, .choice-label, .choice-arrow, .choice-payout,
+.history-label, .hist-label, .lb-title, .panel-heading, .game-phase,
+.crash-text, .countdown-val, .countdown-label, .timer-number, .timer-unit,
+.history-empty, .history-badge, .hist-badge, .hist-item, .hist-pill, .h-pill,
+.lb-name, .lb-mult, .lb-profit, .lb-row, .lb-cashout, .lb-avatar, .lb-item,
+.feed-name, .feed-amt, .feed-item, .ticker-item,
+.fake-pill, .pill-win, .pill-lose,
+.balance-pill, .balance-divider,
+.mines-count, .mines-sub, .mine-extremes,
+.tile, .tile-inner, .overlay-title, .overlay-amount, .overlay-sub,
+.fair-label, .fair-val, #fair-val,
+.qb, .stake-input, .stake-currency, .auto-label, .auto-input, .auto-x,
+.mkt-label, .mkt-btn, .mkt-odds, .mkt-color-dot,
+.result-chip, .ann-inner,
+.spin-btn-text, .clear-btn, .start-btn, .btn-start, .startLabel,
+.bet-status, .currency, .auto-row, .slot-title, .slot-profit, .slot-header,
+.f-row, .f-val, .panel,
+.cashout-btn, .cancel-btn, .lost-btn, .bet-btn,
+.diamond-svg, .bomb-svg,
+.message, .msg, .info-msg,
+.history-pills, .history-title,
+.collect-anim, .win-pop,
+.round-info, .round-num, .roundNum,
+.timer-svg, .timer-track, .timer-fill,
+.machine-glass, .machine-base, .base-slot, .slot-number,
+.orb-number, .main-orb, .fly-ball,
+.phase-banner, .phase-text, .phase-dot,
+.hot-cold-card, .hc-row, .hc-section, .hc-label, .hc-nums,
+.auto-card, .toggle-wrap, .toggle-slider,
+.markets-card, .market-group, .mkt-btns,
+.numgrid-card, .number-grid, .num-cell,
+.stake-card, .stake-row, .stake-custom-row,
+.stake-label, .panel-card, .left-panel, .right-panel, .center-panel,
+.announcement, .top-bar, .top-center, .balance-wrap,
+.machine-container, .machine-inner, .flying-balls,
+.orb-shine, .orb-glow-ring,
+.timer-wrap, .timer-inner,
+.result-display, .result-text {
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+/* Display headings — Poppins */
+h1, h2, h3, h4, h5, h6,
+.logo, .logo-text, .game-title, .modal-title, .panel-title, .panel-heading,
+.crash-text, .game-phase, .overlay-title, .slot-title,
+.history-label, .hist-label, .field-label, .bet-label, .lb-title,
+.spin-btn-text, .countdown-label, .timer-unit, .stat-label, .balance-label,
+.bal-label, .control-label, .auto-label, .mkt-label, .stake-label,
+.result-display, .panel-card .panel-heading,
+.btn-bet, .action-btn, .btn-start, .spin-btn, .clear-btn,
+.choice-label, .choice-payout {
+  font-family: 'Poppins', system-ui, sans-serif !important;
+  letter-spacing: -0.01em !important;
+  font-weight: 600 !important;
+}
+
+/* Numeric / mono — Roboto Mono */
+.bal-amount, .balance-val, .balance-value, .balance-amount,
+.mult-display, .multiplier-val, .crash-mult,
+#mult-value, #mult-display, #multiplierDisplay,
+.f-val, .fairness-code, .fairness-val,
+.bet-input, .auto-input, .auto-val-input,
+.stat-val, .stake-input, .number-grid, .num-cell,
+.history-badge, .hist-badge, .hist-item, .hist-pill, .h-pill,
+.history-pills, .lb-mult, .lb-profit, .lb-cashout, .feed-amt,
+.countdown-val, .timer-number, .mines-count,
+.overlay-amount, .crash-mult, .ticker-item,
+.balance-amount, #balance-display, #balanceDisplay, #balance, #balance-val,
+#wins-val, #streak-val,
+input[type="number"], code,
+.orb-number, .slot-number, #slotNumber, #orbNumber,
+.result-chip, #rc-number, #rc-color, #rc-parity, #rc-range, #rc-dozen {
+  font-family: 'Roboto Mono', Consolas, monospace !important;
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: "tnum" !important;
+}
+
+/* ── Background overrides ── */
+body {
+  background: #0A0A0A !important;
+  color: #FFFFFF !important;
+}
+
+/* Override hardcoded colors from games */
+[style*="color: #ffd700"],
+[style*="color:#ffd700"],
+[style*="color: #f5c518"],
+[style*="color:#f5c518"] {
+  color: #E8003D !important;
+}
+
+/* Tone down loud animations and gradients to match brand */
+.btn-bet,
+.spin-btn,
+.btn-start,
+.action-btn.bet-btn {
+  background: linear-gradient(135deg, #E8003D, #B0002E) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  box-shadow: 0 0 20px rgba(232, 0, 61, 0.35) !important;
+}
+.btn-bet:hover,
+.spin-btn:hover,
+.btn-start:hover,
+.action-btn.bet-btn:hover {
+  background: linear-gradient(135deg, #FF1F5C, #E8003D) !important;
+  box-shadow: 0 0 30px rgba(232, 0, 61, 0.55) !important;
+}
+
+.btn-bet.cashout-mode,
+.cashout-btn,
+.btn-start.cashout {
+  background: linear-gradient(135deg, #00E676, #00B25A) !important;
+  color: #0A0A0A !important;
+  box-shadow: 0 0 20px rgba(0, 230, 118, 0.4) !important;
+}
+
+/* Buttons inside games — unify */
+.btn-quick, .btn-adj, .qb-btn, .qb, .preset, .qbtn, .stake-chip {
+  background: #1C1C1C !important;
+  border: 1px solid #2A2A2A !important;
+  color: #888888 !important;
+}
+.btn-quick:hover, .btn-adj:hover, .qb-btn:hover, .qb:hover,
+.preset:hover, .qbtn:hover, .stake-chip:hover {
+  background: rgba(232, 0, 61, 0.15) !important;
+  border-color: #E8003D !important;
+  color: #E8003D !important;
+}
+
+/* Card / panel surfaces */
+.glass-panel, .panel, .panel-card,
+.bet-panel, .right-panel, .left-panel,
+.history-panel, .leaderboard-panel,
+.stat-card, .balance-pill, .balance-bar,
+.modal, .panel-section,
+.lb-item, .feed-item, .ticker-item,
+.bet-block, .bet-slot,
+.hot-cold-card, .auto-card, .stake-card, .markets-card, .numgrid-card {
+  background: rgba(17, 17, 17, 0.92) !important;
+  border-color: #2A2A2A !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Inputs */
+.bet-input, .stake-input, .auto-input, .auto-val-input,
+input[type="number"], input[type="text"] {
+  background: #1C1C1C !important;
+  border: 1px solid #2A2A2A !important;
+  color: #FFFFFF !important;
+}
+.bet-input:focus, .stake-input:focus, .auto-input:focus, .auto-val-input:focus,
+input[type="number"]:focus, input[type="text"]:focus {
+  border-color: #E8003D !important;
+  box-shadow: 0 0 0 2px rgba(232, 0, 61, 0.15) !important;
+}
+
+/* Header / top-bar */
+.topbar, #header, .top-bar, .game-header {
+  background: #111111 !important;
+  border-bottom: 1px solid #2A2A2A !important;
+}
+
+/* History badges — single hue scale */
+.hist-low, .badge-low      { background: rgba(255, 23, 68, 0.15) !important; color: #FF1744 !important; border-color: rgba(255, 23, 68, 0.35) !important; }
+.hist-mid, .badge-mid      { background: rgba(255, 179, 0, 0.15) !important; color: #FFB300 !important; border-color: rgba(255, 179, 0, 0.35) !important; }
+.hist-high, .badge-high    { background: rgba(0, 230, 118, 0.15) !important; color: #00E676 !important; border-color: rgba(0, 230, 118, 0.35) !important; }
+
+/* Logo accents — crimson */
+.logo, .logo-text, .logo-icon, .game-title {
+  color: #E8003D !important;
+}
+.logo-text em {
+  color: #FFB300 !important;
+}
+
+/* Multiplier states */
+.mult-running, #mult-value.state-running, .multiplier-val {
+  color: #00D4FF !important;
+  -webkit-text-fill-color: #00D4FF !important;
+  background: none !important;
+  text-shadow: 0 0 30px rgba(0, 212, 255, 0.5) !important;
+}
+.mult-crashed, #mult-value.state-crashed, .multiplier-val.crashed {
+  color: #E8003D !important;
+  -webkit-text-fill-color: #E8003D !important;
+  background: none !important;
+  text-shadow: 0 0 40px rgba(232, 0, 61, 0.6) !important;
+}
+
+/* Remove flashy hue gradients on text */
+[class*="state-"], .multiplier-val, .crash-text {
+  background: none !important;
+  -webkit-text-fill-color: inherit !important;
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+}
+
+/* UP / DOWN choice buttons */
+.up-btn, .choice-btn.up-btn {
+  background: rgba(0, 230, 118, 0.15) !important;
+  border: 2px solid rgba(0, 230, 118, 0.35) !important;
+  color: #00E676 !important;
+}
+.up-btn:hover, .up-btn.active {
+  background: rgba(0, 230, 118, 0.25) !important;
+  border-color: #00E676 !important;
+}
+.down-btn, .choice-btn.down-btn {
+  background: rgba(255, 23, 68, 0.15) !important;
+  border: 2px solid rgba(255, 23, 68, 0.35) !important;
+  color: #FF1744 !important;
+}
+.down-btn:hover, .down-btn.active {
+  background: rgba(255, 23, 68, 0.25) !important;
+  border-color: #FF1744 !important;
+}
+
+/* Mines tile colors */
+.tile.diamond {
+  background: linear-gradient(135deg, #001a2a, #002a3d) !important;
+  border-color: #00D4FF !important;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.35), inset 0 0 20px rgba(0, 212, 255, 0.05) !important;
+}
+.tile.bomb {
+  background: linear-gradient(135deg, #2a0008, #3d000c) !important;
+  border-color: #E8003D !important;
+  box-shadow: 0 0 20px rgba(232, 0, 61, 0.45) !important;
+}
+.diamond-svg { filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.85)) !important; }
+.bomb-svg { filter: drop-shadow(0 0 10px rgba(232, 0, 61, 0.9)) !important; }
+
+/* History bar items */
+.hist-item:hover { transform: scale(1.06); }
+
+/* Selection */
+::selection { background: #E8003D !important; color: #FFFFFF !important; }
+
+/* Scrollbars */
+::-webkit-scrollbar-thumb { background: #2A2A2A !important; }
+::-webkit-scrollbar-thumb:hover { background: #E8003D !important; }

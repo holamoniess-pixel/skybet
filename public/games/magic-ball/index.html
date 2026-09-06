@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Magic Ball — Casino Game</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="../_speedbet-theme.css" />
+</head>
+<body>
+
+  <!-- Particle canvas background -->
+  <canvas id="bgCanvas"></canvas>
+
+  <div id="app">
+
+    <!-- TOP BAR -->
+    <header class="top-bar">
+      <div class="logo">
+        <div class="logo-orb"></div>
+        <span>MAGIC BALL</span>
+      </div>
+      <div class="top-center">
+        <div class="round-info">ROUND <span id="roundNum">1</span></div>
+      </div>
+      <div class="balance-wrap">
+        <div class="balance-label">BALANCE</div>
+        <div class="balance-amount" id="balance">₵1,000.00</div>
+      </div>
+    </header>
+
+    <!-- MAIN LAYOUT -->
+    <main class="main-layout">
+
+      <!-- LEFT: HISTORY + HOT-COLD -->
+      <aside class="left-panel">
+
+        <div class="panel-card">
+          <div class="panel-heading">LAST 10 DRAWS</div>
+          <div class="history-list" id="historyList">
+            <div class="history-empty">No draws yet</div>
+          </div>
+        </div>
+
+        <div class="panel-card hot-cold-card">
+          <div class="panel-heading">HOT / COLD NUMBERS</div>
+          <div class="hc-row">
+            <div class="hc-section">
+              <div class="hc-label hot">🔥 HOT</div>
+              <div class="hc-nums" id="hotNums">—</div>
+            </div>
+            <div class="hc-section">
+              <div class="hc-label cold">❄️ COLD</div>
+              <div class="hc-nums" id="coldNums">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card auto-card">
+          <div class="panel-heading">AUTO BET</div>
+          <div class="auto-row">
+            <label class="toggle-wrap">
+              <input type="checkbox" id="autoToggle" />
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="auto-label">Auto-repeat bets</span>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- CENTER: MACHINE + RESULT -->
+      <section class="center-panel">
+
+        <!-- Phase banner -->
+        <div class="phase-banner" id="phaseBanner">
+          <div class="phase-dot"></div>
+          <span id="phaseText">PLACE YOUR BETS</span>
+        </div>
+
+        <!-- Ball machine -->
+        <div class="machine-container" id="machineContainer">
+          <div class="machine-glass">
+            <div class="machine-inner">
+              <!-- Flying balls during animation -->
+              <div class="flying-balls" id="flyingBalls">
+                <div class="fly-ball fb1"></div>
+                <div class="fly-ball fb2"></div>
+                <div class="fly-ball fb3"></div>
+                <div class="fly-ball fb4"></div>
+                <div class="fly-ball fb5"></div>
+              </div>
+              <!-- Main result orb -->
+              <div class="main-orb" id="mainOrb">
+                <div class="orb-shine"></div>
+                <div class="orb-number" id="orbNumber">?</div>
+                <div class="orb-glow-ring" id="orbGlowRing"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Machine base -->
+          <div class="machine-base">
+            <div class="base-slot" id="baseSlot">
+              <span id="slotNumber">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timer ring -->
+        <div class="timer-wrap">
+          <svg class="timer-svg" viewBox="0 0 120 120">
+            <circle class="timer-track" cx="60" cy="60" r="52"/>
+            <circle class="timer-fill" cx="60" cy="60" r="52" id="timerCircle"/>
+          </svg>
+          <div class="timer-inner">
+            <div class="timer-number" id="timerNumber">15</div>
+            <div class="timer-unit">SEC</div>
+          </div>
+        </div>
+
+        <!-- Result categories display -->
+        <div class="result-display" id="resultDisplay">
+          <div class="result-chip" id="rc-number">?</div>
+          <div class="result-chip" id="rc-color">—</div>
+          <div class="result-chip" id="rc-parity">—</div>
+          <div class="result-chip" id="rc-range">—</div>
+          <div class="result-chip" id="rc-dozen">—</div>
+        </div>
+
+        <!-- Win/Lose announcement -->
+        <div class="announcement hidden" id="announcement">
+          <div class="ann-inner" id="annInner"></div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT: BETTING PANEL -->
+      <aside class="right-panel">
+
+        <!-- Stake selector -->
+        <div class="panel-card stake-card">
+          <div class="panel-heading">STAKE</div>
+          <div class="stake-row">
+            <button class="stake-chip" onclick="setStake(5)">₵5</button>
+            <button class="stake-chip" onclick="setStake(10)">₵10</button>
+            <button class="stake-chip" onclick="setStake(25)">₵25</button>
+            <button class="stake-chip" onclick="setStake(50)">₵50</button>
+            <button class="stake-chip" onclick="setStake(100)">₵100</button>
+          </div>
+          <div class="stake-custom-row">
+            <span class="stake-currency">₵</span>
+            <input type="number" id="stakeInput" value="10" min="1" max="10000" class="stake-input" />
+          </div>
+        </div>
+
+        <!-- Markets -->
+        <div class="panel-card markets-card">
+          <div class="panel-heading">MARKETS</div>
+
+          <div class="market-group">
+            <div class="mkt-label">COLOR · ×1.95</div>
+            <div class="mkt-btns">
+              <button class="mkt-btn red-mkt" id="mkt-red" onclick="toggleMarket('red')">
+                <div class="mkt-color-dot red-dot"></div>Red
+                <div class="mkt-odds">×1.95</div>
+              </button>
+              <button class="mkt-btn blk-mkt" id="mkt-black" onclick="toggleMarket('black')">
+                <div class="mkt-color-dot blk-dot"></div>Black
+                <div class="mkt-odds">×1.95</div>
+              </button>
+            </div>
+          </div>
+
+          <div class="market-group">
+            <div class="mkt-label">ODD / EVEN · ×1.95</div>
+            <div class="mkt-btns">
+              <button class="mkt-btn" id="mkt-odd" onclick="toggleMarket('odd')">
+                Odd<div class="mkt-odds">×1.95</div>
+              </button>
+              <button class="mkt-btn" id="mkt-even" onclick="toggleMarket('even')">
+                Even<div class="mkt-odds">×1.95</div>
+              </button>
+            </div>
+          </div>
+
+          <div class="market-group">
+            <div class="mkt-label">HIGH / LOW · ×1.95</div>
+            <div class="mkt-btns">
+              <button class="mkt-btn" id="mkt-low" onclick="toggleMarket('low')">
+                Low 1–18<div class="mkt-odds">×1.95</div>
+              </button>
+              <button class="mkt-btn" id="mkt-high" onclick="toggleMarket('high')">
+                High 19–36<div class="mkt-odds">×1.95</div>
+              </button>
+            </div>
+          </div>
+
+          <div class="market-group">
+            <div class="mkt-label">DOZEN · ×2.8</div>
+            <div class="mkt-btns">
+              <button class="mkt-btn" id="mkt-d1" onclick="toggleMarket('d1')">
+                1–12<div class="mkt-odds">×2.8</div>
+              </button>
+              <button class="mkt-btn" id="mkt-d2" onclick="toggleMarket('d2')">
+                13–24<div class="mkt-odds">×2.8</div>
+              </button>
+              <button class="mkt-btn" id="mkt-d3" onclick="toggleMarket('d3')">
+                25–36<div class="mkt-odds">×2.8</div>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Number Grid -->
+        <div class="panel-card numgrid-card">
+          <div class="panel-heading">SINGLE NUMBER · ×32</div>
+          <div class="number-grid" id="numberGrid"></div>
+        </div>
+
+        <!-- Spin button -->
+        <button class="spin-btn" id="spinBtn" onclick="manualSpin()">
+          <span class="spin-btn-text">LOCK &amp; SPIN</span>
+          <div class="spin-btn-glow"></div>
+        </button>
+
+        <!-- Clear bets -->
+        <button class="clear-btn" id="clearBtn" onclick="clearAllBets()">CLEAR ALL BETS</button>
+
+      </aside>
+
+    </main>
+
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
