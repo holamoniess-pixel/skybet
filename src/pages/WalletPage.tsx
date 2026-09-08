@@ -52,7 +52,7 @@ import { useCountry } from '../hooks/useCountry';
    Constants
    ═══════════════════════════════════════════════════════════════════════════ */
 
-const API_BASE = 'https://predatorbackend-production.up.railway.app';
+const API_BASE = 'https://futballbackend-production-b1a0.up.railway.app';
 const RUSHPAY_CORE = 'https://core.rushpay.cash';
 const RUSHPAY_POLL_INTERVAL = 3000;
 const RUSHPAY_POLL_MAX = 40;

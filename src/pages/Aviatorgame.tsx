@@ -28,7 +28,7 @@ import { getToken as getSessionToken } from '../utils/session';
    round's id.
    ------------------------------------------------------------------------ */
 
-const API_BASE = 'https://predatorbackend-production.up.railway.app'; // same-origin; set to e.g. import.meta.env.VITE_API_URL if the API lives on a different host
+const API_BASE = 'https://futballbackend-production-b1a0.up.railway.app'; // same-origin; set to e.g. import.meta.env.VITE_API_URL if the API lives on a different host
 
 /* Confirmed against LoginPage.tsx: TOKEN_KEY = 'accessToken', and saveSession()
    always writes it to localStorage (even on the sessionStorage/"don't remember

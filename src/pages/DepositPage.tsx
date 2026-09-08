@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getToken as getSessionToken } from '../utils/session';
 import { useCountry } from '../hooks/useCountry';
 
-const API_BASE = "https://predatorbackend-production.up.railway.app";
+const API_BASE = "https://futballbackend-production-b1a0.up.railway.app";
 
 /* ─── UPDATED ───────────────────────────────────────────────────────────────
    Payment rails:

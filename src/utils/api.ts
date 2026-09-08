@@ -5,7 +5,7 @@
 
 import { getToken as getSessionToken } from "./session";
 
-const BASE_URL = "https://predatorbackend-production.up.railway.app";
+const BASE_URL = "https://futballbackend-production-b1a0.up.railway.app";
 // ---------------------------------------------------------------------------
 // Types & Schemas
 // ---------------------------------------------------------------------------
