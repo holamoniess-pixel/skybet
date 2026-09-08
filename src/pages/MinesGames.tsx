@@ -48,7 +48,7 @@ import { TOKEN_KEY as SESSION_TOKEN_KEY, USER_KEY as SESSION_USER_KEY } from '..
 // API client — mirrors SpeedBetAPI's conventions (same token key & base
 // URL) so this widget shares a session with the rest of the app.
 // ---------------------------------------------------------------------------
-const API_BASE = 'https://futballbackend-iw9o.onrender.com/api';
+const API_BASE = 'https://predatorbackend-production.up.railway.app/api';
 // Unified SkyBet key — see src/utils/session.ts. Was 'accessToken',
 // which stopped matching the moment the token was renamed.
 const TOKEN_KEY = SESSION_TOKEN_KEY;

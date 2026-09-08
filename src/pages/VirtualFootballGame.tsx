@@ -169,7 +169,7 @@ interface TeamInfo {
 // ---------------------------------------------------------------------------
 // footballApi — inlined. Talks directly to FootballGameController endpoints.
 // ---------------------------------------------------------------------------
-const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL ?? 'https://futballbackend-iw9o.onrender.com/api';
+const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL ?? 'https://predatorbackend-production.up.railway.app/api';
 // Unified SkyBet key — see src/utils/session.ts. Was 'accessToken',
 // which stopped matching the moment the token was renamed.
 const TOKEN_KEY = SESSION_TOKEN_KEY;

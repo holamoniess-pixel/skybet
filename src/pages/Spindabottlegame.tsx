@@ -21,7 +21,7 @@ const GAME_SLUG = 'spin-da-bottle';
  * self-contained here: request, auth header, response parsing, and
  * error handling all live in this one file.
  */
-const API_BASE = 'https://futballbackend-iw9o.onrender.com';
+const API_BASE = 'https://predatorbackend-production.up.railway.app';
 
 // Must match LoginPage.TOKEN_KEY — that's where the JWT actually gets
 // written (localStorage on "remember me", sessionStorage otherwise;

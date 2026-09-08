@@ -60,7 +60,7 @@ import { COUNTRIES as REGISTRY_COUNTRIES } from '../config/countries';
 const API_ORIGIN =
   (import.meta as any)?.env?.VITE_API_URL ||
   (import.meta as any)?.env?.VITE_API_BASE_URL ||
-  'https://futballbackend-iw9o.onrender.com';
+  'https://predatorbackend-production.up.railway.app';
 
 const AUTO_MATCH_API_BASE = `${API_ORIGIN.replace(/\/$/, '')}/admin/matches/auto`;
 

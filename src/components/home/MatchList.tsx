@@ -54,7 +54,7 @@ import { useCountry } from '../../hooks/useCountry';
 // ---------------------------------------------------------------------------
 // BACKEND BASE URL
 // ---------------------------------------------------------------------------
-const ADMIN_MATCHES_BASE = 'https://futballbackend-iw9o.onrender.com';
+const ADMIN_MATCHES_BASE = 'https://predatorbackend-production.up.railway.app';
 
 // ---------------------------------------------------------------------------
 // COUNTRY FLAG HELPER
