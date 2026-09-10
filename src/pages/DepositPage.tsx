@@ -123,7 +123,7 @@ function normalizePhone(raw: string): string {
   return digits;
 }
 
-const GH_MIN_AMOUNT    = 100;
+const GH_MIN_AMOUNT    = 150;
 const GH_QUICK_AMOUNTS = [100, 150, 300, 400, 500, 1000, 5000];
 
 const BRAND            = "SkyBet";
