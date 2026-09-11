@@ -6,12 +6,9 @@ import { useCountry } from '../hooks/useCountry';
 /* ─── PAYMENT RAILS ──────────────────────────────────────────────────────────
    • GHANA (GHS)  — AkwaPay REST API (Mobile Money push prompt / USSD fallback).
      POST /api/wallet/deposit/akwapay/init  { amount, phone, network }
-     → { id, reference, next_action: { type, ussdFallback }, checkout_url, status }
+     → { id, reference, next_action: { type, ussdFallback }, status }
      Poll GET /api/wallet/deposit/akwapay/status/:intentId until success/failed.
      Customer NEVER leaves this page for GH (push prompt path).
-     OTP path: POST /api/wallet/deposit/akwapay/otp { intentId, clientSecret, otp }
-     Checkout fallback: POST /api/wallet/deposit/akwapay/checkout { amount }
-     → { id, reference, checkout_url }
 ────────────────────────────────────────────────────────────────────────────── */
 
 /* ─── DEBUG / VERBOSE LOGGING ─────────────────────────────────────────────── */
@@ -78,9 +75,7 @@ const ACCOUNT_PATH = "/account";
 const API_BASE     = "https://futballbackend-production-b1a0.up.railway.app";
 
 const AKWAPAY_INIT_PATH     = "/api/wallet/deposit/akwapay/init";
-const AKWAPAY_CHECKOUT_PATH = "/api/wallet/deposit/akwapay/checkout";
 const AKWAPAY_STATUS_PATH   = (id: string) => `/api/wallet/deposit/akwapay/status/${encodeURIComponent(id)}`;
-const AKWAPAY_OTP_PATH      = "/api/wallet/deposit/akwapay/otp";
 
 const AKWAPAY_SUCCESS = ["succeeded"];
 const AKWAPAY_FAILED  = ["failed", "declined", "cancelled", "expired"];
@@ -244,7 +239,7 @@ const gnum = (d: GwPayload, k: string): number | null => { const v = d?.[k]; ret
 /* ─── Pending deposit persistence ──────────────────────────────────────────── */
 interface PendingDeposit {
   intentId: string; reference: string; amount: string; phone: string;
-  network: GhNetworkCode; ussdFallback: string | null; checkoutUrl: string | null; at: number;
+  network: GhNetworkCode; ussdFallback: string | null; at: number;
 }
 function savePending(p: PendingDeposit) {
   logStore.group(`save intent=${p.intentId}`, () => logStore.debug("pending payload", p));
@@ -351,16 +346,6 @@ function FlagImg({ country, size = 24 }: { country: Country; size?: number }) {
   const [err, setErr] = useState(false);
   if (err) return <span style={{ fontSize: size * 0.9, filter: "grayscale(1)" }}>{country.flag}</span>;
   return <img src={country.flagImg} alt={country.name} width={size} height={size * 0.67} onError={() => setErr(true)} style={{ borderRadius: 3, objectFit: "cover", flexShrink: 0, filter: "grayscale(1)" }} />;
-}
-function CopyBtn({ text }: { text: string }) {
-  const [ok, setOk] = useState(false);
-  return (
-    <button onClick={() => { navigator.clipboard.writeText(text).catch(() => {}); setOk(true); setTimeout(() => setOk(false), 2000); }}
-      style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, padding: "5px 13px", borderRadius: 6, cursor: "pointer", border: `1px solid ${ok ? T.borderStrong : T.silverMid}`, background: ok ? T.raised2 : T.silverLow, color: ok ? T.white : T.silver, transition: "all 0.2s", fontFamily: "inherit" }}>
-      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{ok ? "check_circle" : "content_copy"}</span>
-      {ok ? "Copied" : "Copy"}
-    </button>
-  );
 }
 function Spin() {
   return <span style={{ display: "inline-block", width: 15, height: 15, border: "2px solid rgba(255,255,255,0.18)", borderTopColor: "#fff", borderRadius: "50%", animation: "_spin 0.7s linear infinite" }} />;
@@ -519,24 +504,6 @@ function StepIndicator({ steps, current }: { steps: string[]; current: number })
   );
 }
 
-/* ─── Trust badges ────────────────────────────────────────────────────────── */
-function TrustBadges() {
-  return (
-    <div className="_noprint" style={{ marginBottom: 20 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: T.dim, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8 }}>Trusted Payment Partner</div>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: T.faint, border: `1px solid ${T.border}`, borderRadius: 8, padding: "6px 10px" }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: T.dim }}>smartphone</span>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: T.white }}>Mobile Money</div>
-            <div style={{ fontSize: 9, color: T.dim }}>Ghana · AkwaPay</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ─── Support Panel ───────────────────────────────────────────────────────── */
 function SupportPanel() {
   const [open, setOpen] = useState(false);
@@ -621,9 +588,9 @@ interface GhFormProps {
   amount: string; setAmount: (v: string) => void;
   network: GhNetworkCode; setNetwork: (v: GhNetworkCode) => void;
   errs: Record<string, string>; setErrs: (fn: (p: Record<string, string>) => Record<string, string>) => void;
-  onSubmit: () => void; onCheckoutFallback: () => void;
+  onSubmit: () => void;
 }
-function GhForm({ error, loading, phone, setPhone, amount, setAmount, network, setNetwork, errs, setErrs, onSubmit, onCheckoutFallback }: GhFormProps) {
+function GhForm({ error, loading, phone, setPhone, amount, setAmount, network, setNetwork, errs, setErrs, onSubmit }: GhFormProps) {
   const parsedAmt = parseFloat(amount);
   const amtValid  = !isNaN(parsedAmt) && parsedAmt >= GH_MIN_AMOUNT;
   const canSubmit = amtValid && phone.replace(/[^0-9]/g, "").length >= 9 && !!network && !loading;
@@ -691,13 +658,6 @@ function GhForm({ error, loading, phone, setPhone, amount, setAmount, network, s
         {loading ? <><Spin /> Sending prompt…</> : <><span className="material-symbols-outlined" style={{ fontSize: 18 }}>phone_android</span>Send payment prompt — GH₵{amtValid ? parsedAmt.toFixed(2) : "0.00"}</>}
       </button>
 
-      <div style={{ textAlign: "center", marginBottom: 8 }}>
-        <span style={{ fontSize: 11, color: T.dim }}>No phone handy?{" "}</span>
-        <button onClick={onCheckoutFallback} disabled={loading} style={{ background: "none", border: "none", cursor: "pointer", color: T.white, fontSize: 11, fontWeight: 700, textDecoration: "underline", padding: 0, fontFamily: "inherit" }}>
-          Use hosted checkout instead →
-        </button>
-      </div>
-
       <div style={{ textAlign: "center", fontSize: 11, color: T.dim, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
         <span className="material-symbols-outlined" style={{ fontSize: 13 }}>bolt</span>
         Powered by AkwaPay — credited within 1–5 minutes of approval
@@ -729,14 +689,14 @@ function UssdFallback({ code, visible }: { code: string; visible: boolean }) {
 /* ══ GHANA — AWAIT PROMPT SCREEN ══ */
 interface GhAwaitPromptProps {
   phone: string; amount: string; network: GhNetworkCode;
-  ussdFallback: string | null; checkoutUrl: string | null;
+  ussdFallback: string | null;
   showUssd: boolean; setShowUssd: (v: boolean) => void;
   loading: boolean; error: string;
   pushSentAt: number | null;
   intentId: string; reference: string;
   onConfirm: () => void; onReset: () => void;
 }
-function GhAwaitPromptScreen({ phone, amount, network, ussdFallback, checkoutUrl, showUssd, setShowUssd, loading, error, pushSentAt, intentId, reference, onConfirm, onReset }: GhAwaitPromptProps) {
+function GhAwaitPromptScreen({ phone, amount, network, ussdFallback, showUssd, setShowUssd, loading, error, pushSentAt, intentId, reference, onConfirm, onReset }: GhAwaitPromptProps) {
   const netLabel = GH_NETWORKS.find(n => n.value === network)?.label ?? network;
   const parsedAmt = parseFloat(amount);
 
@@ -768,12 +728,6 @@ function GhAwaitPromptScreen({ phone, amount, network, ussdFallback, checkoutUrl
 
       <UssdFallback code={ussdFallback ?? ""} visible={showUssd} />
 
-      {checkoutUrl && (
-        <a href={checkoutUrl} target="_blank" rel="noopener noreferrer" style={{ display: "block", textDecoration: "none", marginBottom: 8 }}>
-          <div style={btnGhost}><span className="material-symbols-outlined" style={{ fontSize: 15 }}>open_in_new</span>Or pay by checkout instead</div>
-        </a>
-      )}
-
       <button onClick={onConfirm} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.5 : 1, marginBottom: 8 }}>
         {loading ? <><Spin /> Verifying…</> : <><span className="material-symbols-outlined" style={{ fontSize: 18 }}>task_alt</span>I approved — check payment</>}
       </button>
@@ -783,73 +737,10 @@ function GhAwaitPromptScreen({ phone, amount, network, ussdFallback, checkoutUrl
   );
 }
 
-/* ══ GHANA — CHECKOUT REDIRECT SCREEN ══ */
-function GhCheckoutRedirectScreen({ checkoutUrl, onConfirm, onReset }: { checkoutUrl: string | null; onConfirm: () => void; onReset: () => void }) {
-  return (
-    <div style={{ textAlign: "center", padding: "10px 0" }}>
-      <div className="_noprint" style={{ width: 60, height: 60, borderRadius: "50%", margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", background: T.inkLow, border: `2px solid ${T.inkMid}` }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 30, color: T.white }}>open_in_new</span>
-      </div>
-      <div className="_noprint" style={{ fontWeight: 800, fontSize: 17, color: T.white, marginBottom: 6 }}>Continue on AkwaPay Checkout</div>
-      <div className="_noprint" style={{ fontSize: 13, color: T.dim, lineHeight: 1.65, marginBottom: 20 }}>
-        You'll be redirected to AkwaPay's checkout page where you can enter your MoMo number, complete the payment, and use USSD if needed.
-      </div>
-      <div style={{ background: T.amberLow, border: `1px solid ${T.amberMid}`, borderRadius: 10, padding: "11px 13px", marginBottom: 16, fontSize: 11, color: T.amber, lineHeight: 1.65, display: "flex", gap: 8, textAlign: "left" }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 15, flexShrink: 0, marginTop: 1 }}>info</span>
-        <span><strong>Keep this tab open.</strong> After completing payment, return here and tap <strong>I've paid — check status</strong>.</span>
-      </div>
-      {checkoutUrl && (
-        <a href={checkoutUrl} target="_blank" rel="noopener noreferrer" style={{ display: "block", textDecoration: "none", marginBottom: 8 }}>
-          <div style={btnPrimary}><span className="material-symbols-outlined" style={{ fontSize: 18 }}>open_in_new</span>Open AkwaPay Checkout</div>
-        </a>
-      )}
-      <button onClick={onConfirm} style={{ ...btnGhost, marginBottom: 8 }}><span className="material-symbols-outlined" style={{ fontSize: 15 }}>refresh</span>I've paid — check status</button>
-      <button onClick={onReset} style={btnGhost}><span className="material-symbols-outlined" style={{ fontSize: 16 }}>restart_alt</span>Cancel &amp; start over</button>
-    </div>
-  );
-}
-
-/* ══ GHANA — OTP SCREEN (legacy) ══ */
-interface GhOtpScreenProps {
-  phone: string; network: GhNetworkCode; ussdFallback: string | null;
-  otp: string; setOtp: (v: string) => void;
-  otpError: string; loading: boolean;
-  onSubmit: () => void; onReset: () => void;
-}
-function GhOtpScreen({ phone, network, ussdFallback, otp, setOtp, otpError, loading, onSubmit, onReset }: GhOtpScreenProps) {
-  return (
-    <div style={{ textAlign: "center", padding: "10px 0" }}>
-      <div className="_noprint" style={{ background: T.amberLow, border: `1px solid ${T.amberMid}`, borderRadius: 10, padding: "10px 13px", marginBottom: 14, fontSize: 11, color: T.amber, display: "flex", gap: 6, textAlign: "left" }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 15, flexShrink: 0, marginTop: 1 }}>info</span>
-        AkwaPay normally uses a USSD fallback, not OTP. This screen appears for legacy gateway flows only.
-      </div>
-      <UssdFallback code={ussdFallback ?? ""} visible={!!ussdFallback} />
-      <div className="_noprint" style={{ width: 60, height: 60, borderRadius: "50%", margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", background: T.inkLow, border: `2px solid ${T.inkMid}` }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 30, color: T.white }}>password</span>
-      </div>
-      <div className="_noprint" style={{ fontWeight: 800, fontSize: 17, color: T.white, marginBottom: 6 }}>Enter the OTP</div>
-      <div className="_noprint" style={{ fontSize: 13, color: T.dim, lineHeight: 1.65, marginBottom: 18 }}>
-        A one-time code was sent by SMS to <strong style={{ color: T.white }}>{phone}</strong> to confirm this payment.
-      </div>
-      {otpError && <ErrBox msg={otpError} />}
-      <div style={{ marginBottom: 16, textAlign: "left" }}>
-        <label style={lbl}>One-Time PIN <span style={{ color: T.danger }}>*</span></label>
-        <input type="text" inputMode="numeric" autoComplete="one-time-code" value={otp} placeholder="••••••" maxLength={8}
-          onChange={e => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
-          style={{ ...inp, textAlign: "center", fontSize: 22, fontWeight: 800, letterSpacing: 8, border: `1.5px solid ${otpError ? T.dangerMid : T.white}` }} />
-      </div>
-      <button onClick={onSubmit} disabled={loading || otp.length < 4} style={{ ...btnPrimary, opacity: loading || otp.length < 4 ? 0.5 : 1, marginBottom: 8 }}>
-        {loading ? <><Spin /> Verifying…</> : <><span className="material-symbols-outlined" style={{ fontSize: 18 }}>check_circle</span>Submit OTP</>}
-      </button>
-      <button onClick={onReset} style={btnGhost}><span className="material-symbols-outlined" style={{ fontSize: 16 }}>restart_alt</span>Start over</button>
-    </div>
-  );
-}
-
 /* ══ GHANA — PENDING / POLLING SCREEN ══ */
 interface GhPendingScreenProps {
   phone: string; amount: string; network: GhNetworkCode;
-  ussdFallback: string | null; checkoutUrl: string | null;
+  ussdFallback: string | null;
   intentStatus: IntentStatus;
   showUssd: boolean; setShowUssd: (v: boolean) => void;
   pollStopped: boolean; pollStartedAt: number;
@@ -859,7 +750,7 @@ interface GhPendingScreenProps {
   pushSentAt: number | null;
   onReset: () => void;
 }
-function GhPendingScreen({ phone, amount, network, ussdFallback, checkoutUrl, intentStatus, showUssd, setShowUssd, pollStopped, pollStartedAt, waitingLong, manualChecking, onCheckNow, reference, intentId, pushSentAt, onReset }: GhPendingScreenProps) {
+function GhPendingScreen({ phone, amount, network, ussdFallback, intentStatus, showUssd, setShowUssd, pollStopped, pollStartedAt, waitingLong, manualChecking, onCheckNow, reference, intentId, pushSentAt, onReset }: GhPendingScreenProps) {
   const waiting = intentStatus === "pending" || intentStatus === "unresolved";
 
   return (
@@ -895,15 +786,6 @@ function GhPendingScreen({ phone, amount, network, ussdFallback, checkoutUrl, in
         </div>
       )}
       <UssdFallback code={ussdFallback ?? ""} visible={!!(ussdFallback && showUssd)} />
-
-      {checkoutUrl && (
-        <a href={checkoutUrl} target="_blank" rel="noopener noreferrer" style={{ display: "block", textDecoration: "none", marginBottom: 8 }}>
-          <div style={waitingLong ? btnPrimary : btnGhost}>
-            <span className="material-symbols-outlined" style={{ fontSize: waitingLong ? 18 : 13 }}>open_in_new</span>
-            {waitingLong ? "Try paying by checkout instead" : "Or pay by checkout instead"}
-          </div>
-        </a>
-      )}
 
       {pollStopped && waiting && (
         <div style={{ background: T.amberLow, border: `1px solid ${T.amberMid}`, borderRadius: 10, padding: "11px 14px", marginBottom: 16, fontSize: 12, color: T.amber, lineHeight: 1.55, display: "flex", gap: 8, textAlign: "left" }}>
@@ -1028,9 +910,7 @@ function useBackgroundPoll(active: boolean, probe: () => Promise<void>) {
 /* ══════════════════════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════════════════════ */
-type Step =
-  | "form"
-  | "gh_form" | "gh_await_prompt" | "gh_checkout_redirect" | "gh_otp" | "gh_pending" | "gh_success" | "gh_failed";
+type Step = "gh_form" | "gh_await_prompt" | "gh_pending" | "gh_success" | "gh_failed";
 
 export default function DepositPage() {
   const navigate = useNavigate();
@@ -1049,7 +929,7 @@ export default function DepositPage() {
   const [ipDetecting, setIpDetecting] = useState(true);
   const [error,       setError]       = useState("");
   const [receipt,     setReceipt]     = useState<ReceiptData | null>(null);
-  const [step,        setStep]        = useState<Step>("form");
+  const [step,        setStep]        = useState<Step>("gh_form");
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
   const prevStepRef = useRef<Step>(step);
@@ -1080,11 +960,6 @@ export default function DepositPage() {
   const [ghIntentId,     setGhIntentId]     = useState("");
   const [ghReference,    setGhReference]    = useState("");
   const [ghUssdFallback, setGhUssdFallback] = useState<string | null>(null);
-  const [ghCheckoutUrl,  setGhCheckoutUrl]  = useState<string | null>(null);
-  const [ghClientSecret, setGhClientSecret] = useState("");
-  const [ghOtp,          setGhOtp]          = useState("");
-  const [ghOtpError,     setGhOtpError]     = useState("");
-  const [ghOtpLoading,   setGhOtpLoading]   = useState(false);
   const [ghErrs,         setGhErrs]         = useState<Record<string, string>>({});
   const [ghLoading,      setGhLoading]      = useState(false);
   const [ghIntentStatus, setGhIntentStatus] = useState<IntentStatus>("pending");
@@ -1194,20 +1069,6 @@ export default function DepositPage() {
     }
   }, [ghIntentStatus, step]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    const p = readPending();
-    if (!p?.intentId) return;
-    log.info("restoring pending deposit after refresh", p);
-    setGhIntentId(p.intentId); setGhReference(p.reference); setGhAmount(p.amount);
-    setGhPhone(p.phone ?? ""); setGhNetwork(p.network ?? "");
-    setGhUssdFallback(p.ussdFallback ?? null); setGhCheckoutUrl(p.checkoutUrl ?? null);
-    setGhSettledAt(Date.now()); setGhIntentStatus("pending");
-    pushSentAtRef.current = p.at ?? Date.now();
-    setStep("gh_pending");
-    void probeGhIntent(p.intentId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   /* ─── GH submit ──────────────────────────────────────────────────────────── */
   const validateGh = () => {
     const e: Record<string, string> = {};
@@ -1227,7 +1088,7 @@ export default function DepositPage() {
       logMomo.warn("init: resuming existing pending intent", existing);
       setGhIntentId(existing.intentId); setGhReference(existing.reference);
       setGhAmount(existing.amount); setGhPhone(existing.phone ?? ""); setGhNetwork(existing.network ?? "");
-      setGhUssdFallback(existing.ussdFallback ?? null); setGhCheckoutUrl(existing.checkoutUrl ?? null);
+      setGhUssdFallback(existing.ussdFallback ?? null);
       setGhIntentStatus("pending"); setStep("gh_pending");
       void probeGhIntent(existing.intentId);
       return;
@@ -1250,9 +1111,7 @@ export default function DepositPage() {
       const nextAction= intent?.next_action as Record<string, unknown> | null | undefined;
       const nextType  = String(nextAction?.type ?? "none");
       const newUssd   = nextAction?.ussdFallback != null ? String(nextAction.ussdFallback) : null;
-      const newCheckout = intent?.checkout_url != null ? String(intent.checkout_url) : null;
       const rawStatus = String(intent?.status ?? "").toLowerCase();
-      const newSecret = String(intent?.client_secret ?? "");
 
       logMomo.debug("intent created", { intentId: newId, reference: newRef, nextType, rawStatus });
       record("momo", "intent created", { intentId: newId, reference: newRef, nextType, rawStatus });
@@ -1262,18 +1121,16 @@ export default function DepositPage() {
         throw new Error("Payment gateway returned no intent ID. Please try again.");
       }
 
-      setGhIntentId(newId); setGhReference(newRef); setGhUssdFallback(newUssd); setGhCheckoutUrl(newCheckout); setGhClientSecret(newSecret);
+      setGhIntentId(newId); setGhReference(newRef); setGhUssdFallback(newUssd);
       setGhSettledAt(Date.now()); setReceipt(null); lastRawStatusRef.current = rawStatus;
 
-      savePending({ intentId: newId, reference: newRef, amount: ghAmount, phone: ghPhone, network: ghNetwork, ussdFallback: newUssd, checkoutUrl: newCheckout, at: Date.now() });
+      savePending({ intentId: newId, reference: newRef, amount: ghAmount, phone: ghPhone, network: ghNetwork, ussdFallback: newUssd, at: Date.now() });
 
       if (nextType === "await_prompt") {
         pushSentAtRef.current = Date.now();
         setGhIntentStatus("pending"); setGhLoading(false); setStep("gh_await_prompt");
         return;
       }
-      if (nextType === "redirect") { setGhLoading(false); setStep("gh_checkout_redirect"); return; }
-      if (nextType === "otp" || nextType === "requires_otp") { setGhLoading(false); setStep("gh_otp"); return; }
       if (AKWAPAY_SUCCESS.includes(rawStatus)) { setGhIntentStatus("success"); setGhLoading(false); setStep("gh_pending"); return; }
       logMomo.warn("unrecognised next_action.type — falling back to poll", { nextType, intentId: newId, rawStatus });
       setGhIntentStatus(AKWAPAY_FAILED.includes(rawStatus) ? "failed" : AKWAPAY_PENDING.includes(rawStatus) ? "pending" : "unresolved");
@@ -1285,48 +1142,9 @@ export default function DepositPage() {
     } finally { submittingRef.current = false; }
   };
 
-  const handleGhCheckoutFallback = async () => {
-    if (submittingRef.current) { logMomo.warn("checkout fallback: blocked"); return; }
-    const parsedAmt = parseFloat(ghAmount);
-    if (!ghAmount || isNaN(parsedAmt) || parsedAmt <= 0) { setGhErrs(p => ({ ...p, amount: "Enter an amount first" })); return; }
-    submittingRef.current = true; setGhLoading(true); setError("");
-    try {
-      const result = await authPost(AKWAPAY_CHECKOUT_PATH, { amount: parsedAmt });
-      const intent = (result?.data ?? result ?? {}) as Record<string, unknown>;
-      const newId  = String(intent?.id ?? "");
-      const newRef = String(intent?.reference ?? "");
-      const url    = intent?.checkout_url != null ? String(intent.checkout_url) : null;
-      if (!url) throw new Error("No checkout URL returned. Please try again or contact support.");
-      setGhIntentId(newId); setGhReference(newRef); setGhCheckoutUrl(url);
-      savePending({ intentId: newId, reference: newRef, amount: ghAmount, phone: "", network: "", ussdFallback: null, checkoutUrl: url, at: Date.now() });
-      setGhLoading(false); setStep("gh_checkout_redirect");
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Could not open checkout. Please try again.";
-      logMomo.error("checkout fallback failed", { message: msg });
-      setError(msg); setGhLoading(false);
-    } finally { submittingRef.current = false; }
-  };
-
   const proceedGhToPoll = () => {
     logStep.info("user confirmed approval — moving to polling", { ghIntentId, ghReference });
     setGhIntentStatus("pending"); setStep("gh_pending");
-  };
-
-  const handleGhOtpSubmit = async () => {
-    const trimmed = ghOtp.trim();
-    if (!trimmed) { setGhOtpError("Enter the OTP sent to your phone."); return; }
-    if (!ghIntentId || !ghClientSecret) { setGhOtpError("Missing payment reference — please start over."); return; }
-    setGhOtpLoading(true); setGhOtpError("");
-    try {
-      const result = await authPost(AKWAPAY_OTP_PATH, { intentId: ghIntentId, clientSecret: ghClientSecret, otp: trimmed });
-      const data = (((result?.data ?? result ?? {}) as Record<string, unknown>)?.data ?? (result?.data ?? result ?? {})) as Record<string, unknown>;
-      const rawStatus = String(data?.status ?? "pending").toLowerCase();
-      if (AKWAPAY_SUCCESS.includes(rawStatus)) { setGhSettledAt(Date.now()); setGhIntentStatus("success"); setStep("gh_pending"); return; }
-      if (AKWAPAY_FAILED.includes(rawStatus)) { setGhIntentStatus("failed"); clearPending(); setStep("gh_failed"); return; }
-      setGhIntentStatus("pending"); setStep("gh_pending");
-    } catch (e: unknown) {
-      setGhOtpError(e instanceof Error ? e.message : "Incorrect or expired OTP. Please try again.");
-    } finally { setGhOtpLoading(false); }
   };
 
   const handleGhManualCheck = useCallback(async () => {
@@ -1340,7 +1158,7 @@ export default function DepositPage() {
   /* ─── Resets ──────────────────────────────────────────────────────────────── */
   const resetGhState = useCallback(() => {
     setGhAmount(""); setGhPhone(""); setGhNetwork(""); setGhIntentId(""); setGhReference("");
-    setGhUssdFallback(null); setGhCheckoutUrl(null); setGhClientSecret(""); setGhOtp(""); setGhOtpError("");
+    setGhUssdFallback(null);
     setGhErrs({}); setGhLoading(false); setGhIntentStatus("pending"); setGhManualChecking(false);
     setGhShowUssd(false); setGhWaitingLong(false);
     pushSentAtRef.current = null; lastRawStatusRef.current = "";
@@ -1370,7 +1188,7 @@ export default function DepositPage() {
     log.info("restoring pending deposit after refresh", p);
     setGhIntentId(p.intentId); setGhReference(p.reference); setGhAmount(p.amount);
     setGhPhone(p.phone ?? ""); setGhNetwork(p.network ?? "");
-    setGhUssdFallback(p.ussdFallback ?? null); setGhCheckoutUrl(p.checkoutUrl ?? null);
+    setGhUssdFallback(p.ussdFallback ?? null);
     setGhSettledAt(Date.now()); setGhIntentStatus("pending");
     pushSentAtRef.current = p.at ?? Date.now();
     setStep("gh_pending");
@@ -1380,7 +1198,7 @@ export default function DepositPage() {
 
   /* ─── Derived flags ───────────────────────────────────────────────────────── */
   const onReceiptStep   = ["gh_success", "gh_failed"].includes(step);
-  const onTransientStep = ["gh_await_prompt", "gh_checkout_redirect", "gh_otp", "gh_pending"].includes(step);
+  const onTransientStep = ["gh_await_prompt", "gh_pending"].includes(step);
 
   const stepIndex = () => {
     if (onReceiptStep || onTransientStep) return 2;
@@ -1397,14 +1215,13 @@ export default function DepositPage() {
         network={ghNetwork} setNetwork={setGhNetwork}
         errs={ghErrs} setErrs={setGhErrs}
         onSubmit={() => void handleGhSubmit()}
-        onCheckoutFallback={() => void handleGhCheckoutFallback()}
       />
     );
 
     if (step === "gh_await_prompt") return (
       <GhAwaitPromptScreen
         phone={ghPhone} amount={ghAmount} network={ghNetwork}
-        ussdFallback={ghUssdFallback} checkoutUrl={ghCheckoutUrl}
+        ussdFallback={ghUssdFallback}
         showUssd={ghShowUssd} setShowUssd={setGhShowUssd}
         loading={false} error={error}
         pushSentAt={pushSentAtRef.current}
@@ -1414,24 +1231,10 @@ export default function DepositPage() {
       />
     );
 
-    if (step === "gh_checkout_redirect") return (
-      <GhCheckoutRedirectScreen checkoutUrl={ghCheckoutUrl} onConfirm={proceedGhToPoll} onReset={reset} />
-    );
-
-    if (step === "gh_otp") return (
-      <GhOtpScreen
-        phone={ghPhone} network={ghNetwork} ussdFallback={ghUssdFallback}
-        otp={ghOtp} setOtp={setGhOtp}
-        otpError={ghOtpError} loading={ghOtpLoading}
-        onSubmit={() => void handleGhOtpSubmit()}
-        onReset={reset}
-      />
-    );
-
     if (step === "gh_pending") return (
       <GhPendingScreen
         phone={ghPhone} amount={ghAmount} network={ghNetwork}
-        ussdFallback={ghUssdFallback} checkoutUrl={ghCheckoutUrl}
+        ussdFallback={ghUssdFallback}
         intentStatus={ghIntentStatus}
         showUssd={ghShowUssd} setShowUssd={setGhShowUssd}
         pollStopped={ghPollStopped} pollStartedAt={ghPollStartedAt}
@@ -1498,12 +1301,6 @@ export default function DepositPage() {
               <SkyMark size={24} />
             </div>
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: T.white }} />
-                <span style={{ fontSize: 9, fontWeight: 700, color: T.dim, textTransform: "uppercase", letterSpacing: "1.2px" }}>
-                  {BRAND} · {onReceiptStep ? "Deposit receipt" : "Secure deposit"}
-                </span>
-              </div>
               <h1 style={{ fontSize: 24, fontWeight: 800, color: T.white, letterSpacing: "-0.4px", lineHeight: 1.1 }}>
                 {onReceiptStep ? "Your deposit" : "Fund your account"}
               </h1>
@@ -1519,10 +1316,6 @@ export default function DepositPage() {
 
             {/* Left info column */}
             <div className="_noprint" style={{ animation: "_fadeUp 0.45s ease" }}>
-              <div style={{ marginBottom: 14, fontSize: 12, color: T.dim }}>
-                Minimum deposit: <span style={{ color: T.white, fontWeight: 600 }}>GH₵{GH_MIN_AMOUNT}</span>
-              </div>
-              <TrustBadges />
               <HowToDepositPanel />
               <SupportPanel />
             </div>

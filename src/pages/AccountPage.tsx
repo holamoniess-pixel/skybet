@@ -4,11 +4,8 @@ import { useAppStore } from '../store';
 import { useCountry } from '../hooks/useCountry';
 
 import { user as userApi, wallet, affiliate, auth } from '../utils/api';
-import type { UpdateProfileRequest, Transaction } from '../utils/api';
+import type { Transaction } from '../utils/api';
 
-import EditIcon               from '@mui/icons-material/Edit';
-import SaveIcon               from '@mui/icons-material/Save';
-import CloseIcon              from '@mui/icons-material/Close';
 import SettingsIcon           from '@mui/icons-material/Settings';
 import NotificationsIcon      from '@mui/icons-material/Notifications';
 import VerifiedUserIcon       from '@mui/icons-material/VerifiedUser';
@@ -19,7 +16,6 @@ import GroupAddIcon           from '@mui/icons-material/GroupAdd';
 import RefreshIcon            from '@mui/icons-material/Refresh';
 import LoopIcon                from '@mui/icons-material/Loop';
 import OpenInNewIcon          from '@mui/icons-material/OpenInNew';
-import PersonIcon             from '@mui/icons-material/Person';
 import TrendingUpIcon         from '@mui/icons-material/TrendingUp';
 import SyncIcon               from '@mui/icons-material/Sync';
 import PeopleAltIcon          from '@mui/icons-material/PeopleAlt';
@@ -30,10 +26,6 @@ import MoneyOffIcon           from '@mui/icons-material/MoneyOff';
 import VisibilityIcon         from '@mui/icons-material/Visibility';
 import VisibilityOffIcon      from '@mui/icons-material/VisibilityOff';
 import HeadsetMicIcon         from '@mui/icons-material/HeadsetMic';
-import ShieldIcon             from '@mui/icons-material/Shield';
-import ArrowDownwardIcon      from '@mui/icons-material/ArrowDownward';
-import ArrowUpwardIcon        from '@mui/icons-material/ArrowUpward';
-import CardGiftcardIcon       from '@mui/icons-material/CardGiftcard';
 
 // ---------------------------------------------------------------------------
 // Premium monochrome design tokens
@@ -55,26 +47,6 @@ const T = {
   danger: '#EF4444',
   accent: '#60a5fa',
 };
-
-/* ---------------------------------------------------------------------------
-   Currency — driven by the REGISTERED country, not by IP
-   ---------------------------------------------------------------------------
-   What used to live here: a detectCurrencyInfo() that raced three IP
-   geolocation providers (ipapi.co, freeipapi, ip.guide), then hit two FX
-   endpoints to convert a GHS-denominated balance into whatever the visitor's
-   IP claimed. That was wrong in three separate ways:
-
-     1. It ignored the country the user actually chose at registration, so a
-        Ghanaian on a VPN saw naira.
-     2. It re-converted balances through a live FX rate, so the same balance
-        rendered differently between page loads.
-     3. It blocked the first paint on up to five network round-trips, none of
-        which the page needed.
-
-   All of it is replaced by useCountry(), which reads the registration choice
-   out of the store. Amounts are at PARITY across markets (1 cedi = 1 naira),
-   so there is no conversion step at all — only the symbol changes.
-   ------------------------------------------------------------------------- */
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -139,23 +111,6 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
   );
 }
 
-function InfoRow({ label, value, last }: { label: string; value: string; last?: boolean }) {
-  return (
-    <div
-      className="flex items-center justify-between gap-4 px-5 py-4"
-      style={!last ? { borderBottom: `1px solid ${T.border}` } : {}}
-    >
-      <span className="text-xs font-bold uppercase tracking-wider shrink-0" style={{ color: T.textMuted }}>{label}</span>
-      <span
-        className="text-sm font-semibold text-right truncate rounded-xl px-3 py-2 flex-1 max-w-[220px]"
-        style={{ color: T.text, backgroundColor: T.bg2, border: `1px solid ${T.border}` }}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
-
 function Card({ children, className = '', style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
     <div
@@ -192,31 +147,10 @@ function StatPill({ icon, label, value, color = T.text }: { icon: React.ReactNod
   );
 }
 
-function QuickAction({ icon, label, to, onClick }: { icon: React.ReactNode; label: string; to?: string; onClick?: () => void }) {
-  const inner = (
-    <div
-      className="flex flex-col items-center justify-center gap-2 py-4 rounded-2xl transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.97] cursor-pointer"
-      style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}
-    >
-      <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center"
-        style={{ backgroundColor: T.card, border: `1px solid ${T.border}`, color: T.text }}
-      >
-        {icon}
-      </div>
-      <span className="text-[11px] font-bold text-center leading-tight" style={{ color: T.textSecondary }}>{label}</span>
-    </div>
-  );
-  return to ? <Link to={to}>{inner}</Link> : <button onClick={onClick} className="w-full">{inner}</button>;
-}
-
 // ---------------------------------------------------------------------------
-// Segmented scroll-spy nav — replaces the old click-to-swap tab bar.
-// A sliding pill tracks the active section as the page scrolls, and tapping
-// a segment smooth-scrolls the page to that section instead of hiding/
-// showing separate panels.
+// Segmented scroll-spy nav
 // ---------------------------------------------------------------------------
-type SectionId = 'overview' | 'profile' | 'referrals' | 'preferences';
+type SectionId = 'overview' | 'referrals' | 'preferences';
 
 function SegmentedScrollNav({
   items,
@@ -276,14 +210,11 @@ function SegmentedScrollNav({
 // Main AccountPage
 // ---------------------------------------------------------------------------
 export default function AccountPage() {
-  const { user, logout, setAdminModalOpen, showToast, login } = useAppStore();
+  const { user, logout, setAdminModalOpen } = useAppStore();
   const navigate = useNavigate();
 
   const [activeSection, setActiveSection] = useState<SectionId>('overview');
 
-  // Currency
-  // Currency comes straight from the registered country — no lookup, no FX,
-  // no loading state, correct on the very first paint.
   const { country, fmt: formatCurrency, currency: currencyCode, currencyName, symbol } = useCountry();
   const [currencyLoading, setCurrencyLoading] = useState(true);
 
@@ -297,11 +228,6 @@ export default function AccountPage() {
   const [showBalance, setShowBalance]           = useState(true);
   const [showAffBalance, setShowAffBalance]     = useState(true);
 
-  // Profile edit
-  const [editMode, setEditMode]       = useState(false);
-  const [editForm, setEditForm]       = useState({ firstName: '', lastName: '', phone: '', country: '' });
-  const [editLoading, setEditLoading] = useState(false);
-
   // Preferences
   const [notifications, setNotifications] = useState({ push: true, sms: false, email: true });
   const [depositLimit, setDepositLimit]   = useState('');
@@ -309,7 +235,7 @@ export default function AccountPage() {
 
   // Section refs for scroll-spy + smooth scroll
   const sectionRefs = useRef<Record<SectionId, HTMLDivElement | null>>({
-    overview: null, profile: null, referrals: null, preferences: null,
+    overview: null, referrals: null, preferences: null,
   });
   const suppressSpyRef = useRef(false);
 
@@ -325,13 +251,6 @@ export default function AccountPage() {
       const res = await userApi.me();
       if (res.success && res.data) {
         setProfileData(res.data);
-        const d = res.data as Record<string, unknown>;
-        setEditForm({
-          firstName: (d.firstName as string) ?? '',
-          lastName:  (d.lastName  as string) ?? '',
-          phone:     (d.phone     as string) ?? '',
-          country:   (d.country   as string) ?? '',
-        });
       }
     } catch { /* silently fall back */ }
     finally { setProfileLoading(false); }
@@ -366,14 +285,12 @@ export default function AccountPage() {
     fetchWallet();
   }, [user, fetchProfile, fetchWallet]);
 
-  // Nav items (admin-only Referrals) — declared before scroll-spy effect uses it
   const isAdminEarly = ['ADMIN', 'SUPER_ADMIN'].includes(
     (((profileData?.role as string) ?? user?.role ?? '') as string).toUpperCase()
   );
   const navItems = useMemo(() => {
     const items: { id: SectionId; label: string; icon: React.ReactNode }[] = [
       { id: 'overview',    label: 'Overview',    icon: <TrendingUpIcon sx={{ fontSize: 16 }} /> },
-      { id: 'profile',     label: 'Profile',     icon: <PersonIcon sx={{ fontSize: 16 }} /> },
     ];
     if (isAdminEarly) {
       items.push({ id: 'referrals', label: 'Referrals', icon: <GroupAddIcon sx={{ fontSize: 16 }} /> });
@@ -382,7 +299,7 @@ export default function AccountPage() {
     return items;
   }, [isAdminEarly]);
 
-  // Scroll-spy: highlight nav based on which section is most visible
+  // Scroll-spy
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -417,8 +334,6 @@ export default function AccountPage() {
   const apiFirstName = (profileData?.firstName as string) ?? '';
   const apiLastName  = (profileData?.lastName  as string) ?? '';
   const apiEmail     = (profileData?.email     as string) ?? user.email;
-  const apiPhone     = (profileData?.phone     as string) ?? user.phone ?? '';
-  const apiCountry   = (profileData?.country   as string) ?? '';
   const apiRole      = (profileData?.role      as string) ?? user.role;
   const displayName  = [apiFirstName, apiLastName].filter(Boolean).join(' ') || user.fullName;
   const roleLabel    = apiRole.replace('_', ' ');
@@ -438,30 +353,6 @@ export default function AccountPage() {
   const balanceReady          = !currencyLoading;
 
   // Handlers
-  const saveProfile = async () => {
-    setEditLoading(true);
-    try {
-      const body: UpdateProfileRequest = {
-        firstName: editForm.firstName.trim() || undefined,
-        lastName:  editForm.lastName.trim()  || undefined,
-        phone:     editForm.phone.trim()     || undefined,
-        country:   editForm.country.trim()   || undefined,
-      };
-      const res = await userApi.update(body);
-      if (res.success) {
-        const newName = [res.data.firstName, res.data.lastName].filter(Boolean).join(' ') || user.fullName;
-        login({ ...user, fullName: newName, phone: res.data.phone ?? user.phone });
-        await fetchProfile();
-        setEditMode(false);
-        showToast('Profile updated!', 'success');
-      }
-    } catch (err: unknown) {
-      showToast(err instanceof Error ? err.message : 'Failed to update profile.', 'error');
-    } finally {
-      setEditLoading(false);
-    }
-  };
-
   const handleLogout = async () => {
     try { await auth.logout(); } catch { /* ignore */ }
     logout();
@@ -532,7 +423,7 @@ export default function AccountPage() {
       {/* ═══ DESKTOP LAYOUT: sidebar + single scrolling content column ═══ */}
       <div className="lg:max-w-5xl lg:mx-auto lg:pt-10 lg:px-6 lg:grid lg:grid-cols-[272px_1fr] lg:gap-6 lg:items-start">
 
-        {/* Sidebar (lg+ only) — scroll-spies + smooth-scrolls, doesn't swap panels */}
+        {/* Sidebar (lg+ only) */}
         <aside className="hidden lg:block lg:sticky lg:top-10 space-y-4">
           <Card className="p-5">
             <div className="flex items-center gap-3 mb-4">
@@ -619,7 +510,7 @@ export default function AccountPage() {
           </p>
         </aside>
 
-        {/* Content column — one continuous scroll, sections stacked with anchors */}
+        {/* Content column */}
         <div className="px-4 pt-4 lg:px-0 lg:pt-0 max-w-lg mx-auto lg:max-w-none lg:mx-0 space-y-10">
 
           {/* ══════════════════ OVERVIEW ══════════════════ */}
@@ -676,17 +567,6 @@ export default function AccountPage() {
                 </div>
               </div>
             </div>
-
-            {/* Quick Actions — replaces the old Wallet Overview stat row */}
-            <Card className="p-5">
-              <SectionLabel text="Quick Actions" />
-              <div className="grid grid-cols-4 gap-2">
-                <QuickAction icon={<ArrowDownwardIcon sx={{ fontSize: 18 }} />} label="Deposit" to="/deposit" />
-                <QuickAction icon={<ArrowUpwardIcon sx={{ fontSize: 18 }} />} label="Withdraw" to="/wallet" />
-                <QuickAction icon={<AccountBalanceWalletIcon sx={{ fontSize: 18 }} />} label="Transactions" to="/wallet" />
-                <QuickAction icon={<CardGiftcardIcon sx={{ fontSize: 18 }} />} label="Referrals" to="/affiliate" />
-              </div>
-            </Card>
 
             {/* Recent Transactions */}
             <Card className="p-5">
@@ -795,11 +675,7 @@ export default function AccountPage() {
               </div>
             </Card>
 
-            {/* ── Region & Currency ──────────────────────────────────────
-                Makes the country choice and everything derived from it
-                visible in one place. Previously a user had no way to see
-                which currency their account was actually denominated in,
-                or what the stake/deposit floors were, until a bet failed. */}
+            {/* Region & Currency */}
             <Card className="p-5">
               <SectionLabel
                 icon={<span style={{ fontSize: 15 }}>{country.flag}</span>}
@@ -857,7 +733,7 @@ export default function AccountPage() {
             <Card className="p-5">
               <SectionLabel icon={<HeadsetMicIcon sx={{ fontSize: 16 }} style={{ color: T.text }} />} text="Support" />
               <div className="grid grid-cols-2 gap-2">
-                {['Live Chat', 'FAQs', 'WhatsApp', 'Email Support'].map((label) => (
+                {['Live Chat', 'FAQs', 'Email Support'].map((label) => (
                   <button
                     key={label}
                     className="py-2.5 rounded-xl text-xs font-semibold transition-all hover:-translate-y-0.5"
@@ -865,129 +741,6 @@ export default function AccountPage() {
                   >
                     {label}
                   </button>
-                ))}
-              </div>
-            </Card>
-          </div>
-
-          {/* ══════════════════ PROFILE ══════════════════ */}
-          <div
-            ref={(el) => { sectionRefs.current.profile = el; }}
-            data-section-id="profile"
-            className="space-y-4 scroll-mt-28"
-          >
-            <Card className="overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: `1px solid ${T.border}` }}>
-                <div className="flex items-center gap-2">
-                  <PersonIcon sx={{ fontSize: 16 }} style={{ color: T.text }} />
-                  <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: T.textMuted }}>Personal Info</span>
-                </div>
-                {!editMode && (
-                  <button onClick={() => setEditMode(true)} className="flex items-center gap-1 text-xs font-bold" style={{ color: T.text }}>
-                    <EditIcon sx={{ fontSize: 13 }} />
-                    Edit
-                  </button>
-                )}
-              </div>
-
-              {editMode ? (
-                <div className="px-5 py-5 space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    {(['firstName', 'lastName'] as const).map((field) => (
-                      <div key={field}>
-                        <label className="block text-xs font-bold mb-1.5 uppercase tracking-wider" style={{ color: T.textMuted }}>
-                          {field === 'firstName' ? 'First Name' : 'Last Name'}
-                        </label>
-                        <input
-                          type="text"
-                          value={editForm[field]}
-                          onChange={(e) => setEditForm((p) => ({ ...p, [field]: e.target.value }))}
-                          style={inputStyle}
-                          disabled={editLoading}
-                          placeholder={field === 'firstName' ? 'First' : 'Last'}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold mb-1.5 uppercase tracking-wider" style={{ color: T.textMuted }}>Phone Number</label>
-                    <input
-                      type="tel"
-                      value={editForm.phone}
-                      onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))}
-                      style={inputStyle}
-                      disabled={editLoading}
-                      placeholder="+233 XX XXX XXXX"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold mb-1.5 uppercase tracking-wider" style={{ color: T.textMuted }}>Country</label>
-                    <input
-                      type="text"
-                      value={editForm.country}
-                      onChange={(e) => setEditForm((p) => ({ ...p, country: e.target.value }))}
-                      style={inputStyle}
-                      disabled={editLoading}
-                      placeholder="e.g. GH"
-                      maxLength={2}
-                    />
-                  </div>
-                  <div className="flex gap-3 pt-1">
-                    <button
-                      onClick={() => setEditMode(false)}
-                      disabled={editLoading}
-                      className="flex-1 py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
-                      style={{ backgroundColor: T.bg2, color: T.textSecondary, border: `1px solid ${T.border}` }}
-                    >
-                      <CloseIcon fontSize="small" />
-                      Cancel
-                    </button>
-                    <button
-                      onClick={saveProfile}
-                      disabled={editLoading}
-                      className="flex-1 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.97] disabled:opacity-50"
-                      style={{ backgroundColor: T.btnPrimary, color: T.btnPrimaryText }}
-                    >
-                      {editLoading ? <><Spinner /> Saving…</> : <><SaveIcon fontSize="small" />Save Changes</>}
-                    </button>
-                  </div>
-                </div>
-              ) : profileLoading ? (
-                <div>
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="flex justify-between items-center px-5 py-3.5" style={{ borderBottom: `1px solid ${T.border}` }}>
-                      <Skeleton w="w-20" h="h-3.5" />
-                      <Skeleton w="w-28" h="h-3.5" />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div>
-                  <InfoRow label="Full Name" value={displayName || '—'} />
-                  <InfoRow label="Email"     value={apiEmail    || '—'} />
-                  <InfoRow label="Phone"     value={apiPhone    || '—'} />
-                  <InfoRow label="Country"   value={apiCountry  || '—'} />
-                  <InfoRow label="Role"      value={roleLabel} last />
-                </div>
-              )}
-            </Card>
-
-            <Card className="p-5">
-              <SectionLabel icon={<ShieldIcon sx={{ fontSize: 16 }} style={{ color: T.text }} />} text="Security" />
-              <div className="space-y-0">
-                {[
-                  { label: 'Email', value: apiEmail || '—' },
-                  { label: 'Phone', value: apiPhone || '—' },
-                  { label: '2FA', value: 'Not enabled' },
-                ].map((row, idx, arr) => (
-                  <div
-                    key={row.label}
-                    className="flex items-center justify-between py-3"
-                    style={idx < arr.length - 1 ? { borderBottom: `1px solid ${T.border}` } : {}}
-                  >
-                    <span className="text-sm font-semibold" style={{ color: T.text }}>{row.label}</span>
-                    <span className="text-xs" style={{ color: T.textMuted }}>{row.value}</span>
-                  </div>
                 ))}
               </div>
             </Card>
@@ -1069,7 +822,7 @@ export default function AccountPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold mb-1.5 uppercase tracking-wider" style={{ color: T.textMuted }}>
-                    {false ? 'Daily Deposit Limit' : `Daily Deposit Limit (${currencyCode})`}
+                    {`Daily Deposit Limit (${currencyCode})`}
                   </label>
                   <input
                     type="number"
