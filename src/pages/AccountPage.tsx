@@ -1,56 +1,59 @@
 import { useState, useEffect, useCallback, useMemo, useRef, useLayoutEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppStore } from '../store';
-import { useCountry } from '../hooks/useCountry';
 
 import { user as userApi, wallet, affiliate, auth } from '../utils/api';
 import type { Transaction } from '../utils/api';
 
-import SettingsIcon           from '@mui/icons-material/Settings';
-import NotificationsIcon      from '@mui/icons-material/Notifications';
-import VerifiedUserIcon       from '@mui/icons-material/VerifiedUser';
-import LogoutIcon             from '@mui/icons-material/Logout';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import SettingsIcon             from '@mui/icons-material/Settings';
+import NotificationsIcon        from '@mui/icons-material/Notifications';
+import VerifiedUserIcon         from '@mui/icons-material/VerifiedUser';
+import LogoutIcon               from '@mui/icons-material/Logout';
+import AdminPanelSettingsIcon   from '@mui/icons-material/AdminPanelSettings';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import GroupAddIcon           from '@mui/icons-material/GroupAdd';
-import RefreshIcon            from '@mui/icons-material/Refresh';
-import LoopIcon                from '@mui/icons-material/Loop';
-import OpenInNewIcon          from '@mui/icons-material/OpenInNew';
-import TrendingUpIcon         from '@mui/icons-material/TrendingUp';
-import SyncIcon               from '@mui/icons-material/Sync';
-import PeopleAltIcon          from '@mui/icons-material/PeopleAlt';
-import PaidIcon               from '@mui/icons-material/Paid';
-import NorthEastIcon          from '@mui/icons-material/NorthEast';
-import SouthWestIcon          from '@mui/icons-material/SouthWest';
-import MoneyOffIcon           from '@mui/icons-material/MoneyOff';
-import VisibilityIcon         from '@mui/icons-material/Visibility';
-import VisibilityOffIcon      from '@mui/icons-material/VisibilityOff';
-import HeadsetMicIcon         from '@mui/icons-material/HeadsetMic';
+import GroupAddIcon             from '@mui/icons-material/GroupAdd';
+import RefreshIcon              from '@mui/icons-material/Refresh';
+import LoopIcon                 from '@mui/icons-material/Loop';
+import OpenInNewIcon            from '@mui/icons-material/OpenInNew';
+import TrendingUpIcon           from '@mui/icons-material/TrendingUp';
+import SyncIcon                 from '@mui/icons-material/Sync';
+import PeopleAltIcon            from '@mui/icons-material/PeopleAlt';
+import PaidIcon                 from '@mui/icons-material/Paid';
+import NorthEastIcon            from '@mui/icons-material/NorthEast';
+import SouthWestIcon            from '@mui/icons-material/SouthWest';
+import MoneyOffIcon             from '@mui/icons-material/MoneyOff';
+import VisibilityIcon           from '@mui/icons-material/Visibility';
+import VisibilityOffIcon        from '@mui/icons-material/VisibilityOff';
+import HeadsetMicIcon           from '@mui/icons-material/HeadsetMic';
 
 // ---------------------------------------------------------------------------
 // Premium monochrome design tokens
 // ---------------------------------------------------------------------------
 const T = {
-  bg: '#070b14',
-  bg2: '#0d1422',
-  card: '#121c30',
-  cardHover: '#1a2740',
-  border: '#1e2d4a',
-  text: '#FFFFFF',
-  textSecondary: '#a8bcdc',
-  textMuted: '#7ba0c4',
-  btnPrimary: '#3b82f6',
-  btnPrimaryText: '#FFFFFF',
-  btnSecondaryBorder: 'rgba(96,165,250,0.25)',
-  success: '#22C55E',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  accent: '#60a5fa',
+  bg:                '#070b14',
+  bg2:               '#0d1422',
+  card:              '#121c30',
+  cardHover:         '#1a2740',
+  border:            '#1e2d4a',
+  text:              '#FFFFFF',
+  textSecondary:     '#a8bcdc',
+  textMuted:         '#7ba0c4',
+  btnPrimary:        '#3b82f6',
+  btnPrimaryText:    '#FFFFFF',
+  btnSecondaryBorder:'rgba(96,165,250,0.25)',
+  success:           '#22C55E',
+  warning:           '#F59E0B',
+  danger:            '#EF4444',
+  accent:            '#60a5fa',
 };
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+function formatAmount(n: number) {
+  return n.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GH', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -85,10 +88,6 @@ function txLabel(kind: string): string {
 // ---------------------------------------------------------------------------
 // Small shared pieces
 // ---------------------------------------------------------------------------
-function Spinner() {
-  return <LoopIcon fontSize="small" className="animate-spin shrink-0" />;
-}
-
 function Skeleton({ w = 'w-full', h = 'h-4' }: { w?: string; h?: string }) {
   return <div className={`${h} ${w} rounded-lg animate-pulse`} style={{ backgroundColor: T.cardHover }} />;
 }
@@ -215,9 +214,6 @@ export default function AccountPage() {
 
   const [activeSection, setActiveSection] = useState<SectionId>('overview');
 
-  const { country, fmt: formatCurrency, currency: currencyCode, currencyName, symbol } = useCountry();
-  const [currencyLoading, setCurrencyLoading] = useState(true);
-
   // Data
   const [profileData, setProfileData]           = useState<Record<string, unknown> | null>(null);
   const [profileLoading, setProfileLoading]     = useState(true);
@@ -241,17 +237,11 @@ export default function AccountPage() {
 
   useEffect(() => { if (!user) navigate('/login'); }, [user, navigate]);
 
-  useEffect(() => {
-    setCurrencyLoading(true);
-  }, []);
-
   const fetchProfile = useCallback(async () => {
     setProfileLoading(true);
     try {
       const res = await userApi.me();
-      if (res.success && res.data) {
-        setProfileData(res.data);
-      }
+      if (res.success && res.data) setProfileData(res.data);
     } catch { /* silently fall back */ }
     finally { setProfileLoading(false); }
   }, []);
@@ -288,6 +278,7 @@ export default function AccountPage() {
   const isAdminEarly = ['ADMIN', 'SUPER_ADMIN'].includes(
     (((profileData?.role as string) ?? user?.role ?? '') as string).toUpperCase()
   );
+
   const navItems = useMemo(() => {
     const items: { id: SectionId; label: string; icon: React.ReactNode }[] = [
       { id: 'overview',    label: 'Overview',    icon: <TrendingUpIcon sx={{ fontSize: 16 }} /> },
@@ -340,19 +331,17 @@ export default function AccountPage() {
   const isAdmin      = isAdminEarly;
   const loyaltyTier  = (user as unknown as Record<string, unknown>)?.loyaltyTier as string | undefined;
 
-  const walletBalanceGhs: number =
+  const walletBalance: number =
     typeof walletData?.balance === 'number'
       ? (walletData.balance as number)
       : typeof walletData?.availableBalance === 'number'
       ? (walletData.availableBalance as number)
       : 0;
 
-  const affBalanceGhs         = affiliateBalance?.balance ?? 0;
-  const affLifetimeGhs        = affiliateBalance?.lifetimeCommission ?? 0;
-  const affTotalReferrals     = affiliateBalance?.totalReferrals ?? 0;
-  const balanceReady          = !currencyLoading;
+  const affBalance        = affiliateBalance?.balance ?? 0;
+  const affLifetime       = affiliateBalance?.lifetimeCommission ?? 0;
+  const affTotalReferrals = affiliateBalance?.totalReferrals ?? 0;
 
-  // Handlers
   const handleLogout = async () => {
     try { await auth.logout(); } catch { /* ignore */ }
     logout();
@@ -413,7 +402,6 @@ export default function AccountPage() {
             </div>
           </div>
 
-          {/* Sticky sliding-pill scroll-spy nav (mobile) */}
           <div className="px-4 pb-3">
             <SegmentedScrollNav items={navItems} activeId={activeSection} onSelect={scrollToSection} />
           </div>
@@ -467,7 +455,6 @@ export default function AccountPage() {
             </div>
           </Card>
 
-          {/* Scroll-spy nav list */}
           <Card className="overflow-hidden">
             {navItems.map((item, idx) => (
               <button
@@ -531,7 +518,7 @@ export default function AccountPage() {
                   <div className="flex items-center gap-2">
                     <AccountBalanceWalletIcon sx={{ fontSize: 16 }} style={{ color: T.textSecondary }} />
                     <span className="text-xs font-bold uppercase tracking-wider" style={{ color: T.textMuted }}>
-                      Main Wallet · {currencyCode}
+                      Main Wallet
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -545,9 +532,9 @@ export default function AccountPage() {
                   </div>
                 </div>
                 <p className="text-4xl font-black tracking-tight mt-2 mb-6" style={{ color: T.text }}>
-                  {walletLoading || !balanceReady
+                  {walletLoading
                     ? <span className="inline-block h-10 w-48 rounded-xl animate-pulse" style={{ backgroundColor: T.cardHover }} />
-                    : showBalance ? formatCurrency(walletBalanceGhs) : `${currencyCode} ••••`}
+                    : showBalance ? formatAmount(walletBalance) : '••••'}
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <Link
@@ -588,7 +575,7 @@ export default function AccountPage() {
                 }
               />
 
-              {walletLoading || !balanceReady ? (
+              {walletLoading ? (
                 [1, 2, 3].map((i) => (
                   <div key={i} className="flex items-center gap-3 py-3.5" style={{ borderBottom: `1px solid ${T.border}` }}>
                     <Skeleton w="w-9 h-9 rounded-full shrink-0" h="h-9" />
@@ -624,10 +611,10 @@ export default function AccountPage() {
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="text-sm font-bold tabular-nums" style={{ color: credit ? T.success : T.text }}>
-                          {credit ? '+' : '-'}{formatCurrency(tx.amount)}
+                          {credit ? '+' : '-'}{formatAmount(tx.amount)}
                         </p>
                         <p className="text-[11px] mt-0.5" style={{ color: T.textMuted }}>
-                          Bal: {formatCurrency(tx.balanceAfter)}
+                          Bal: {formatAmount(tx.balanceAfter)}
                         </p>
                       </div>
                     </div>
@@ -675,60 +662,6 @@ export default function AccountPage() {
               </div>
             </Card>
 
-            {/* Region & Currency */}
-            <Card className="p-5">
-              <SectionLabel
-                icon={<span style={{ fontSize: 15 }}>{country.flag}</span>}
-                text="Region & Currency"
-              />
-              <div className="space-y-2.5">
-                {[
-                  { label: 'Country',            value: `${country.flag}  ${country.name}` },
-                  { label: 'Currency',           value: `${symbol}  ${currencyCode} — ${currencyName}` },
-                  { label: 'Minimum stake',      value: formatCurrency(country.minStake) },
-                  { label: 'Maximum stake',      value: formatCurrency(country.maxStake) },
-                  { label: 'Minimum deposit',    value: formatCurrency(country.minDeposit) },
-                  { label: 'Minimum withdrawal', value: formatCurrency(country.minWithdrawal) },
-                ].map(({ label, value }) => (
-                  <div
-                    key={label}
-                    className="flex items-center justify-between py-1.5"
-                    style={{ borderBottom: `1px solid ${T.border}` }}
-                  >
-                    <span className="text-xs font-medium" style={{ color: T.textMuted }}>
-                      {label}
-                    </span>
-                    <span className="text-xs font-semibold" style={{ color: T.text }}>
-                      {value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-3">
-                <p className="text-[11px] leading-relaxed mb-2" style={{ color: T.textMuted }}>
-                  Deposit methods available in {country.name}:
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {country.paymentMethods.map((m) => (
-                    <span
-                      key={m}
-                      className="px-2 py-1 rounded-lg text-[10px] font-semibold"
-                      style={{ background: T.bg2, color: T.textSecondary, border: `1px solid ${T.border}` }}
-                    >
-                      {m}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <p className="text-[10px] mt-3 leading-relaxed" style={{ color: T.textMuted }}>
-                Your currency is set by the country you chose when you registered.
-                Contact support if you need it changed — it affects your wallet,
-                stake limits and payout methods.
-              </p>
-            </Card>
-
             {/* Support */}
             <Card className="p-5">
               <SectionLabel icon={<HeadsetMicIcon sx={{ fontSize: 16 }} style={{ color: T.text }} />} text="Support" />
@@ -762,15 +695,15 @@ export default function AccountPage() {
                 </div>
 
                 <p className="text-3xl font-black mb-4" style={{ color: T.text }}>
-                  {walletLoading || !balanceReady
+                  {walletLoading
                     ? <span className="inline-block h-9 w-40 rounded-xl animate-pulse" style={{ backgroundColor: T.cardHover }} />
-                    : showAffBalance ? formatCurrency(affBalanceGhs) : `${currencyCode} ••••`}
+                    : showAffBalance ? formatAmount(affBalance) : '••••'}
                 </p>
 
                 <div className="grid grid-cols-3 gap-2 mb-4">
-                  <StatPill icon={<PaidIcon sx={{ fontSize: 18 }} style={{ color: T.text }} />} label="Total Earned" value={walletLoading || !balanceReady ? '…' : formatCurrency(affLifetimeGhs)} />
+                  <StatPill icon={<PaidIcon sx={{ fontSize: 18 }} style={{ color: T.text }} />} label="Total Earned" value={walletLoading ? '…' : formatAmount(affLifetime)} />
                   <StatPill icon={<PeopleAltIcon sx={{ fontSize: 18 }} style={{ color: T.success }} />} label="Referrals" value={walletLoading ? '…' : String(affTotalReferrals)} color={T.success} />
-                  <StatPill icon={<AccountBalanceWalletIcon sx={{ fontSize: 18 }} style={{ color: T.text }} />} label="Available" value={walletLoading || !balanceReady ? '…' : formatCurrency(affBalanceGhs)} />
+                  <StatPill icon={<AccountBalanceWalletIcon sx={{ fontSize: 18 }} style={{ color: T.text }} />} label="Available" value={walletLoading ? '…' : formatAmount(affBalance)} />
                 </div>
 
                 <Link
@@ -822,7 +755,7 @@ export default function AccountPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold mb-1.5 uppercase tracking-wider" style={{ color: T.textMuted }}>
-                    {`Daily Deposit Limit (${currencyCode})`}
+                    Daily Deposit Limit
                   </label>
                   <input
                     type="number"
@@ -831,11 +764,12 @@ export default function AccountPage() {
                     placeholder="No limit set"
                     style={inputStyle}
                     min="0"
-                    disabled={currencyLoading}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold mb-1.5 uppercase tracking-wider" style={{ color: T.textMuted }}>Session Time Limit (minutes)</label>
+                  <label className="block text-xs font-bold mb-1.5 uppercase tracking-wider" style={{ color: T.textMuted }}>
+                    Session Time Limit (minutes)
+                  </label>
                   <input
                     type="number"
                     value={sessionLimit}
