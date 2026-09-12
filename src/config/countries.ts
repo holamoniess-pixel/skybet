@@ -101,7 +101,7 @@ export const COUNTRIES: CountryConfig[] = [
     symbol: 'GH₵',
     currencyName: 'Ghanaian Cedi',
     locale: 'en-GH',
-    minStake: 250,
+    minStake: 5,
     maxStake: 100_000,
     stakeSteps: [250, 500, 1000, 2500, 5000],
     minDeposit: 250,
